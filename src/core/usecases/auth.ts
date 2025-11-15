@@ -15,7 +15,7 @@
  * These usecases are called by React Query hooks in the presentation layer.
  */
 
-import type { AuthRepository } from "../ports/authRepository";
+import type { AuthRepository, AuthStateChangeCallback } from "../ports/authRepository";
 import type {
     User,
     Session,
@@ -197,5 +197,56 @@ export const getCurrentUser = async (
     // No validation needed for user retrieval
     // Delegate to repository
     return repo.getUser();
+};
+
+/**
+ * Subscribes to authentication state changes.
+ *
+ * This usecase provides a way to listen for authentication state changes
+ * (sign-in, sign-out, token refresh, user updates, password recovery) across
+ * the application. The subscription is active until the returned cleanup
+ * function is called.
+ *
+ * The callback receives a `SessionChangeEvent` containing:
+ * - The event type (SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY)
+ * - The current session (or null if signed out)
+ *
+ * This subscription enables real-time cross-tab synchronization of authentication
+ * state, as Supabase's `onAuthStateChange` automatically triggers when auth state
+ * changes in any browser tab/window.
+ *
+ * @param {AuthRepository} repo - Authentication repository implementation
+ * @param {AuthStateChangeCallback} callback - Callback function to handle auth state changes
+ * @returns {() => void} Cleanup function to unsubscribe from auth state changes
+ *
+ * @example
+ * ```typescript
+ * const handleAuthChange: AuthStateChangeCallback = (event) => {
+ *   if (event.event === "SIGNED_OUT" || !event.session) {
+ *     console.log("User signed out");
+ *     // Handle sign out (clear stores, redirect, etc.)
+ *   } else if (event.event === "SIGNED_IN") {
+ *     console.log("User signed in");
+ *     console.log(`Session: ${event.session.accessToken}`);
+ *     // Handle sign in (update stores, etc.)
+ *   } else if (event.event === "TOKEN_REFRESHED") {
+ *     console.log("Token refreshed");
+ *     // Handle token refresh (update stores with new session, etc.)
+ *   }
+ * };
+ *
+ * const unsubscribe = subscribeToAuthChanges(authRepositorySupabase, handleAuthChange);
+ *
+ * // Later, when no longer needed:
+ * unsubscribe();
+ * ```
+ */
+export const subscribeToAuthChanges = (
+    repo: AuthRepository,
+    callback: AuthStateChangeCallback
+): (() => void) => {
+    // Delegate to repository's onAuthStateChange method
+    // The repository handles the actual subscription and returns a cleanup function
+    return repo.onAuthStateChange(callback);
 };
 

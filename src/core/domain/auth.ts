@@ -79,6 +79,56 @@ export type AuthError = {
 };
 
 /**
+ * AuthEventType represents the type of authentication state change event from Supabase.
+ *
+ * This type enumerates all possible authentication state change events that can occur
+ * when listening to Supabase's `onAuthStateChange` listener. These events are emitted
+ * when the authentication state changes in the application.
+ *
+ * The event types correspond to Supabase's authentication event types:
+ * - "SIGNED_IN": User has successfully signed in
+ * - "SIGNED_OUT": User has signed out or token has expired/invalidated
+ * - "TOKEN_REFRESHED": Access token has been automatically refreshed by Supabase
+ * - "USER_UPDATED": User information has been updated
+ * - "PASSWORD_RECOVERY": Password recovery process has been initiated
+ *
+ * This type is exported separately to allow for reuse in other parts of the application
+ * where authentication event types need to be referenced or checked.
+ */
+export type AuthEventType =
+    | "SIGNED_IN"
+    | "SIGNED_OUT"
+    | "TOKEN_REFRESHED"
+    | "USER_UPDATED"
+    | "PASSWORD_RECOVERY";
+
+/**
+ * SessionChangeEvent represents an authentication state change event from Supabase.
+ *
+ * This type represents events that occur when the authentication state changes,
+ * such as when a user signs in, signs out, token is refreshed, user is updated,
+ * or password recovery is initiated. The event is emitted by Supabase's
+ * `onAuthStateChange` listener and is used to synchronize session state across
+ * all browser tabs and windows.
+ *
+ * The session field is null when the user signs out or the token expires/invalidates.
+ * For all other events (SIGNED_IN, TOKEN_REFRESHED, USER_UPDATED), the session
+ * contains the current active session data.
+ *
+ * This type is used throughout the application layers to handle real-time
+ * session synchronization and automatic sign-out when tokens expire or are invalidated.
+ *
+ * @property {AuthEventType} event - Type of authentication state change event. See {@link AuthEventType} for all possible event types.
+ * @property {Session | null} session - Current active session or null if no session exists.
+ *   When event is "SIGNED_OUT", session is always null. For all other events,
+ *   session contains the current session data with updated tokens if applicable.
+ */
+export type SessionChangeEvent = {
+    event: AuthEventType;
+    session: Session | null;
+};
+
+/**
  * SignInCredentials contains the information required to sign in a user.
  *
  * This type is used when a user attempts to authenticate with their existing

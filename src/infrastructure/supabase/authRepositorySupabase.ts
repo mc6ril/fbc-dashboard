@@ -17,13 +17,15 @@
  */
 
 import { supabaseClient } from "./client";
-import type { AuthRepository } from "../../core/ports/authRepository";
+import type { AuthRepository, AuthStateChangeCallback } from "../../core/ports/authRepository";
 import type {
     User,
     Session,
     AuthError,
     SignInCredentials,
     SignUpCredentials,
+    SessionChangeEvent,
+    AuthEventType,
 } from "../../core/domain/auth";
 import type { AuthError as SupabaseAuthError } from "@supabase/supabase-js";
 
@@ -104,38 +106,126 @@ const mapSupabaseSessionToDomain = (supabaseSession: {
 };
 
 /**
+ * Maps Supabase auth state change event to domain SessionChangeEvent type.
+ *
+ * Converts Supabase's event string to domain AuthEventType and maps the session
+ * to domain Session type if present. The session is null when the user signs out
+ * or the token expires/invalidates.
+ *
+ * Supabase events match our domain events exactly: SIGNED_IN, SIGNED_OUT,
+ * TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY. We cast the event string
+ * to AuthEventType as Supabase guarantees these event types.
+ *
+ * @param {string} supabaseEvent - Supabase auth state change event string
+ * @param {object | null} supabaseSession - Supabase session object or null
+ * @returns {SessionChangeEvent} Domain SessionChangeEvent type
+ * @throws {Error} Throws if session mapping fails when session is provided
+ */
+const mapSupabaseEventToDomain = (
+    supabaseEvent: string,
+    supabaseSession: {
+        access_token: string;
+        refresh_token?: string | null;
+        expires_at?: number;
+        user: {
+            id: string;
+            email?: string;
+            created_at?: string;
+            updated_at?: string;
+        };
+    } | null
+): SessionChangeEvent => {
+    // Map Supabase event strings to domain AuthEventType
+    // Supabase events match our domain events: SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY
+    const event = supabaseEvent as AuthEventType;
+
+    // Map session to domain type if present, otherwise null
+    const session =
+        supabaseSession != null
+            ? mapSupabaseSessionToDomain(supabaseSession)
+            : null;
+
+    return {
+        event,
+        session,
+    };
+};
+
+/**
  * Transforms Supabase authentication error to domain AuthError type.
  *
- * Maps Supabase HTTP status codes to domain error codes. This approach is more
- * reliable than parsing error messages, which can vary in format.
+ * Maps Supabase HTTP status codes and error messages to domain error codes
+ * for better user experience. This function parses error messages to provide
+ * specific, actionable error codes while falling back to status code mapping
+ * when message parsing is inconclusive.
  *
- * Note: This is a simplified MVP implementation. For more granular error codes,
- * consider matching on message fragments (e.g., message.includes("email")) or
- * using Supabase's error code field if available in future versions.
+ * The function detects common Supabase error patterns:
+ * - Email already registered/exists
+ * - Email not confirmed
+ * - Weak password requirements
+ * - Invalid email format
+ * - Invalid credentials
+ * - Rate limiting
  *
  * @param {SupabaseAuthError} supabaseError - Supabase authentication error
- * @returns {AuthError} Domain AuthError type
+ * @returns {AuthError} Domain AuthError type with specific error code and user-friendly message
  */
 const transformSupabaseErrorToAuthError = (
     supabaseError: SupabaseAuthError
 ): AuthError => {
-    // Map HTTP status codes to domain error codes
-    // This is more reliable than parsing error messages
+    const errorMessage = (supabaseError.message || "").toLowerCase();
+    const status = supabaseError.status;
     let code: string = "AUTH_ERROR";
 
-    if (supabaseError.status === 401) {
+    // First, try to detect specific error patterns from message
+    // This provides better user experience than generic status codes
+    if (errorMessage.includes("already registered") || 
+        errorMessage.includes("already exists") ||
+        errorMessage.includes("user already registered") ||
+        errorMessage.includes("email address is already registered")) {
+        code = "EMAIL_ALREADY_EXISTS";
+    } else if (
+        errorMessage.includes("email not confirmed") ||
+        errorMessage.includes("email_not_confirmed") ||
+        errorMessage.includes("confirm your email") ||
+        errorMessage.includes("email confirmation required")
+    ) {
+        code = "EMAIL_NOT_CONFIRMED";
+    } else if (
+        errorMessage.includes("password") &&
+        (errorMessage.includes("weak") ||
+            errorMessage.includes("too short") ||
+            errorMessage.includes("too long") ||
+            errorMessage.includes("requirements"))
+    ) {
+        code = "WEAK_PASSWORD";
+    } else if (
+        errorMessage.includes("invalid email") ||
+        errorMessage.includes("invalid email format") ||
+        errorMessage.includes("email format is invalid")
+    ) {
+        code = "INVALID_EMAIL_FORMAT";
+    } else if (
+        errorMessage.includes("invalid login") ||
+        errorMessage.includes("invalid credentials") ||
+        errorMessage.includes("wrong password") ||
+        errorMessage.includes("incorrect password") ||
+        status === 401
+    ) {
         code = "INVALID_CREDENTIALS";
-    } else if (supabaseError.status === 400) {
-        // 400 can be various validation errors, use generic code
-        code = "VALIDATION_ERROR";
-    } else if (supabaseError.status === 422) {
-        // 422 Unprocessable Entity often indicates email already exists or weak password
-        code = "VALIDATION_ERROR";
-    } else if (supabaseError.status === 429) {
+    } else if (
+        errorMessage.includes("rate limit") ||
+        errorMessage.includes("too many requests") ||
+        status === 429
+    ) {
         code = "RATE_LIMIT_EXCEEDED";
-    } else if (supabaseError.status) {
+    } else if (status === 400 || status === 422) {
+        // Fallback for 400/422 when message doesn't match known patterns
+        // These can be various validation errors
+        code = "VALIDATION_ERROR";
+    } else if (status) {
         // For other status codes, use the status as code
-        code = `HTTP_${supabaseError.status}`;
+        code = `HTTP_${status}`;
     }
 
     return {
@@ -298,6 +388,93 @@ export const authRepositorySupabase: AuthRepository = {
         }
 
         return mapSupabaseUserToDomain(data.user);
+    },
+
+    /**
+     * Subscribes to authentication state changes.
+     *
+     * Uses Supabase's `onAuthStateChange` method to listen to authentication
+     * state changes (sign in, sign out, token refresh, etc.). The callback
+     * receives domain-mapped events with session data.
+     *
+     * The subscription automatically synchronizes across all browser tabs and
+     * windows through Supabase's built-in localStorage mechanism. When one tab
+     * triggers a state change, all other tabs receive the event automatically.
+     *
+     * This method returns a cleanup function that must be called to unsubscribe
+     * from events and prevent memory leaks.
+     *
+     * @param {function} callback - Function to call when authentication state changes.
+     *   Receives a `SessionChangeEvent` with the event type and current session (or null).
+     * @returns {function} Cleanup function to unsubscribe from authentication state changes.
+     *   Call this function to stop receiving events and prevent memory leaks.
+     * @throws {never} This method does not throw. Supabase's `onAuthStateChange` always returns
+     *   a subscription object. If event mapping fails, errors are logged but not thrown
+     *   (to prevent unhandled errors in async callbacks from external libraries).
+     *
+     * @example
+     * ```typescript
+     * const unsubscribe = authRepositorySupabase.onAuthStateChange((event) => {
+     *   if (event.event === "SIGNED_OUT" || !event.session) {
+     *     // Handle sign out (clear stores, redirect, etc.)
+     *   } else if (event.event === "SIGNED_IN") {
+     *     // Handle sign in (update stores with new session, etc.)
+     *   } else if (event.event === "TOKEN_REFRESHED") {
+     *     // Handle token refresh (update stores with refreshed session, etc.)
+     *   }
+     * });
+     *
+     * // Later, when no longer needed:
+     * unsubscribe();
+     * ```
+     */
+    onAuthStateChange: (callback: AuthStateChangeCallback): (() => void) => {
+        // Subscribe to Supabase auth state changes
+        // Supabase's onAuthStateChange returns an object with a subscription
+        // Note: onAuthStateChange does not throw - it always returns a subscription object
+        const {
+            data: { subscription },
+        } = supabaseClient.auth.onAuthStateChange((supabaseEvent, supabaseSession) => {
+            try {
+                // Map Supabase event and session to domain types
+                const domainEvent = mapSupabaseEventToDomain(
+                    supabaseEvent,
+                    supabaseSession
+                );
+
+                // Call the callback with the domain-mapped event
+                callback(domainEvent);
+            } catch (error) {
+                // If mapping fails, log error and don't call callback
+                // Never throw in a callback from an external library (Supabase)
+                // as the error would be swallowed and the app cannot handle it properly
+                // This prevents invalid events from being processed by the application
+                console.error(
+                    "Failed to map auth state change event:",
+                    error instanceof Error ? error.message : "Unknown error",
+                    {
+                        supabaseEvent,
+                        hasSession: supabaseSession !== null,
+                    }
+                );
+                // Option: could force a safe logout by calling callback with SIGNED_OUT event
+                // callback({ event: "SIGNED_OUT", session: null });
+            }
+        });
+
+        // Return cleanup function that unsubscribes from events
+        return () => {
+            try {
+                subscription.unsubscribe();
+            } catch (error) {
+                // If unsubscribe fails, log error but don't throw
+                // This prevents cleanup errors from breaking the application
+                console.error(
+                    "Failed to unsubscribe from auth state changes:",
+                    error
+                );
+            }
+        };
     },
 };
 
