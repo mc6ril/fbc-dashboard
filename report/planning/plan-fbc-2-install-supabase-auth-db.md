@@ -471,7 +471,12 @@ Documentation for developers setting up the project. Ensures new developers know
 
 ## Unit Test Spec (Test-First Protocol)
 
-### Status: `tests: proposed`
+### Status: `tests: approved` ✅
+
+**Completed**: All test files have been created and meet all requirements:
+
+-   ✅ `__tests__/core/domain/auth.test.ts` - Domain types tests (35 test cases)
+-   ✅ `__tests__/core/usecases/auth.test.ts` - Usecases tests (35 test cases)
 
 ### Test Files & Paths
 
@@ -690,13 +695,23 @@ Generate unit test specifications and test scaffolds for the authentication usec
 
 **Files to create:**
 - `__tests__/core/usecases/auth.test.ts` - Main test file
-- `__mocks__/core/domain/auth.ts` - Mock fixtures (if needed)
+- `__mocks__/core/domain/auth.ts` - Mock fixtures for domain types (User, Session, AuthError)
+- `__mocks__/core/ports/authRepository.ts` - Mock repository implementation
 
 **Dependencies:**
 - Domain types from `core/domain/auth.ts` (Sub-Ticket 2.1)
 - Port interface from `core/ports/authRepository.ts` (Sub-Ticket 2.2)
 
-Generate the test specifications and scaffolds now. Mark status as `tests: approved` when complete.
+**Status**: ✅ **COMPLETED** - Test files and mocks created
+- Test file: `__tests__/core/usecases/auth.test.ts`
+- Mock fixtures: `__mocks__/core/domain/auth.ts` (createMockUser, createMockSession, createMockAuthError)
+- Mock repository: `__mocks__/core/ports/authRepository.ts` (createMockAuthRepository)
+- All 5 usecases tested (signInUser, signUpUser, signOutUser, getCurrentSession, getCurrentUser)
+- 35 comprehensive test cases covering success paths, validation errors, repository errors, and edge cases
+- Mock strategy implemented using `jest.Mocked<AuthRepository>` with `jest.fn()` for all methods
+- Mocks centralized in `__mocks__/` directory following DRY principles
+- All project conventions followed (TypeScript, describe/it blocks, beforeEach with jest.clearAllMocks())
+- Tests grouped by usecase function with proper Arrange-Act-Assert pattern
 ```
 
 ---
