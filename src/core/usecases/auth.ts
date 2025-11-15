@@ -23,40 +23,7 @@ import type {
     SignInCredentials,
     SignUpCredentials,
 } from "../domain/auth";
-
-/**
- * Validates email format using a simple regex pattern.
- *
- * This is a basic validation. The authentication service (Supabase) will
- * perform more strict validation. This validation catches obvious errors
- * before making network requests.
- *
- * @param {string} email - Email address to validate
- * @returns {boolean} True if email format is valid, false otherwise
- */
-const isValidEmailFormat = (email: string): boolean => {
-    // Basic email regex: local@domain format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email.trim());
-};
-
-/**
- * Validates password meets minimum requirements.
- *
- * Current requirements:
- * - Not empty
- * - Minimum 8 characters
- *
- * This is a basic validation. The authentication service (Supabase) may
- * have additional requirements. This validation catches obvious errors
- * before making network requests.
- *
- * @param {string} password - Password to validate
- * @returns {boolean} True if password meets requirements, false otherwise
- */
-const isValidPassword = (password: string): boolean => {
-    return password.length >= 8;
-};
+import { isValidEmail, isValidPassword } from "../domain/validation";
 
 /**
  * Creates an AuthError for validation failures.
@@ -96,7 +63,7 @@ export const signInUser = async (
     credentials: SignInCredentials
 ): Promise<{ session: Session; user: User }> => {
     // Validate email format
-    if (!credentials.email || !isValidEmailFormat(credentials.email)) {
+    if (!credentials.email || !isValidEmail(credentials.email)) {
         throw createValidationError("Invalid email format");
     }
 
@@ -134,7 +101,7 @@ export const signUpUser = async (
     credentials: SignUpCredentials
 ): Promise<{ session: Session; user: User }> => {
     // Validate email format
-    if (!credentials.email || !isValidEmailFormat(credentials.email)) {
+    if (!credentials.email || !isValidEmail(credentials.email)) {
         throw createValidationError("Invalid email format");
     }
 

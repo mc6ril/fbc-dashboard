@@ -19,37 +19,11 @@ import type {
     SignInCredentials,
     SignUpCredentials,
 } from "@/core/domain/auth";
-
-/**
- * Helper function to validate UUID format
- * UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
- */
-const isValidUUID = (value: string): boolean => {
-    const uuidRegex =
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(value);
-};
-
-/**
- * Helper function to validate email format
- */
-const isValidEmail = (value: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(value);
-};
-
-/**
- * Helper function to validate ISO 8601 date format
- */
-const isValidISO8601 = (value: string): boolean => {
-    const iso8601Regex =
-        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
-    if (!iso8601Regex.test(value)) {
-        return false;
-    }
-    const date = new Date(value);
-    return !isNaN(date.getTime()) && date.toISOString().startsWith(value.substring(0, 19));
-};
+import {
+    isValidUUID,
+    isValidEmail,
+    isValidISO8601,
+} from "../../utils/validation";
 
 describe("Domain Types - Authentication", () => {
     beforeEach(() => {

@@ -14,7 +14,13 @@ const config: Config = {
         "**/?(*.)+(spec|test).[jt]s?(x)",
     ],
     collectCoverageFrom: [
-        "src/**/*.{js,jsx,ts,tsx}",
+        // Domain layer - business rules and pure logic
+        "src/core/domain/**/*.{js,jsx,ts,tsx}",
+        // Usecases layer - business logic orchestration
+        "src/core/usecases/**/*.{js,jsx,ts,tsx}",
+        // Reusable UI components only (not page-specific components)
+        "src/presentation/components/ui/**/*.{js,jsx,ts,tsx}",
+        // Exclusions
         "!src/**/*.d.ts",
         "!src/**/*.stories.{js,jsx,ts,tsx}",
         "!src/**/__tests__/**",
