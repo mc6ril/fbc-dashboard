@@ -1,0 +1,335 @@
+@use "../styles/variables/colors" as *;
+@use "../styles/variables/spacing" as *;
+@use "../styles/variables/typography" as *;
+
+.container {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-container-padding;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+}
+
+.main {
+  width: 100%;
+  max-width: $main-max-width;
+  background-color: $color-background;
+  border-radius: $radius-xl;
+  padding: $spacing-main-padding;
+  box-shadow: $shadow-lg $color-shadow;
+}
+
+.title {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-sm;
+  color: $color-text-primary;
+  text-align: center;
+}
+
+.description {
+  font-size: $font-size-base;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-2xl;
+  text-align: center;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-form-gap;
+  margin-bottom: $spacing-xl;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.label {
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+}
+
+.input {
+  padding: $spacing-input-padding-y $spacing-md;
+  border: $border-width-thin solid $color-border;
+  border-radius: $radius-md;
+  font-size: $font-size-base;
+  font-family: inherit;
+  transition: $transition-default;
+  background-color: $color-background;
+}
+
+.input:focus {
+  outline: none;
+  border-color: $color-primary;
+  box-shadow: $shadow-sm $color-shadow-primary;
+}
+
+.input:disabled {
+  background-color: $color-background-disabled;
+  cursor: not-allowed;
+  opacity: $opacity-disabled;
+}
+
+.buttonsContainer {
+  display: flex;
+  gap: $spacing-buttons-gap;
+  margin-bottom: $spacing-xl;
+  flex-wrap: wrap;
+}
+
+.button {
+  flex: 1;
+  min-width: $button-min-width;
+  padding: $spacing-button-padding-y $spacing-lg;
+  border: none;
+  border-radius: $radius-md;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+  transition: $transition-default;
+  font-family: inherit;
+}
+
+.button:disabled {
+  opacity: $opacity-button-disabled;
+  cursor: not-allowed;
+}
+
+.buttonPrimary {
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
+  color: $color-background;
+}
+
+.buttonPrimary:hover:not(:disabled) {
+  transform: $transform-button-hover;
+  box-shadow: $shadow-md $color-shadow-primary-hover;
+}
+
+.buttonSecondary {
+  background-color: $color-background;
+  color: $color-text-primary;
+  border: $border-width-thin solid $color-border;
+}
+
+.buttonSecondary:hover:not(:disabled) {
+  background-color: $color-background-disabled;
+  border-color: $color-border-hover;
+}
+
+.errorContainer {
+  margin-bottom: $spacing-xl;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-error-gap;
+}
+
+.error {
+  padding: $spacing-md;
+  background-color: $color-error-background;
+  border: $border-width-thin solid $color-error-border;
+  border-left: $border-width-medium solid $color-error;
+  border-radius: $radius-md;
+  color: $color-error;
+  display: flex;
+  gap: $spacing-error-gap;
+  align-items: flex-start;
+  font-size: $font-size-sm;
+}
+
+.errorIcon {
+  font-size: $font-size-lg;
+  flex-shrink: 0;
+  line-height: $line-height-tight;
+}
+
+.errorContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.errorTitle {
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-md;
+  display: block;
+  margin-bottom: $spacing-xs;
+}
+
+.errorMessage {
+  margin: 0;
+  line-height: $line-height-normal;
+  color: $color-error-text;
+}
+
+.infoBox {
+  background: linear-gradient(135deg, $color-background-light 0%, $color-background-lighter 100%);
+  border: $border-width-thin solid $color-border-light;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-top: $spacing-md;
+}
+
+.infoTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-md;
+  color: $color-text-primary;
+}
+
+.loading {
+  color: $color-text-secondary;
+  font-style: italic;
+  text-align: center;
+  padding: $spacing-md;
+}
+
+.infoSection {
+  margin-bottom: $spacing-section-margin;
+}
+
+.infoSection:last-child {
+  margin-bottom: 0;
+}
+
+.infoSubtitle {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-subtitle-margin-bottom;
+  color: $color-text-tertiary;
+}
+
+.infoContent {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-info-gap;
+}
+
+.infoContent p {
+  margin: 0;
+  color: $color-text-quaternary;
+  font-size: $font-size-sm;
+  line-height: $line-height-relaxed;
+}
+
+.infoContent strong {
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-right: $spacing-info-gap;
+}
+
+.token {
+  font-family: $font-family-mono;
+  background-color: $color-background;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-sm;
+  border: $border-width-thin solid $color-border;
+  font-size: $font-size-xs;
+  word-break: break-all;
+}
+
+.id {
+  font-family: $font-family-mono;
+  background-color: $color-background;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-sm;
+  border: $border-width-thin solid $color-border;
+  font-size: $font-size-xs;
+  word-break: break-all;
+}
+
+@media (max-width: $breakpoint-mobile) {
+  .container {
+    padding: $spacing-container-padding-mobile;
+  }
+
+  .main {
+    padding: $spacing-main-padding-mobile $spacing-lg;
+  }
+
+  .title {
+    font-size: $font-size-xl;
+  }
+
+  .buttonsContainer {
+    flex-direction: column;
+  }
+
+  .button {
+    width: 100%;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .main {
+    background-color: $color-background-dark;
+  }
+
+  .title {
+    color: $color-text-light;
+  }
+
+  .description {
+    color: $color-text-muted;
+  }
+
+  .label {
+    color: $color-text-light;
+  }
+
+  .input {
+    background-color: $color-background-secondary;
+    border-color: $color-border-dark;
+    color: $color-text-light;
+  }
+
+  .input:focus {
+    border-color: $color-primary;
+  }
+
+  .buttonSecondary {
+    background-color: $color-background-secondary;
+    color: $color-text-light;
+    border-color: $color-border-dark;
+  }
+
+  .buttonSecondary:hover:not(:disabled) {
+    background-color: $color-background-tertiary;
+  }
+
+  .infoBox {
+    background: linear-gradient(135deg, $color-background-secondary 0%, $color-background-darker 100%);
+    border-color: $color-border-dark;
+  }
+
+  .infoTitle {
+    color: $color-text-light;
+  }
+
+  .infoSubtitle {
+    color: $color-text-muted-light;
+  }
+
+  .infoContent p {
+    color: $color-text-muted-light;
+  }
+
+  .infoContent strong {
+    color: $color-text-light;
+  }
+
+  .token,
+  .id {
+    background-color: $color-background-dark;
+    border-color: $color-border-dark;
+    color: $color-text-light;
+  }
+}
+
