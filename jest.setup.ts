@@ -5,6 +5,9 @@
  * This file runs before each test file.
  */
 
+// Import jest-dom matchers for React Testing Library
+import "@testing-library/jest-dom";
+
 // Mock Next.js router
 jest.mock("next/navigation", () => ({
     useRouter() {

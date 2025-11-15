@@ -36,17 +36,7 @@ import {
 } from "../../core/usecases/auth";
 import { authRepositorySupabase } from "../../infrastructure/supabase/authRepositorySupabase";
 import { useAuthStore } from "../stores/useAuthStore";
-
-/**
- * React Query query keys for authentication operations.
- *
- * These keys are used to identify and manage cached authentication data.
- * Using stable keys ensures proper cache invalidation and refetching.
- */
-const authQueryKeys = {
-    session: ["auth", "session"] as const,
-    user: ["auth", "user"] as const,
-};
+import { queryKeys } from "./queryKeys";
 
 /**
  * Hook for signing in a user.
@@ -96,8 +86,8 @@ export const useSignIn = () => {
             setUser(data.user);
 
             // Invalidate and refetch session and user queries
-            queryClient.invalidateQueries({ queryKey: authQueryKeys.session });
-            queryClient.invalidateQueries({ queryKey: authQueryKeys.user });
+            queryClient.invalidateQueries({ queryKey: queryKeys.auth.session() });
+            queryClient.invalidateQueries({ queryKey: queryKeys.auth.user() });
         },
         onSettled: () => {
             // Reset loading state after success or error
@@ -154,8 +144,8 @@ export const useSignUp = () => {
             setUser(data.user);
 
             // Invalidate and refetch session and user queries
-            queryClient.invalidateQueries({ queryKey: authQueryKeys.session });
-            queryClient.invalidateQueries({ queryKey: authQueryKeys.user });
+            queryClient.invalidateQueries({ queryKey: queryKeys.auth.session() });
+            queryClient.invalidateQueries({ queryKey: queryKeys.auth.user() });
         },
         onSettled: () => {
             // Reset loading state after success or error
@@ -201,10 +191,10 @@ export const useSignOut = () => {
             clearAuth();
 
             // Invalidate and remove session and user queries from cache
-            queryClient.invalidateQueries({ queryKey: authQueryKeys.session });
-            queryClient.invalidateQueries({ queryKey: authQueryKeys.user });
-            queryClient.removeQueries({ queryKey: authQueryKeys.session });
-            queryClient.removeQueries({ queryKey: authQueryKeys.user });
+            queryClient.invalidateQueries({ queryKey: queryKeys.auth.session() });
+            queryClient.invalidateQueries({ queryKey: queryKeys.auth.user() });
+            queryClient.removeQueries({ queryKey: queryKeys.auth.session() });
+            queryClient.removeQueries({ queryKey: queryKeys.auth.user() });
         },
         onSettled: () => {
             // Reset loading state after success or error
@@ -238,7 +228,7 @@ export const useSession = () => {
     const setSession = useAuthStore((state) => state.setSession);
 
     const query = useQuery<Session | null, AuthError>({
-        queryKey: authQueryKeys.session,
+        queryKey: queryKeys.auth.session(),
         queryFn: () => getCurrentSession(authRepositorySupabase),
         // Session queries should refetch on mount and window focus
         refetchOnMount: true,
@@ -280,7 +270,7 @@ export const useUser = () => {
     const setUser = useAuthStore((state) => state.setUser);
 
     const query = useQuery<User | null, AuthError>({
-        queryKey: authQueryKeys.user,
+        queryKey: queryKeys.auth.user(),
         queryFn: () => getCurrentUser(authRepositorySupabase),
         // User queries should refetch on mount and window focus
         refetchOnMount: true,
