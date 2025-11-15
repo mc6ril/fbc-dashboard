@@ -346,13 +346,33 @@ export const authRepositorySupabase: AuthRepository = {
      * Uses Supabase's `getSession` method to retrieve the current session.
      * Returns null if no active session exists.
      *
+     * If a 401 or 403 error occurs (indicating an invalid/expired session),
+     * the method automatically clears the invalid session by calling `signOut()`
+     * and returns null instead of throwing an error. This prevents stale sessions
+     * from causing crashes on page load.
+     *
      * @returns {Promise<Session | null>} Current session or null
-     * @throws {AuthError} Throws AuthError if session retrieval fails
+     * @throws {AuthError} Throws AuthError if session retrieval fails (except for 401/403 which return null)
      */
     getSession: async (): Promise<Session | null> => {
         const { data, error } = await supabaseClient.auth.getSession();
 
         if (error) {
+            // Handle 401/403 errors gracefully: clear invalid session and return null
+            // This prevents stale sessions from causing crashes on page load
+            if (error.status === 401 || error.status === 403) {
+                // Clear invalid session from localStorage to prevent future errors
+                try {
+                    await supabaseClient.auth.signOut();
+                } catch (signOutError) {
+                    // Log sign-out error but don't throw (signOut failure shouldn't prevent null return)
+                    console.error(
+                        "Failed to clear invalid session on 401/403 error:",
+                        signOutError
+                    );
+                }
+                return null;
+            }
             throw transformSupabaseErrorToAuthError(error);
         }
 
@@ -369,15 +389,35 @@ export const authRepositorySupabase: AuthRepository = {
      * Uses Supabase's `getUser` method to retrieve the current user.
      * Returns null if no user is authenticated.
      *
+     * If a 401 or 403 error occurs (indicating an invalid/expired session),
+     * the method automatically clears the invalid session by calling `signOut()`
+     * and returns null instead of throwing an error. This prevents stale sessions
+     * from causing crashes on page load.
+     *
      * @returns {Promise<User | null>} Current user or null
-     * @throws {AuthError} Throws AuthError if user retrieval fails
+     * @throws {AuthError} Throws AuthError if user retrieval fails (except for 401/403 which return null)
      */
     getUser: async (): Promise<User | null> => {
         const { data, error } = await supabaseClient.auth.getUser();
 
         if (error) {
-            // If error is due to no authenticated user, return null instead of throwing
-            if (error.message.includes("session") || error.status === 401) {
+            // Handle 401/403 errors gracefully: clear invalid session and return null
+            // Also handle session-related error messages for consistency
+            if (
+                error.status === 401 ||
+                error.status === 403 ||
+                error.message.includes("session")
+            ) {
+                // Clear invalid session from localStorage to prevent future errors
+                try {
+                    await supabaseClient.auth.signOut();
+                } catch (signOutError) {
+                    // Log sign-out error but don't throw (signOut failure shouldn't prevent null return)
+                    console.error(
+                        "Failed to clear invalid session on 401/403 error:",
+                        signOutError
+                    );
+                }
                 return null;
             }
             throw transformSupabaseErrorToAuthError(error);

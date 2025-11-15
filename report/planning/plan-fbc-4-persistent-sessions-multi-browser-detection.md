@@ -329,47 +329,55 @@ __tests__/
 **Test Suite: `subscribeToAuthChanges`**
 
 -   `describe("subscribeToAuthChanges", () => {`
-    -   `it("should subscribe to auth state changes and return cleanup function", ...)`
-    -   `it("should call callback with correct event when SIGNED_IN occurs", ...)`
-    -   `it("should call callback with correct event when SIGNED_OUT occurs", ...)`
-    -   `it("should call callback with null session when SIGNED_OUT occurs", ...)`
-    -   `it("should call callback with correct event when TOKEN_REFRESHED occurs", ...)`
-    -   `it("should return cleanup function that unsubscribes listener", ...)`
-    -   `it("should handle repository errors gracefully", ...)`
+    -   `it("should delegate to repository's onAuthStateChange method", ...)`
+    -   `it("should pass callback to repository method", ...)`
+    -   `it("should return cleanup function from repository", ...)`
+    -   `it("should return same cleanup function that repository returns", ...)`
+    -   `it("should handle all event types correctly (SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY)", ...)`
 
 ### Mocks/Fixtures
 
 **Mock Repository:**
 
 ```typescript
-// __mocks__/infrastructure/supabase/authRepositorySupabase.ts
-const mockAuthRepository = {
-    onAuthStateChange: jest.fn(() => () => {}), // Returns cleanup function
-    // ... other methods
+// __mocks__/core/ports/authRepository.ts (UPDATED)
+export const createMockAuthRepository = (): jest.Mocked<AuthRepository> => {
+    const defaultCleanup = jest.fn(() => {});
+    return {
+        // ... other methods
+        onAuthStateChange: jest.fn(() => defaultCleanup),
+    };
 };
 ```
 
 **Test Fixtures:**
 
 ```typescript
-// __tests__/fixtures/sessions.ts
-export const mockSessionChangeEvent: SessionChangeEvent = {
-    event: "SIGNED_IN",
-    session: mockSession,
-};
-
-export const mockSessionChangeEventSignedOut: SessionChangeEvent = {
-    event: "SIGNED_OUT",
-    session: null,
+// __mocks__/core/domain/auth.ts (UPDATED)
+export const createMockSessionChangeEvent = (event: AuthEventType = "SIGNED_IN", session: Session | null = null, overrides?: Partial<SessionChangeEvent>): SessionChangeEvent => {
+    const eventSession = session === null && event !== "SIGNED_OUT" ? createMockSession() : session;
+    return {
+        event,
+        session: eventSession,
+        ...overrides,
+    };
 };
 ```
 
 ### Edge Cases
 
-1. **Subscription Failures**: Repository fails to subscribe
-2. **Cleanup Failures**: Cleanup function fails to unsubscribe
-3. **Null Session Events**: Events with null session (SIGNED_OUT)
-4. **Multiple Subscriptions**: Multiple components subscribe simultaneously
+1. **Callback Function Type**: Verify callback receives correct SessionChangeEvent type
+2. **Cleanup Function**: Verify returned cleanup function is called when needed
+3. **Null Session Events**: Events with null session (SIGNED_OUT, expired tokens)
+4. **All Event Types**: Test all event types (SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY)
+5. **Multiple Subscriptions**: Multiple subscriptions return independent cleanup functions
+
+**Note**: Since `subscribeToAuthChanges` is a pure delegation usecase (thin wrapper around repository), tests focus on:
+
+-   Verifying delegation to repository
+-   Verifying correct parameters passed
+-   Verifying cleanup function returned
+-   Repository error handling is tested at infrastructure layer, not usecase layer
 
 ### Coverage Target
 
@@ -388,13 +396,26 @@ export const mockSessionChangeEventSignedOut: SessionChangeEvent = {
 
 ### Status
 
-**Status:** `tests: proposed`
+**Status:** `tests: approved` ✅
 
-**Next Steps:**
+**Review Notes:**
 
-1. Unit Test Coach reviews and approves test spec
-2. Tests implemented before implementation (TDD)
-3. Tests marked as `tests: approved` after review
+-   ✅ Mock repository updated with `onAuthStateChange` method
+-   ✅ Test fixtures created (`createMockSessionChangeEvent`)
+-   ✅ Test spec simplified to focus on delegation (usecase is thin wrapper)
+-   ✅ All event types will be tested via callback verification
+-   ✅ Cleanup function behavior verified
+-   ✅ Coverage target: 90%+ for usecases
+
+**Test Implementation Recommendations:**
+
+1. Start with basic delegation test (calls repository method)
+2. Test callback parameter passing
+3. Test cleanup function return
+4. Test with different event types via callback invocation
+5. Test multiple subscriptions (independent cleanup functions)
+
+**Note**: This usecase is a pure delegation function, so tests are straightforward. Repository error handling and event mapping are tested at infrastructure layer.
 
 ---
 

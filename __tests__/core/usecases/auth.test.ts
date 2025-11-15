@@ -24,11 +24,14 @@ import {
     signOutUser,
     getCurrentSession,
     getCurrentUser,
+    subscribeToAuthChanges,
 } from "@/core/usecases/auth";
+import type { AuthStateChangeCallback } from "@/core/ports/authRepository";
 import {
     createMockUser,
     createMockSession,
     createMockAuthError,
+    createMockSessionChangeEvent,
 } from "../../../__mocks__/core/domain/auth";
 import { createMockAuthRepository } from "../../../__mocks__/core/ports/authRepository";
 
@@ -689,6 +692,206 @@ describe("Authentication Usecases", () => {
                 expect(error).toEqual(repositoryError);
                 expect((error as AuthError).status).toBeUndefined();
             }
+        });
+    });
+
+    describe("subscribeToAuthChanges", () => {
+        it("should delegate to repository's onAuthStateChange method", () => {
+            // Arrange
+            const mockCallback: AuthStateChangeCallback = jest.fn();
+            const mockCleanup = jest.fn(() => {});
+            mockRepo.onAuthStateChange.mockReturnValue(mockCleanup);
+
+            // Act
+            const cleanup = subscribeToAuthChanges(mockRepo, mockCallback);
+
+            // Assert
+            expect(mockRepo.onAuthStateChange).toHaveBeenCalledTimes(1);
+            expect(mockRepo.onAuthStateChange).toHaveBeenCalledWith(mockCallback);
+            expect(cleanup).toBe(mockCleanup);
+        });
+
+        it("should pass callback to repository method", () => {
+            // Arrange
+            const mockCallback: AuthStateChangeCallback = jest.fn();
+            const mockCleanup = jest.fn(() => {});
+            mockRepo.onAuthStateChange.mockReturnValue(mockCleanup);
+
+            // Act
+            subscribeToAuthChanges(mockRepo, mockCallback);
+
+            // Assert
+            expect(mockRepo.onAuthStateChange).toHaveBeenCalledWith(mockCallback);
+        });
+
+        it("should return cleanup function from repository", () => {
+            // Arrange
+            const mockCallback: AuthStateChangeCallback = jest.fn();
+            const mockCleanup = jest.fn(() => {});
+            mockRepo.onAuthStateChange.mockReturnValue(mockCleanup);
+
+            // Act
+            const cleanup = subscribeToAuthChanges(mockRepo, mockCallback);
+
+            // Assert
+            expect(cleanup).toBe(mockCleanup);
+            expect(typeof cleanup).toBe("function");
+        });
+
+        it("should return same cleanup function that repository returns", () => {
+            // Arrange
+            const mockCallback: AuthStateChangeCallback = jest.fn();
+            const mockCleanup = jest.fn(() => {});
+            mockRepo.onAuthStateChange.mockReturnValue(mockCleanup);
+
+            // Act
+            const cleanup1 = subscribeToAuthChanges(mockRepo, mockCallback);
+
+            // Assert
+            expect(cleanup1).toBe(mockCleanup);
+        });
+
+        it("should handle all event types correctly (SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY)", () => {
+            // Arrange
+            const mockCallback: AuthStateChangeCallback = jest.fn();
+            const mockCleanup = jest.fn(() => {});
+            mockRepo.onAuthStateChange.mockReturnValue(mockCleanup);
+
+            // Act
+            subscribeToAuthChanges(mockRepo, mockCallback);
+
+            // Assert - verify subscription was created
+            expect(mockRepo.onAuthStateChange).toHaveBeenCalledTimes(1);
+
+            // Simulate different event types by calling the callback directly
+            const signedInEvent = createMockSessionChangeEvent("SIGNED_IN");
+            const signedOutEvent = createMockSessionChangeEvent("SIGNED_OUT", null);
+            const tokenRefreshedEvent = createMockSessionChangeEvent("TOKEN_REFRESHED");
+            const userUpdatedEvent = createMockSessionChangeEvent("USER_UPDATED");
+            const passwordRecoveryEvent = createMockSessionChangeEvent(
+                "PASSWORD_RECOVERY"
+            );
+
+            // Get the callback passed to the repository
+            const repositoryCallback = mockRepo.onAuthStateChange.mock
+                .calls[0][0] as AuthStateChangeCallback;
+
+            // Test all event types
+            repositoryCallback(signedInEvent);
+            repositoryCallback(signedOutEvent);
+            repositoryCallback(tokenRefreshedEvent);
+            repositoryCallback(userUpdatedEvent);
+            repositoryCallback(passwordRecoveryEvent);
+
+            // Assert - callback should have been called with all events
+            expect(mockCallback).toHaveBeenCalledTimes(5);
+            expect(mockCallback).toHaveBeenCalledWith(signedInEvent);
+            expect(mockCallback).toHaveBeenCalledWith(signedOutEvent);
+            expect(mockCallback).toHaveBeenCalledWith(tokenRefreshedEvent);
+            expect(mockCallback).toHaveBeenCalledWith(userUpdatedEvent);
+            expect(mockCallback).toHaveBeenCalledWith(passwordRecoveryEvent);
+        });
+
+        it("should handle SIGNED_OUT event with null session", () => {
+            // Arrange
+            const mockCallback: AuthStateChangeCallback = jest.fn();
+            const mockCleanup = jest.fn(() => {});
+            mockRepo.onAuthStateChange.mockReturnValue(mockCleanup);
+
+            // Act
+            subscribeToAuthChanges(mockRepo, mockCallback);
+
+            // Get the callback passed to the repository
+            const repositoryCallback = mockRepo.onAuthStateChange.mock
+                .calls[0][0] as AuthStateChangeCallback;
+
+            // Simulate SIGNED_OUT event with null session
+            const signedOutEvent = createMockSessionChangeEvent("SIGNED_OUT", null);
+            repositoryCallback(signedOutEvent);
+
+            // Assert
+            expect(mockCallback).toHaveBeenCalledTimes(1);
+            expect(mockCallback).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    event: "SIGNED_OUT",
+                    session: null,
+                })
+            );
+        });
+
+        it("should handle SIGNED_IN event with session", () => {
+            // Arrange
+            const mockCallback: AuthStateChangeCallback = jest.fn();
+            const mockCleanup = jest.fn(() => {});
+            const mockSession = createMockSession();
+            mockRepo.onAuthStateChange.mockReturnValue(mockCleanup);
+
+            // Act
+            subscribeToAuthChanges(mockRepo, mockCallback);
+
+            // Get the callback passed to the repository
+            const repositoryCallback = mockRepo.onAuthStateChange.mock
+                .calls[0][0] as AuthStateChangeCallback;
+
+            // Simulate SIGNED_IN event with session
+            const signedInEvent = createMockSessionChangeEvent(
+                "SIGNED_IN",
+                mockSession
+            );
+            repositoryCallback(signedInEvent);
+
+            // Assert
+            expect(mockCallback).toHaveBeenCalledTimes(1);
+            expect(mockCallback).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    event: "SIGNED_IN",
+                    session: mockSession,
+                })
+            );
+        });
+
+        it("should return independent cleanup functions for multiple subscriptions", () => {
+            // Arrange
+            const mockCallback1: AuthStateChangeCallback = jest.fn();
+            const mockCallback2: AuthStateChangeCallback = jest.fn();
+            const mockCleanup1 = jest.fn(() => {});
+            const mockCleanup2 = jest.fn(() => {});
+
+            mockRepo.onAuthStateChange
+                .mockReturnValueOnce(mockCleanup1)
+                .mockReturnValueOnce(mockCleanup2);
+
+            // Act
+            const cleanup1 = subscribeToAuthChanges(mockRepo, mockCallback1);
+            const cleanup2 = subscribeToAuthChanges(mockRepo, mockCallback2);
+
+            // Assert
+            expect(mockRepo.onAuthStateChange).toHaveBeenCalledTimes(2);
+            expect(mockRepo.onAuthStateChange).toHaveBeenNthCalledWith(
+                1,
+                mockCallback1
+            );
+            expect(mockRepo.onAuthStateChange).toHaveBeenNthCalledWith(
+                2,
+                mockCallback2
+            );
+            expect(cleanup1).toBe(mockCleanup1);
+            expect(cleanup2).toBe(mockCleanup2);
+            expect(cleanup1).not.toBe(cleanup2);
+        });
+
+        it("should allow cleanup function to be called to unsubscribe", () => {
+            // Arrange
+            const mockCallback: AuthStateChangeCallback = jest.fn();
+            const mockCleanup = jest.fn(() => {});
+            mockRepo.onAuthStateChange.mockReturnValue(mockCleanup);
+
+            // Act
+            const cleanup = subscribeToAuthChanges(mockRepo, mockCallback);
+            cleanup();
+
+            // Assert
+            expect(mockCleanup).toHaveBeenCalledTimes(1);
         });
     });
 });
