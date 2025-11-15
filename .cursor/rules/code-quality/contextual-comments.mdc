@@ -1,0 +1,171 @@
+---
+alwaysApply: true
+name: "Documentation & Contextual Comments"
+description: "Comprehensive documentation with business context. All public APIs, complex logic, and domain-specific concepts must be documented."
+globs: ["src/**/*.{ts,tsx}"]
+priority: medium
+---
+
+# Intent
+
+Code must be self-documenting with comprehensive comments that explain business context, domain concepts, and the "why" behind decisions. Documentation helps both developers and AI assistants understand the dashboard domain, business logic, and Clean Architecture patterns.
+
+## CRITICAL RULES - DOCUMENTATION NEVER OPTIONAL
+
+### 1. JSDoc Comments - STRICT ENFORCEMENT
+
+-   **ALWAYS** document all public functions, classes, and complex logic
+-   **NEVER** leave complex business logic undocumented
+-   **ALWAYS** include parameter descriptions, return types, and examples
+-   **ALWAYS** document error conditions and exceptions
+-   **NEVER** use generic or meaningless JSDoc comments
+
+### 2. Function Documentation - MANDATORY PATTERN
+
+-   **ALWAYS** include function purpose and business context
+-   **ALWAYS** document all parameters with types and purpose
+-   **ALWAYS** specify return type and possible values
+-   **ALWAYS** document all exceptions with conditions
+-   **ALWAYS** provide usage examples for complex functions
+-   **NEVER** document functions without business context
+
+### 3. Class Documentation - COMPREHENSIVE REQUIREMENTS
+
+-   **ALWAYS** document class purpose and responsibilities
+-   **ALWAYS** list dependencies and relationships
+-   **ALWAYS** specify if class is singleton or factory pattern
+-   **ALWAYS** document public API methods fully
+-   **ALWAYS** include @since version tags
+-   **NEVER** create classes without comprehensive documentation
+
+### 4. Complex Logic Documentation - MANDATORY INLINE COMMENTS
+
+-   **ALWAYS** explain complex algorithms with inline comments
+-   **ALWAYS** document mathematical formulas and their purpose
+-   **ALWAYS** explain business logic decisions and trade-offs
+-   **ALWAYS** document magic numbers with their meaning
+-   **ALWAYS** explain domain-specific calculations (stock levels, product pricing, inventory rules)
+-   **NEVER** leave mathematical or business calculations unexplained
+
+### 5. Configuration Documentation - MANDATORY EXPLANATION
+
+-   **ALWAYS** document configuration purpose and impact
+-   **ALWAYS** explain how values were determined (testing, analysis)
+-   **ALWAYS** document acceptable ranges and constraints
+-   **ALWAYS** explain business rationale for configuration choices
+-   **NEVER** use configuration values without explanation
+
+### 6. Type Documentation - COMPLETE CONTEXT
+
+-   **ALWAYS** document custom types with full business context
+-   **ALWAYS** explain property meanings and constraints
+-   **ALWAYS** document value ranges and formats
+-   **ALWAYS** explain relationships to other types
+-   **ALWAYS** include usage context and examples
+-   **NEVER** create types without business context documentation
+
+### 7. Domain-Specific Comments - BUSINESS CONTEXT MANDATORY
+
+-   **ALWAYS** explain dashboard domain concepts (products, stock movements, inventory)
+-   **ALWAYS** document business rules and validation logic
+-   **ALWAYS** explain data relationships and constraints
+-   **ALWAYS** document calculation logic (stock levels, pricing, availability)
+-   **ALWAYS** explain user workflow and business processes in comments
+-   **NEVER** assume domain knowledge without explanation
+
+### 8. Error Handling Documentation - RECOVERY STRATEGY REQUIRED
+
+-   **ALWAYS** document error conditions and causes
+-   **ALWAYS** explain recovery strategies for each error type
+-   **ALWAYS** document user-facing impact of errors
+-   **ALWAYS** explain when errors should be retried vs reported
+-   **NEVER** handle errors without documenting the strategy
+
+### 9. Clean Architecture Documentation - LAYER CONTEXT
+
+-   **ALWAYS** document which layer a function/class belongs to (Domain, Usecase, Infrastructure, Presentation)
+-   **ALWAYS** explain dependencies and why they are allowed
+-   **ALWAYS** document repository interfaces and their implementations
+-   **ALWAYS** explain usecase orchestration and business flow
+-   **NEVER** leave architectural decisions undocumented
+
+## DOCUMENTATION COMPLIANCE - AUTO-ENFORCEMENT
+
+### 10. Documentation Validation Rules - ALWAYS STOP
+
+1. **Undocumented public function** → STOP and add JSDoc
+2. **Complex business logic without comments** → STOP and add inline comments
+3. **Configuration without explanation** → STOP and document purpose
+4. **Mathematical calculation without explanation** → STOP and explain formula
+5. **Error handling without recovery strategy** → STOP and document approach
+6. **Usecase without business context** → STOP and document business purpose
+7. **Repository interface without contract explanation** → STOP and document expected behavior
+
+### 11. Comment Quality Standards
+
+-   **ALWAYS** write comments that explain the "why" not just the "what"
+-   **ALWAYS** include business domain context in comments
+-   **ALWAYS** use specific terminology (products, stock movements, inventory, pricing)
+-   **NEVER** write obvious comments that repeat the code
+-   **ALWAYS** update comments when code changes
+
+### 12. AI Assistant Optimization - CONTEXT FOR UNDERSTANDING
+
+-   **ALWAYS** write documentation that helps AI understand business domain
+-   **ALWAYS** include dashboard/atelier context in comments
+-   **ALWAYS** explain business rules and validation logic
+-   **ALWAYS** document data relationships and constraints
+-   **ALWAYS** include user workflow impact in comments
+-   **NEVER** assume AI understands dashboard domain without explanation
+
+### 13. Documentation Compliance Checklist
+
+Before EVERY code submission:
+
+✅ **JSDoc Documentation**
+
+-   All public functions have JSDoc comments?
+-   Parameters and return types documented?
+-   Error conditions documented?
+-   Usage examples provided for complex functions?
+
+✅ **Inline Comments**
+
+-   Complex algorithms explained?
+-   Mathematical formulas documented?
+-   Business logic decisions explained?
+-   Magic numbers replaced with documented constants?
+
+✅ **Business Context**
+
+-   Domain-specific concepts explained?
+-   Dashboard/atelier context included?
+-   Business rules and validation documented?
+-   Data relationships and constraints explained?
+
+✅ **Architecture Context**
+
+-   Layer responsibilities documented?
+-   Dependencies and their rationale explained?
+-   Repository contracts documented?
+-   Usecase orchestration explained?
+
+✅ **AI Understanding**
+
+-   Comments help AI understand business domain?
+-   Dashboard domain concepts explained?
+-   Business rules and workflows documented?
+-   User experience impact included?
+
+This ensures code is understandable by developers and AI assistants while maintaining business context and domain expertise.
+
+# Auto-suggestions
+
+-   If public function undocumented: **Add JSDoc with parameters, return type, and business context**.
+-   If complex algorithm unexplained: **Add inline comments explaining the logic and purpose**.
+-   If mathematical formula undocumented: **Document the formula, its purpose, and business rationale**.
+-   If configuration value unexplained: **Document purpose, acceptable ranges, and how value was determined**.
+-   If domain concept not explained: **Add comment explaining dashboard/atelier business context**.
+-   If error handling undocumented: **Document error conditions, recovery strategy, and user impact**.
+-   If usecase undocumented: **Document business purpose, orchestration, and expected outcomes**.
+-   If repository interface undocumented: **Document contract, expected behavior, and data transformations**.

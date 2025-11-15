@@ -1,0 +1,11 @@
+{
+  "rules": [
+    ".cursor/rules/architecture/clean_architecture.mdc",
+    ".cursor/rules/code-quality/code-convention.mdc",
+    ".cursor/rules/code-quality/contextual-comments.mdc",
+    ".cursor/rules/code-quality/performance-optimization.mdc",
+    ".cursor/rules/code-quality/testing-patterns.mdc",
+    ".cursor/rules/ui/accessibility.mdc",
+    ".cursor/rules/ui/component-structure.mdc"
+  ]
+}

@@ -1,0 +1,67 @@
+---
+name: "Explain This Ticket"
+description: "Analyze and summarize a Jira ticket or user story to clarify scope, requirements, and next steps."
+tags: ["pm", "planning", "ticket", "analysis", "requirements", "context"]
+# This is a reusable prompt template (not a command).
+---
+
+# Explain This Ticket
+
+Use this when you need a detailed explanation of a ticket, user story, or issue before implementation.
+
+## Input
+
+**Paste the ticket content below:**
+
+> [Paste ticket description, comments, or user story here]
+
+---
+
+## Output Format
+
+1. **🧩 Summary**
+
+   - A clear, concise restatement of what needs to be done.
+
+2. **📖 Context**
+
+   - Background, business purpose, or linked features.
+   - Why this is needed and what value it brings.
+
+3. **📋 Requirements**
+
+   - Explicit (written) requirements.
+   - Implicit (inferred) expectations or behaviors.
+
+4. **✅ Acceptance Criteria**
+
+   - Bullet list of what defines success.
+   - Include both functional and non-functional aspects if relevant.
+
+5. **⚙️ Technical Considerations**
+
+   - Architecture constraints or impacted modules.
+   - Dependencies (services, BLE, Redux, navigation, etc.).
+   - Possible risks or edge cases.
+
+6. **❓ Open Questions**
+
+   - Points unclear, missing info, or needing stakeholder validation.
+
+7. **🧭 Related Components**
+   - Files, helpers, services, reducers, or screens likely impacted.
+
+---
+
+## 🧠 Quick Mode (for trivial tickets)
+
+If the ticket is small (typo fix, color tweak, copy update):
+
+- Summarize in 1–2 lines.
+- List affected files.
+- Confirm no business logic or backend impact.
+- Note “Simple Fix — no sub-ticket needed”.
+
+---
+
+💡 _Tip: Once this explanation looks complete, you can forward it to the PM Agent (`/pm-plan-from-ticket`) to generate the implementation plan._

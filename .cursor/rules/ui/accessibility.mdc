@@ -1,0 +1,197 @@
+---
+alwaysApply: true
+name: "Accessibility — WCAG 2.1 AA Compliance"
+description: "Accessibility is mandatory. All interactive elements must be accessible to screen readers and assistive technologies. Centralized accessibility management."
+globs: ["src/**/*.{ts,tsx}"]
+priority: medium
+---
+
+# Intent
+
+Accessibility is never optional. All components must be fully accessible to users with disabilities, ensuring WCAG 2.1 AA compliance and usability for all users including those using screen readers, voice control, or other assistive technologies. Accessibility management is centralized following Clean Architecture principles.
+
+## CRITICAL RULES - ACCESSIBILITY NEVER OPTIONAL
+
+### 1. Centralized Accessibility Management - ARCHITECTURE COMPLIANCE
+
+-   **ALWAYS** use centralized accessibility utilities from `shared/a11y/`
+-   **ALWAYS** use accessibility ID constants from `shared/a11y/`
+-   **NEVER** hardcode accessibility strings directly in components
+-   **NEVER** create accessibility logic in components - use centralized utilities
+-   **ALWAYS** keep all accessibility code in `shared/a11y/`
+-   **NEVER** put accessibility logic in domain, usecases, infrastructure, or presentation layers
+
+### 2. Accessibility IDs - STRICT ENFORCEMENT
+
+-   **ALWAYS** use centralized accessibility ID generation for all interactive elements
+-   **ALWAYS** use descriptive, unique accessibility IDs from constants
+-   **ALWAYS** define accessibility IDs in a centralized constants file
+-   **NEVER** create accessibility IDs inline in components
+-   **ALWAYS** use consistent naming: `getAccessibilityId(key: string): string`
+
+### 3. Interactive Elements - MANDATORY ACCESSIBILITY
+
+-   **ALWAYS** provide `aria-label` or `aria-labelledby` for all interactive elements
+-   **ALWAYS** set appropriate `role` attribute for semantic HTML elements
+-   **ALWAYS** include descriptive text for screen readers
+-   **ALWAYS** provide `aria-describedby` for additional context when needed
+-   **ALWAYS** set `aria-disabled`, `aria-selected`, `aria-checked` to reflect current state
+-   **NEVER** use interactive elements without proper ARIA attributes
+
+### 4. Screen Reader Support - MANDATORY REQUIREMENTS
+
+-   **ALWAYS** use semantic HTML elements (`<header>`, `<nav>`, `<main>`, `<article>`, `<section>`)
+-   **ALWAYS** use `role="heading"` with appropriate `aria-level` for headings
+-   **ALWAYS** use `aria-live="polite"` for non-critical updates
+-   **ALWAYS** use `aria-live="assertive"` for critical announcements
+-   **ALWAYS** use `aria-atomic="true"` when entire region should be announced
+-   **NEVER** leave dynamic content without live region announcements
+
+### 5. Form Accessibility - MANDATORY PATTERNS
+
+-   **ALWAYS** use proper `<label>` elements linked with `htmlFor` and `id`
+-   **ALWAYS** associate errors with `aria-describedby` and error message `id`
+-   **ALWAYS** set `aria-invalid="true"` for fields with errors
+-   **ALWAYS** set `aria-required="true"` for required fields
+-   **ALWAYS** use `role="alert"` for error messages
+-   **ALWAYS** group related form fields with `<fieldset>` and `<legend>`
+-   **NEVER** create form fields without proper labeling
+
+### 6. Navigation Accessibility - MANDATORY STRUCTURE
+
+-   **ALWAYS** use semantic `<nav>` elements for navigation
+-   **ALWAYS** use `role="tablist"` for tab navigation containers
+-   **ALWAYS** use `role="tab"` for individual tabs with `aria-selected`
+-   **ALWAYS** use `role="tabpanel"` for tab content with `aria-labelledby`
+-   **ALWAYS** mark decorative icons with `aria-hidden="true"`
+-   **ALWAYS** provide skip links for main content
+-   **NEVER** create navigation without proper role structure
+
+### 7. Dynamic Content - LIVE REGIONS MANDATORY
+
+-   **ALWAYS** use `role="timer"` or `role="status"` for dynamic timers
+-   **ALWAYS** update `aria-label` for dynamic values (counters, progress)
+-   **ALWAYS** use `aria-valuenow`, `aria-valuemin`, `aria-valuemax` for progress indicators
+-   **ALWAYS** announce significant changes via live regions
+-   **ALWAYS** use `aria-busy="true"` during async operations
+-   **NEVER** let critical updates go unannounced to screen readers
+
+### 8. Modal Accessibility - FOCUS MANAGEMENT REQUIRED
+
+-   **ALWAYS** use `role="dialog"` or `role="alertdialog"` for modals
+-   **ALWAYS** set `aria-modal="true"` to prevent background interaction
+-   **ALWAYS** set `aria-labelledby` pointing to modal title
+-   **ALWAYS** set `aria-describedby` pointing to modal description if present
+-   **ALWAYS** implement proper focus management with refs
+-   **ALWAYS** trap focus within modal when open
+-   **ALWAYS** return focus to trigger element when modal closes
+-   **NEVER** create modals without proper focus handling
+
+### 9. Error State Accessibility - MANDATORY ANNOUNCEMENTS
+
+-   **ALWAYS** use `role="alert"` for error messages
+-   **ALWAYS** set `aria-live="assertive"` for immediate errors
+-   **ALWAYS** provide recovery actions with clear accessibility labels
+-   **ALWAYS** mark error icons as `aria-hidden="true"`
+-   **ALWAYS** associate errors with form fields using `aria-describedby`
+-   **NEVER** display errors without screen reader announcements
+
+### 10. Keyboard Navigation - MANDATORY SUPPORT
+
+-   **ALWAYS** ensure all interactive elements are keyboard accessible
+-   **ALWAYS** provide visible focus indicators
+-   **ALWAYS** implement logical tab order
+-   **ALWAYS** handle Enter and Space keys for interactive elements
+-   **ALWAYS** implement Escape key handling for modals and dropdowns
+-   **NEVER** rely solely on mouse/touch interactions
+
+## ACCESSIBILITY ARCHITECTURE - CENTRALIZED MANAGEMENT
+
+### 11. Accessibility Utilities Location
+
+-   **ALWAYS** place accessibility helper functions in `shared/a11y/`
+-   **ALWAYS** place accessibility ID constants in `shared/a11y/`
+-   **ALWAYS** create reusable accessible components in `presentation/components/ui/` (e.g., `AccessibleButton.tsx`, `AccessibleInput.tsx`)
+-   **NEVER** put accessibility logic in domain, usecases, infrastructure, or presentation layers
+-   **ALWAYS** keep accessibility utilities pure and testable
+-   **ALWAYS** import accessibility utilities from `shared/a11y/` in all layers that need them
+
+### 12. Accessibility Component Patterns
+
+-   **ALWAYS** create wrapper components for common accessible patterns
+-   **ALWAYS** use composition to build accessible components
+-   **ALWAYS** export accessibility props types for reuse
+-   **ALWAYS** document accessibility features in component JSDoc
+-   **NEVER** duplicate accessibility logic across components
+
+## ACCESSIBILITY VIOLATIONS - AUTO-STOP CONDITIONS
+
+### 13. Critical Violations - ALWAYS STOP
+
+1. **Interactive element without accessibility ID** → STOP and use centralized accessibility ID utility
+2. **Missing ARIA attributes** → STOP and add appropriate `role`, `aria-label`, or semantic HTML
+3. **Dynamic content without live region** → STOP and add `aria-live` region
+4. **Form field without proper labeling** → STOP and link with `<label>` and `htmlFor`
+5. **Modal without focus management** → STOP and implement focus trapping
+6. **Accessibility logic in domain/usecases/infrastructure/presentation** → STOP and move to `shared/a11y/`
+7. **Hardcoded accessibility strings** → STOP and use constants from `shared/a11y/`
+
+### 14. Accessibility Compliance Checklist
+
+Before EVERY component submission:
+
+✅ **Basic Requirements**
+
+-   Accessibility ID using centralized utility?
+-   Appropriate `role` or semantic HTML element?
+-   Descriptive `aria-label` or `aria-labelledby` provided?
+-   Additional context via `aria-describedby` when needed?
+
+✅ **Dynamic Content**
+
+-   Live regions (`aria-live`) for changing content?
+-   Timer/counter updates announced?
+-   Progress indicators with `aria-valuenow` attributes?
+
+✅ **Forms & Navigation**
+
+-   Form fields properly labeled with `<label>`?
+-   Error states announced with `role="alert"`?
+-   Tab navigation roles correct?
+-   Skip links provided?
+
+✅ **Keyboard & Focus**
+
+-   All interactive elements keyboard accessible?
+-   Visible focus indicators?
+-   Logical tab order?
+-   Focus management in modals?
+
+✅ **Architecture Compliance**
+
+-   Accessibility utilities in `shared/a11y/`?
+-   No accessibility logic in domain/usecases/infrastructure/presentation?
+-   Centralized constants from `shared/a11y/` used?
+-   Reusable accessible components created?
+
+### 15. Mandatory Testing - NEVER SKIP
+
+-   **ALWAYS** test with screen readers (NVDA, JAWS, VoiceOver)
+-   **ALWAYS** verify keyboard navigation works
+-   **ALWAYS** test with high contrast mode
+-   **ALWAYS** verify text scaling compatibility (up to 200%)
+-   **ALWAYS** test with browser accessibility tools (axe DevTools, WAVE)
+-   **NEVER** release features without accessibility verification
+
+This ensures WCAG 2.1 AA compliance and usability for all users including those with disabilities, while maintaining Clean Architecture principles.
+
+# Auto-suggestions
+
+-   If interactive element lacks accessibility ID: **Use centralized accessibility ID utility from `shared/a11y/`**.
+-   If component missing ARIA attributes: **Add appropriate `role`, `aria-label`, or use semantic HTML**.
+-   If dynamic content not announced: **Add `aria-live` region with appropriate politeness**.
+-   If form field not labeled: **Link with `<label>` element and `htmlFor` attribute**.
+-   If modal lacks focus management: **Implement focus trapping with refs and return focus on close**.
+-   If error not announced: **Add `role="alert"` and `aria-live="assertive"`**.
+-   If accessibility logic in wrong layer: **Move to `shared/a11y/`**.
+-   If hardcoded accessibility strings: **Create constants in `shared/a11y/`**.

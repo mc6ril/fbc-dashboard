@@ -1,0 +1,142 @@
+---
+alwaysApply: true
+name: "Architecture — Component & File Structure"
+description: "Consistent component structure, file organization, and UI patterns following Clean Architecture principles."
+globs: ["src/presentation/components/**/*.{ts,tsx}", "src/app/**/*.{ts,tsx}"]
+priority: medium
+---
+
+# Intent
+
+Maintain consistent component structure, file organization, and UI patterns for maintainability and clarity, following Clean Architecture principles.
+
+# Rules
+
+## A) File Structure
+
+-   ✅ File organization:
+    -   `/src/app/` - Next.js pages (App Router)
+    -   `/src/core/domain/` - Business domain types and pure logic
+    -   `/src/core/usecases/` - Business usecases
+    -   `/src/core/ports/` - Repository interfaces
+    -   `/src/infrastructure/supabase/` - Supabase implementations
+    -   `/src/presentation/components/` - UI components (page-specific)
+    -   `/src/presentation/components/ui/` - Reusable UI components (Button, Input, Card, etc.)
+    -   `/src/presentation/hooks/` - React Query hooks
+    -   `/src/presentation/stores/` - Zustand stores (UI state only)
+    -   `/src/presentation/providers/` - React providers
+    -   `/src/presentation/layouts/` - Layout components
+    -   `/src/shared/a11y/` - Accessibility utilities and constants
+    -   `/src/styles/` - Global SCSS styles and variables
+
+## B) Page Components (Next.js App Router)
+
+scope: file.path matches ^src/app/.+\.(ts|tsx)$
+
+-   ✅ **ALWAYS** use Next.js App Router structure
+-   ✅ **ALWAYS** use `page.tsx` for route pages
+-   ✅ **ALWAYS** use `layout.tsx` for route layouts
+-   ✅ **ALWAYS** fetch data using React Query hooks from `presentation/hooks/`
+-   ✅ **NEVER** call Supabase directly from pages
+-   ✅ **NEVER** put business logic in pages
+-   ❌ **NEVER** create page components without proper data fetching hooks
+
+## C) Reusable UI Components
+
+scope: file.path matches ^src/presentation/components/ui/.+\.(ts|tsx)$
+
+-   ✅ **ALWAYS** place reusable components (Button, Input, Card, etc.) in `presentation/components/ui/`
+-   ✅ **ALWAYS** use arrow function with export default format
+-   ✅ **ALWAYS** define props with `type` (not `interface`)
+-   ✅ **ALWAYS** use `React.memo` for expensive components with stable props
+-   ✅ **ALWAYS** use `useCallback` for event handlers passed as props
+-   ✅ **ALWAYS** use `useMemo` for expensive calculations
+-   ✅ **ALWAYS** import accessibility utilities from `shared/a11y/`
+-   ❌ **NEVER** create reusable components outside `presentation/components/ui/`
+-   ❌ **NEVER** put business logic in reusable components
+-   ❌ **NEVER** call hooks (React Query) directly in reusable components
+
+**Structure obligatoire :**
+
+```typescript
+type Props = {
+    label: string;
+    onClick: () => void;
+};
+
+const Button = ({ label, onClick }: Props) => {
+    // ...
+};
+
+export default Button;
+```
+
+## D) Page-Specific Components
+
+scope: file.path matches ^src/presentation/components/.+\.(ts|tsx)$
+
+-   ✅ **ALWAYS** place page-specific components in `presentation/components/`
+-   ✅ **ALWAYS** use arrow function with export default format
+-   ✅ **ALWAYS** define props with `type` (not `interface`)
+-   ✅ **ALWAYS** receive data via props (from pages using hooks)
+-   ✅ **NEVER** call React Query hooks directly in page-specific components
+-   ✅ **NEVER** put business logic in components
+-   ❌ **NEVER** call Supabase directly
+
+## E) Component Patterns
+
+scope: file.path matches ^src/(presentation/components|app)/.+\.(ts|tsx)$
+
+-   ✅ **ALWAYS** use arrow function with export default
+-   ✅ **ALWAYS** define component props with `type` (not `interface`)
+-   ✅ **ALWAYS** use `React.memo` for expensive components with stable props
+-   ✅ **ALWAYS** use `useCallback` for event handlers passed as props
+-   ✅ **ALWAYS** use `useMemo` for expensive calculations
+-   ✅ **ALWAYS** keep JSX minimal (no network calls, no business logic, no heavy calculations)
+-   ❌ **NEVER** use classes ES6
+-   ❌ **NEVER** use `export function` for components
+-   ❌ **NEVER** create inline functions in render methods
+
+## F) Styling Organization
+
+scope: file.path matches ^src/(presentation/components|app)/.+\.(ts|tsx)$
+
+-   ✅ **ALWAYS** use SCSS modules or global SCSS from `styles/`
+-   ✅ **ALWAYS** use variables from `styles/variables/*` for all values
+-   ✅ **ALWAYS** create component-specific SCSS in `styles/components/` if needed
+-   ✅ **ALWAYS** use kebab-case for CSS class names
+-   ✅ **ALWAYS** use BEM methodology (`__` for elements, `--` for modifiers)
+-   ❌ **NEVER** use inline styles
+-   ❌ **NEVER** hardcode colors, spacing, or sizes (use variables)
+-   ❌ **NEVER** use `!important`
+
+## G) Modal Components
+
+scope: file.path matches ^src/presentation/components/.+[Mm]odal.+\.(ts|tsx)$
+
+-   ✅ **ALWAYS** manage modal visibility via Zustand stores for global modals
+-   ✅ **ALWAYS** use proper accessibility attributes (`role="dialog"`, `aria-modal="true"`)
+-   ✅ **ALWAYS** implement focus management (trap focus, return focus on close)
+-   ✅ **ALWAYS** use `forwardRef` for imperative APIs if needed
+-   ❌ **NEVER** use local state for modals that affect multiple pages
+-   ❌ **NEVER** create modals without proper accessibility
+
+## H) Layout Components
+
+scope: file.path matches ^src/presentation/layouts/.+\.(ts|tsx)$
+
+-   ✅ **ALWAYS** place layout components in `presentation/layouts/`
+-   ✅ **ALWAYS** use semantic HTML elements (`<header>`, `<nav>`, `<main>`, `<footer>`)
+-   ✅ **ALWAYS** provide proper accessibility structure
+-   ✅ **ALWAYS** use Next.js layout patterns when applicable
+
+# Auto-suggestions
+
+-   If component has inline styles: **Move to SCSS file in `styles/components/`**.
+-   If reusable component outside `presentation/components/ui/`: **Move to `presentation/components/ui/`**.
+-   If component calls Supabase directly: **Use React Query hook from `presentation/hooks/`**.
+-   If component props use `interface`: **Change to `type`**.
+-   If hardcoded values used: **Replace with variables from `styles/variables/*`**.
+-   If component uses `export function`: **Change to arrow function with export default**.
+-   If modal uses local state but affects multiple pages: **Move to Zustand store**.
+-   If component missing accessibility: **Add accessibility attributes using `shared/a11y/` utilities**.

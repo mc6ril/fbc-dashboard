@@ -1,0 +1,15 @@
+---
+name: "Fix Bug"
+description: "Guide the AI to fix a simple bug without triggering full scaffolding or test-first flow."
+tags: ["bugfix", "quickfix", "react-native", "debug"]
+---
+
+# Fix Bug (Quick Path)
+
+You are fixing a **simple bug** (visual, logic, or behavior).
+
+1. Identify the **root cause** and explain it in 1–2 lines.
+2. Suggest the **minimal code change** needed to fix it.
+3. Confirm no architecture, navigation, or state structure changes are needed.
+4. Propose **ONE** focused unit test to lock the behavior.
+5. Output a **diff** only (no explanations beyond rationale).

@@ -1,0 +1,17 @@
+---
+name: "UI Component from Design"
+description: "Generate a UI component using @perifit/app-design-system from a design reference."
+tags: ["ui", "design-system", "figma", "a11y", "responsive"]
+---
+
+# UI Component from Design
+
+Analyze the attached image and generate a React Native component using only @perifit/app-design-system.
+
+Provide:
+
+1. **Component Hierarchy** — Layout + DS components used.
+2. **Accessibility Setup** — Labels, hints, states.
+3. **Responsive Design** — normalize(), IsTablet(), layout adjustments.
+4. **Code Output** — index.tsx + styles.ts using DS tokens.
+5. **State Management** — Controlled via props only (no business logic here).

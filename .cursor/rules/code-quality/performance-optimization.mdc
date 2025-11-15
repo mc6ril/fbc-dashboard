@@ -1,0 +1,106 @@
+---
+alwaysApply: true
+name: "Performance & Memory Management"
+description: "Optimize Next.js performance and memory management: memoization, re-render prevention, React Query optimization, image optimization."
+globs: ["src/**/*.{ts,tsx}"]
+priority: medium
+---
+
+# Intent
+
+Optimize Next.js performance and prevent memory leaks through proper memoization, listener cleanup, React Query optimization, and resource management.
+
+# Rules
+
+## A) Component Memoization
+
+scope: file.path matches ^src/(presentation/components|app)/.+\.(ts|tsx)$
+
+-   **ALWAYS** use `React.memo` for expensive components that receive stable props
+-   **ALWAYS** use `useMemo` for expensive calculations and derived values
+-   **ALWAYS** use `useCallback` for event handlers passed as props to child components
+-   **NEVER** create inline functions in render methods
+-   **NEVER** use `useMemo` or `useCallback` for trivial operations
+-   **ALWAYS** provide proper dependency arrays for `useMemo` and `useCallback`
+
+## B) Re-render Prevention
+
+scope: file.path matches ^src/(presentation/components|app)/.+\.(ts|tsx)$
+
+-   **ALWAYS** avoid unnecessary re-renders by memoizing props and callbacks
+-   **ALWAYS** use React Query selectors to select only needed data from queries
+-   **ALWAYS** split large components into smaller memoized components
+-   **NEVER** create new objects or arrays in render methods
+-   **ALWAYS** extract static values outside component render
+-   **ALWAYS** use Zustand selectors to subscribe only to needed state slices
+
+## C) React Query Optimization
+
+scope: file.path matches ^src/presentation/hooks/.+\.(ts|tsx)$
+
+-   **ALWAYS** use stable queryKeys to prevent unnecessary refetches
+-   **ALWAYS** use `select` option to transform data only when needed
+-   **ALWAYS** configure appropriate `staleTime` and `cacheTime` for each query
+-   **ALWAYS** use `enabled` option to conditionally fetch data
+-   **NEVER** create queries that refetch on every render
+-   **ALWAYS** use `keepPreviousData` for pagination and infinite queries
+-   **ALWAYS** cancel pending queries when components unmount (automatic with React Query)
+
+## D) Event Listener Management
+
+scope: file.path matches ^src/(presentation/components|app)/.+\.(ts|tsx)$
+
+-   **ALWAYS** remove event listeners in cleanup functions (`useEffect` return)
+-   **ALWAYS** use `useEffect` cleanup functions for listener registration/removal
+-   **NEVER** leave listeners registered after component unmount
+-   **ALWAYS** verify listener cleanup in custom hooks
+
+## E) Image and Asset Optimization
+
+scope: file.path matches ^src/(presentation/components|app)/.+\.(ts|tsx)$
+
+-   **ALWAYS** use Next.js `Image` component for optimized image loading
+-   **ALWAYS** use appropriate image loading strategies (lazy loading for large lists)
+-   **ALWAYS** specify width and height for images to prevent layout shift
+-   **NEVER** load full-resolution images when thumbnails are sufficient
+-   **ALWAYS** use `priority` prop for above-the-fold images
+-   **ALWAYS** use WebP format when possible
+
+## F) Memory Leak Prevention
+
+scope: file.path matches ^src/.+\.(ts|tsx)$
+
+-   **ALWAYS** clear timers and intervals in cleanup functions
+-   **ALWAYS** cancel pending network requests when components unmount
+-   **ALWAYS** unsubscribe from subscriptions and observables
+-   **NEVER** store references to unmounted components
+-   **ALWAYS** clean up React Query mutations and subscriptions
+
+## G) Code Splitting and Lazy Loading
+
+scope: file.path matches ^src/app/.+\.(ts|tsx)$
+
+-   **ALWAYS** use Next.js dynamic imports for code splitting
+-   **ALWAYS** lazy load heavy components that are not immediately visible
+-   **ALWAYS** use `loading` prop with dynamic imports for better UX
+-   **NEVER** import large libraries in components that are not always needed
+
+## H) Zustand Store Optimization
+
+scope: file.path matches ^src/presentation/stores/.+\.(ts|tsx)$
+
+-   **ALWAYS** split stores by domain to prevent unnecessary re-renders
+-   **ALWAYS** use selectors to subscribe only to needed state slices
+-   **NEVER** store large objects or arrays in Zustand stores
+-   **ALWAYS** use shallow equality checks when comparing state
+
+# Auto-suggestions
+
+-   If expensive component not memoized: **Add React.memo for components with stable props**.
+-   If inline function in render: **Extract to useCallback or move outside component**.
+-   If event listener not cleaned up: **Add cleanup function in useEffect to remove listener**.
+-   If large object created in render: **Extract to useMemo or move outside component**.
+-   If React Query query refetches unnecessarily: **Add stable queryKey and configure staleTime**.
+-   If component re-renders due to Zustand: **Use selector to subscribe only to needed state slice**.
+-   If image not optimized: **Use Next.js Image component with proper sizing**.
+-   If heavy component always loaded: **Use dynamic import with lazy loading**.
