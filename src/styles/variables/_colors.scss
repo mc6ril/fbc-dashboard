@@ -1,0 +1,55 @@
+/**
+ * Color Variables
+ *
+ * Centralized color definitions for the FBC Dashboard.
+ * All colors should be defined here and used throughout the application.
+ */
+
+// Primary colors
+$color-primary: #667eea;
+$color-primary-dark: #764ba2;
+$color-primary-hover: rgba(102, 126, 234, 0.4);
+
+// Background colors
+$color-background: #ffffff;
+$color-background-light: #f8fafc;
+$color-background-lighter: #f1f5f9;
+$color-background-disabled: #f9fafb;
+$color-background-dark: #1a1a1a;
+$color-background-darker: #1f1f1f;
+$color-background-secondary: #2a2a2a;
+$color-background-tertiary: #333;
+
+// Text colors
+$color-text-primary: #1a1a1a;
+$color-text-secondary: #666666;
+$color-text-tertiary: #374151;
+$color-text-quaternary: #4b5563;
+$color-text-light: #ededed;
+$color-text-muted: #999;
+$color-text-muted-light: #d1d5db;
+
+// Border colors
+$color-border: #e5e7eb;
+$color-border-light: #e2e8f0;
+$color-border-dark: #404040;
+$color-border-hover: #d1d5db;
+
+// Error colors
+$color-error: #dc2626;
+$color-error-background: #fef2f2;
+$color-error-border: #fecaca;
+$color-error-text: #991b1b;
+
+// Shadow colors
+$color-shadow: rgba(0, 0, 0, 0.3);
+$color-shadow-primary: rgba(102, 126, 234, 0.1);
+$color-shadow-primary-hover: rgba(102, 126, 234, 0.4);
+
+// Opacity values
+$opacity-disabled: 0.6;
+$opacity-button-disabled: 0.5;
+
+// Transform values
+$transform-button-hover: translateY(-2px);
+

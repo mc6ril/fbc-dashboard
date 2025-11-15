@@ -1,0 +1,54 @@
+/**
+ * Spacing Variables
+ *
+ * Centralized spacing definitions for the FBC Dashboard.
+ * All spacing values should be defined here and used throughout the application.
+ */
+
+// Base spacing scale
+$spacing-xs: 0.25rem;    // 4px
+$spacing-sm: 0.5rem;     // 8px
+$spacing-md: 1rem;       // 16px
+$spacing-lg: 1.5rem;     // 24px
+$spacing-xl: 2rem;       // 32px
+$spacing-2xl: 3rem;      // 48px
+
+// Specific spacing values
+$spacing-container-padding: 2rem;
+$spacing-container-padding-mobile: 1rem;
+$spacing-main-padding: 3rem;
+$spacing-main-padding-mobile: 1.5rem;
+$spacing-form-gap: 1.5rem;
+$spacing-buttons-gap: 1rem;
+$spacing-error-gap: 0.75rem;
+$spacing-info-gap: 0.5rem;
+$spacing-section-margin: 1.5rem;
+$spacing-input-padding-y: 0.75rem;
+$spacing-button-padding-y: 0.75rem;
+$spacing-subtitle-margin-bottom: 0.75rem;
+
+// Component specific sizes
+$button-min-width: 120px;
+$main-max-width: 600px;
+
+// Breakpoints
+$breakpoint-mobile: 600px;
+
+// Border radius
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-xl: 16px;
+
+// Border widths
+$border-width-thin: 2px;
+$border-width-medium: 4px;
+
+// Shadow values
+$shadow-sm: 0 0 0 3px;
+$shadow-md: 0 4px 12px;
+$shadow-lg: 0 20px 60px;
+
+// Transition values
+$transition-default: all 0.2s;
+
