@@ -1,37 +1,37 @@
-# 🏗️ Clean Architecture — Atelier Dashboard
+# 🏗️ Clean Architecture — Dashboard Workshop
 
-## 📌 Principes fondamentaux
+## 📌 Fundamental Principles
 
-Ce projet suit une **Clean Architecture stricte**.
+This project follows **strict Clean Architecture**.
 
-L'objectif est de séparer clairement les responsabilités :
+The goal is to clearly separate responsibilities:
 
-- **Domain** → règles métier pures, types et logique sans dépendance
-- **Usecases (Application)** → logique métier orchestrant les repositories
-- **Infrastructure** → accès aux données (Supabase), implémentations concrètes
-- **Presentation** → UI Next.js, SCSS, state-management (Zustand), data-fetching (React Query)
+-   **Domain** → pure business rules, types and logic without dependencies
+-   **Usecases (Application)** → business logic orchestrating repositories
+-   **Infrastructure** → data access (Supabase), concrete implementations
+-   **Presentation** → Next.js UI, SCSS, state management (Zustand), data fetching (React Query)
 
-### Règle d'or
+### Golden Rule
 
-**Aucune logique métier ne doit se trouver dans la UI ou dans l'infrastructure.**
+**No business logic should be in the UI or infrastructure.**
 
-### Indépendance des couches
+### Layer Independence
 
-Cursor doit respecter l'indépendance des couches :
+Cursor must respect layer independence:
 
-- La UI n'appelle **jamais** Supabase directement
-- La UI appelle les hooks React Query, qui eux exécutent des usecases
-- Les usecases utilisent les ports pour contacter la base
-- Les ports ont plusieurs implémentations possibles
-- Les implémentations concrètes (Supabase) sont dans `infrastructure/`
+-   The UI **never** calls Supabase directly
+-   The UI calls React Query hooks, which execute usecases
+-   Usecases use ports to contact the database
+-   Ports have multiple possible implementations
+-   Concrete implementations (Supabase) are in `infrastructure/`
 
 ---
 
-## 🧩 Structure du projet
+## 🧩 Project Structure
 
 ```
 src/
-├── app/                    # Pages Next.js (App Router)
+├── app/                    # Next.js pages (App Router)
 │   ├── layout.tsx
 │   ├── page.tsx
 │   ├── stocks/
@@ -40,29 +40,29 @@ src/
 │       └── [id]/
 │           └── page.tsx
 │
-├── core/                   # Cœur métier (indépendant)
-│   ├── domain/            # Entités métier + règles pures
-│   ├── usecases/          # Cas d'usage (fichiers simples)
-│   └── ports/             # Interfaces des repositories
+├── core/                   # Business core (independent)
+│   ├── domain/            # Business entities + pure rules
+│   ├── usecases/          # Use cases (simple files)
+│   └── ports/             # Repository interfaces
 │
-├── infrastructure/         # Implémentations concrètes
-│   └── supabase/          # Implémentations concrètes des ports
+├── infrastructure/         # Concrete implementations
+│   └── supabase/          # Concrete implementations of ports
 │       ├── client.ts
 │       ├── productRepositorySupabase.ts
 │       ├── stockMovementRepositorySupabase.ts
 │       └── utils/
 │
-├── presentation/           # Couche présentation
-│   ├── components/        # Composants UI purs
+├── presentation/           # Presentation layer
+│   ├── components/        # Pure UI components
 │   ├── layouts/
-│   ├── stores/            # Zustand (state UI global)
-│   ├── hooks/             # Hooks React Query
-│   └── providers/         # QueryClientProvider, autres providers
+│   ├── stores/            # Zustand (global UI state)
+│   ├── hooks/             # React Query hooks
+│   └── providers/         # QueryClientProvider, other providers
 │
-├── shared/                # Code partagé entre les couches
-│   └── a11y/              # Accessibilité (utilitaires, constantes, helpers)
+├── shared/                # Code shared between layers
+│   └── a11y/              # Accessibility (utilities, constants, helpers)
 │
-└── styles/                # Styles globaux
+└── styles/                # Global styles
     ├── global.scss
     ├── variables/
     ├── components/
@@ -71,42 +71,46 @@ src/
 
 ---
 
-## 🧱 Règles : ce que Cursor doit respecter
+## 🧱 Rules: What Cursor Must Respect
 
 ### 1. Domain (`core/domain`)
 
-**Contient :**
-- Types / interfaces métiers (Product, StockMovement)
-- Règles métier pures (ex: `isLowStock(product)`)
+**Contains:**
 
-**Ne doit jamais importer :**
-- ❌ Supabase
-- ❌ React
-- ❌ Zustand
-- ❌ React Query
-- ❌ Next.js
+-   Business types/interfaces (Product, StockMovement)
+-   Pure business rules (e.g., `isLowStock(product)`)
 
-**Pur TypeScript uniquement.**
+**Must never import:**
+
+-   ❌ Supabase
+-   ❌ React
+-   ❌ Zustand
+-   ❌ React Query
+-   ❌ Next.js
+
+**Pure TypeScript only.**
 
 ---
 
 ### 2. Usecases (`core/usecases`)
 
-**Caractéristiques :**
-- Chaque usecase est une fonction pure orchestrant la logique métier
-- Elle prend en paramètre des ports (repositories)
-- Elle retourne des données du domaine
+**Characteristics:**
 
-**Ne doit pas connaître :**
-- ❌ Supabase
-- ❌ React
-- ❌ Zustand
+-   Each usecase is a pure function orchestrating business logic
+-   It takes ports (repositories) as parameters
+-   It returns domain data
 
-**Exemple de structure :**
+**Must not know about:**
+
+-   ❌ Supabase
+-   ❌ React
+-   ❌ Zustand
+
+**Structure example:**
 
 ```typescript
 export async function listProducts(repo: ProductRepository) {
-  return repo.list();
+    return repo.list();
 }
 ```
 
@@ -114,37 +118,41 @@ export async function listProducts(repo: ProductRepository) {
 
 ### 3. Ports (`core/ports`)
 
-**Rôle :**
-- Définissent les interfaces des repositories
-- Exemple : `ProductRepository`, `StockMovementRepository`
-- Ce sont les contrats que l'infrastructure doit respecter
+**Role:**
+
+-   Define repository interfaces
+-   Example: `ProductRepository`, `StockMovementRepository`
+-   These are the contracts that infrastructure must respect
 
 ---
 
 ### 4. Infrastructure (`infrastructure/`)
 
-**Contient :**
-- Les implémentations concrètes des ports
-- Supabase
-- Adaptateurs
-- Mappers
+**Contains:**
 
-**Peut importer :**
-- ✅ Supabase
-- ✅ Fetch
-- ✅ Des libs externes
+-   Concrete implementations of ports
+-   Supabase
+-   Adapters
+-   Mappers
 
-**Ne doit jamais importer :**
-- ❌ La UI
-- ❌ Zustand
+**Can import:**
 
-**Exemple :**
+-   ✅ Supabase
+-   ✅ Fetch
+-   ✅ External libraries
+
+**Must never import:**
+
+-   ❌ UI
+-   ❌ Zustand
+
+**Example:**
 
 ```typescript
 export const productRepositorySupabase: ProductRepository = {
-  list: async () => {
-    // ...supabase.from("products")...
-  }
+    list: async () => {
+        // ...supabase.from("products")...
+    },
 };
 ```
 
@@ -154,96 +162,100 @@ export const productRepositorySupabase: ProductRepository = {
 
 #### 5.1. Components (`presentation/components`)
 
-**Caractéristiques :**
-- Composants UI purs
-- Pas de logique métier
-- Pas d'appels Supabase
-- Reçoivent les données déjà prêtes via props
+**Characteristics:**
+
+-   Pure UI components
+-   No business logic
+-   No Supabase calls
+-   Receive ready data via props
 
 #### 5.2. Hooks (`presentation/hooks`)
 
-**Rôle :**
-- Hooks React Query
-- Appellent les usecases
-- Fournissent : `data`, `isLoading`, `error`
-- Ne contiennent pas de logique métier → juste orchestrent les usecases
+**Role:**
 
-**Structure conseillée :**
+-   React Query hooks
+-   Call usecases
+-   Provide: `data`, `isLoading`, `error`
+-   Do not contain business logic → only orchestrate usecases
+
+**Recommended structure:**
 
 ```typescript
 export function useProducts() {
-  return useQuery({
-    queryKey: ["products"],
-    queryFn: () => listProducts(productRepositorySupabase),
-  });
+    return useQuery({
+        queryKey: ["products"],
+        queryFn: () => listProducts(productRepositorySupabase),
+    });
 }
 ```
 
-#### 5.3. Stores Zustand (`presentation/stores`)
+#### 5.3. Zustand Stores (`presentation/stores`)
 
-**Contient uniquement le state UI :**
-- Filtres
-- Modales
-- Catégorie sélectionnée
-- État du drawer
+**Contains only UI state:**
 
-**Ne doit jamais contenir de logique métier.**
+-   Filters
+-   Modals
+-   Selected category
+-   Drawer state
+
+**Must never contain business logic.**
 
 #### 5.4. Providers (`presentation/providers`)
 
-**Contient :**
-- ReactQueryProvider
-- Providers globaux de l'app
+**Contains:**
+
+-   ReactQueryProvider
+-   Global app providers
 
 ---
 
-## ⚡ Modules utilisés dans le projet
+## ⚡ Modules Used in the Project
 
-- **Next.js** (App Router)
-- **SCSS** (global.scss + modules SCSS si nécessaire)
-- **Supabase** → backend auto-géré (pas de backend Node)
-- **React Query** (TanStack Query) → data fetching & cache
-- **Zustand** → state UI global léger
-- **TypeScript strict**
-- **Clean Architecture** (Core / Infrastructure / Presentation)
-
----
-
-## 🧪 Règles de génération de code pour Cursor
-
-### ✔️ Cursor doit :
-
-1. Créer les fichiers dans les bons dossiers selon leur rôle
-2. Respecter les couches :
-   - Un usecase ne doit pas importer Supabase
-   - Un composant UI ne doit pas appeler Supabase directement
-   - Une store Zustand ne doit pas contenir de logique métier
-   - Un hook React Query doit appeler un usecase, pas directement l'infrastructure
-3. Créer des types propres dans le domain
-
-### ❌ Cursor ne doit jamais :
-
-1. Mélanger UI et logique métier
-2. Mettre du code Supabase dans `/core/`
-3. Mettre des appels réseau dans les composants React
-4. Mettre de la logique métier dans Zustand
-5. Appeler directement Supabase depuis la UI
-6. Faire des imports transversaux interdits (ex: infra → app)
+-   **Next.js** (App Router)
+-   **SCSS** (global.scss + SCSS modules if needed)
+-   **Supabase** → self-hosted backend (no Node backend)
+-   **React Query** (TanStack Query) → data fetching & cache
+-   **Zustand** → lightweight global UI state
+-   **TypeScript strict**
+-   **Clean Architecture** (Core / Infrastructure / Presentation)
 
 ---
 
-## 📚 Exemple de flux complet (référence pour Cursor)
+## 🧪 Code Generation Rules for Cursor
+
+### ✔️ Cursor must:
+
+1. Create files in the correct directories according to their role
+2. Respect layers:
+    - A usecase must not import Supabase
+    - A UI component must not call Supabase directly
+    - A Zustand store must not contain business logic
+    - A React Query hook must call a usecase, not directly infrastructure
+3. Create proper types in the domain
+
+### ❌ Cursor must never:
+
+1. Mix UI and business logic
+2. Put Supabase code in `/core/`
+3. Put network calls in React components
+4. Put business logic in Zustand
+5. Call Supabase directly from the UI
+6. Make forbidden cross-layer imports (e.g., infra → app)
+
+---
+
+## 📚 Complete Flow Example (reference for Cursor)
 
 ```
-UI (Page Next)
-    ↓ appelle
-Hook React Query (useProducts)
-    ↓ appelle
+UI (Next Page)
+    ↓ calls
+React Query Hook (useProducts)
+    ↓ calls
 Usecase (listProducts)
-    ↓ appelle
+    ↓ calls
 Repository (productRepositorySupabase)
-    ↓ appelle
+    ↓ calls
 Supabase (infrastructure)
 ```
 
-**Toujours dans ce sens. Jamais l'inverse.**
+**Always in this direction. Never reversed.**

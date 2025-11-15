@@ -1,36 +1,36 @@
-# 🧼 Code Conventions — Dashboard Atelier
+# 🧼 Code Conventions — Dashboard Workshop
 
-**Standards de développement et style de code**
+**Development standards and code style**
 
 ---
 
-## ✨ 1. Style général
+## ✨ 1. General Style
 
--   **TypeScript strict** en toutes circonstances
--   **Aucun `any`** autorisé
--   **Privilégier les types explicites**
--   **Fonctions courtes, lisibles et pures** — éviter la logique inutilement complexe
+-   **TypeScript strict** at all times
+-   **No `any`** allowed
+-   **Prefer explicit types**
+-   **Short, readable, and pure functions** — avoid unnecessarily complex logic
 
 ---
 
 ## 🎨 2. SCSS / Styling
 
-### Structure SCSS
+### SCSS Structure
 
--   **SCSS global** dans `styles/global.scss`
--   **Variables** dans `styles/variables/*`
--   **Composants UI** dans `styles/components/*`
+-   **Global SCSS** in `styles/global.scss`
+-   **Variables** in `styles/variables/*`
+-   **UI Components** in `styles/components/*`
 
-### Variables SCSS
+### SCSS Variables
 
--   ✅ **Toujours utiliser uniquement des variables** depuis `styles/variables/*` pour tous les styles
--   ❌ **Ne JAMAIS créer de styles** avec des valeurs hardcodées (couleurs, espacements, tailles, etc.)
--   ✅ **Si une variable n'existe pas** dans `styles/variables/*`, l'ajouter dans la section dédiée du fichier approprié
--   ❌ **Ne JAMAIS utiliser de valeurs directes** (ex: `#fff`, `16px`, `1rem`) sans passer par une variable
+-   ✅ **Always use only variables** from `styles/variables/*` for all styles
+-   ❌ **NEVER create styles** with hardcoded values (colors, spacing, sizes, etc.)
+-   ✅ **If a variable doesn't exist** in `styles/variables/*`, add it to the dedicated section of the appropriate file
+-   ❌ **NEVER use direct values** (e.g., `#fff`, `16px`, `1rem`) without using a variable
 
-### Règles de nommage
+### Naming Rules
 
-**Classes en kebab-case :**
+**Classes in kebab-case:**
 
 ```scss
 .product-card {
@@ -38,7 +38,7 @@
 }
 ```
 
-**Sous-éléments avec `__` :**
+**Sub-elements with `__`:**
 
 ```scss
 .product-card__title {
@@ -46,7 +46,7 @@
 }
 ```
 
-**Variations avec `--` :**
+**Variations with `--`:**
 
 ```scss
 .button--primary {
@@ -54,18 +54,18 @@
 }
 ```
 
-### Interdictions
+### Prohibitions
 
--   ❌ **Zéro CSS inline** dans les composants React
--   ❌ **Pas d'utilisation de `!important`**
+-   ❌ **Zero inline CSS** in React components
+-   ❌ **No use of `!important`**
 
 ---
 
-## ⚛️ 3. React / Next.js conventions
+## ⚛️ 3. React / Next.js Conventions
 
-### Composants
+### Components
 
-**Format :** arrow function avec export default
+**Format:** arrow function with export default
 
 ```typescript
 const ComponentName = () => {
@@ -75,17 +75,17 @@ const ComponentName = () => {
 export default ComponentName;
 ```
 
-**Règles :**
+**Rules:**
 
--   ❌ Pas de classes ES6
--   ❌ Pas de `export function`
--   ✅ Nommage : **PascalCase** pour le composant
--   ✅ Toujours utiliser `const componentName = () => {}`
--   ✅ Toujours utiliser `export default ComponentName` à la fin
+-   ❌ No ES6 classes
+-   ❌ No `export function`
+-   ✅ Naming: **PascalCase** for component
+-   ✅ Always use `const componentName = () => {}`
+-   ✅ Always use `export default ComponentName` at the end
 
 ### Props
 
-**Type de props défini au-dessus du composant :**
+**Props type defined above the component:**
 
 ```typescript
 type Props = {
@@ -99,43 +99,43 @@ const ProductList = ({ products }: Props) => {
 export default ProductList;
 ```
 
-**Règles :**
+**Rules:**
 
--   ✅ Toujours utiliser `type` pour les props (jamais `interface`)
+-   ✅ Always use `type` for props (never `interface`)
 
 ### JSX
 
-**JSX minimal :**
+**Minimal JSX:**
 
--   ❌ Pas d'appels réseau
--   ❌ Pas de logique métier
--   ❌ Pas de calcul lourd
+-   ❌ No network calls
+-   ❌ No business logic
+-   ❌ No heavy calculations
 
-**Conditions :**
+**Conditions:**
 
--   ✅ Utiliser `&&` ou ternaires
--   ❌ Jamais `if` dans JSX
+-   ✅ Use `&&` or ternaries
+-   ❌ Never `if` in JSX
 
-### Fichiers
+### Files
 
--   **Extension :** `.tsx`
--   **Règle :** Un fichier = un composant principal
+-   **Extension:** `.tsx`
+-   **Rule:** One file = one main component
 
 ---
 
-## 🐻 4. Zustand conventions (state UI)
+## 🐻 4. Zustand Conventions (UI State)
 
-### Règles
+### Rules
 
--   **Un store = un domaine d'état UI** : filtres, modales, sélection, thème, etc.
--   ❌ **Aucun effet secondaire** dans les stores
--   ❌ **Aucun lien direct** avec Supabase, React Query ou logique métier
+-   **One store = one UI state domain**: filters, modals, selection, theme, etc.
+-   ❌ **No side effects** in stores
+-   ❌ **No direct link** with Supabase, React Query, or business logic
 
-### Nommage
+### Naming
 
-**Format :** `useXxxStore.ts`
+**Format:** `useXxxStore.ts`
 
-**Exemple :**
+**Example:**
 
 ```typescript
 export const useFilterStore = create<FilterState>((set) => ({
@@ -146,16 +146,16 @@ export const useFilterStore = create<FilterState>((set) => ({
 
 ---
 
-## 🔍 5. React Query conventions (data-fetching)
+## 🔍 5. React Query Conventions (Data Fetching)
 
-### Règles
+### Rules
 
--   **Un hook par ressource** : `useProducts`, `useStockMovements`, etc.
--   **queryKey explicite et stable** : `queryKey: ["products"]`
--   ❌ **Jamais d'appel Supabase direct** : uniquement exécution d'un usecase
--   ✅ **Toujours retourner** : `data`, `isLoading`, `error`
+-   **One hook per resource**: `useProducts`, `useStockMovements`, etc.
+-   **Explicit and stable queryKey**: `queryKey: ["products"]`
+-   ❌ **Never direct Supabase call**: only execution of a usecase
+-   ✅ **Always return**: `data`, `isLoading`, `error`
 
-### Exemple
+### Example
 
 ```typescript
 export function useProducts() {
@@ -172,22 +172,22 @@ export function useProducts() {
 
 ### Types
 
--   **Types métiers** dans `core/domain` et utilisés partout via imports
--   ❌ **Préfixes proscrits** : pas de `IProduct`, `IUser`
--   ✅ **Préférer** : `Product`, `StockMovement`
+-   **Business types** in `core/domain` and used everywhere via imports
+-   ❌ **Prefixes prohibited**: no `IProduct`, `IUser`
+-   ✅ **Prefer**: `Product`, `StockMovement`
 
 ### Interface vs Type vs Enum
 
-**Règles strictes :**
+**Strict rules:**
 
--   ✅ **`interface`** : **UNIQUEMENT** pour les classes
--   ✅ **`type`** : pour tout le reste (props, objets, unions, intersections, etc.)
--   ✅ **`enum`** : pour les constantes énumérées
+-   ✅ **`interface`**: **ONLY** for classes
+-   ✅ **`type`**: for everything else (props, objects, unions, intersections, etc.)
+-   ✅ **`enum`**: for enumerated constants
 
-**Exemples :**
+**Examples:**
 
 ```typescript
-// ✅ Interface uniquement pour les classes
+// ✅ Interface only for classes
 interface IRepository {
     list(): Promise<Product[]>;
 }
@@ -196,7 +196,7 @@ class ProductRepository implements IRepository {
     // ...
 }
 
-// ✅ Type pour les props, objets, etc.
+// ✅ Type for props, objects, etc.
 type Product = {
     id: string;
     name: string;
@@ -206,7 +206,7 @@ type Props = {
     products: Product[];
 };
 
-// ✅ Enum pour les constantes
+// ✅ Enum for constants
 enum ProductStatus {
     ACTIVE = "active",
     INACTIVE = "inactive",
@@ -215,79 +215,79 @@ enum ProductStatus {
 
 ### Variables
 
--   **camelCase** pour variables et fonctions
--   **PascalCase** pour types / composants
+-   **camelCase** for variables and functions
+-   **PascalCase** for types / components
 
-### Fichiers
+### Files
 
-| Fichier                        | Type                      |
+| File                           | Type                      |
 | ------------------------------ | ------------------------- |
-| `ProductTable.tsx`             | Composant                 |
-| `useProducts.ts`               | Hook React Query          |
-| `useProductFilterStore.ts`     | Store Zustand             |
-| `productRepositorySupabase.ts` | Repository infrastructure |
+| `ProductTable.tsx`             | Component                 |
+| `useProducts.ts`               | React Query hook          |
+| `useProductFilterStore.ts`     | Zustand store             |
+| `productRepositorySupabase.ts` | Infrastructure repository |
 
 ---
 
 ## 🧪 7. Tests
 
-**Tests unitaires seulement pour :**
+**Unit tests only for:**
 
 -   `domain`
 -   `usecases`
 
-**Tests UI :**
+**UI Tests:**
 
--   ❌ Pas de tests UI obligatoires pour les composants de pages
--   ✅ **Tests obligatoires** pour les composants réutilisables dans `presentation/components/ui`
+-   ❌ No mandatory UI tests for page components
+-   ✅ **Mandatory tests** for reusable components in `presentation/components/ui`
 
 ---
 
-## 🧰 8. Imports — Ordre et propreté
+## 🧰 8. Imports — Order and Cleanliness
 
-### Ordre recommandé
+### Recommended Order
 
-1. **Librairies externes** (React, Zustand, React Query…)
+1. **External libraries** (React, Zustand, React Query…)
 2. **Types / domain**
 3. **Usecases**
 4. **Infrastructure**
 5. **Presentation** (components, hooks, stores)
-6. **Styles ou SCSS modules**
-7. **Imports relatifs**
+6. **Styles or SCSS modules**
+7. **Relative imports**
 
-### Règles
+### Rules
 
--   ✅ **Toujours supprimer** les imports non utilisés
+-   ✅ **Always remove** unused imports
 
 ---
 
-## 🔧 9. Qualité & bonnes pratiques
+## 🔧 9. Quality & Best Practices
 
--   ✅ **Nommer les fonctions** selon ce qu'elles font vraiment
--   ✅ **Préférer les fonctions pures**
--   ✅ **Découper les composants** trop longs
--   ✅ **Utiliser `async/await`** plutôt que `.then()`
--   ✅ **Toujours typer** les valeurs de retour des fonctions publiques
--   ✅ **Jamais ignorer une erreur réseau** (toujours au moins un `throw`)
+-   ✅ **Name functions** according to what they actually do
+-   ✅ **Prefer pure functions**
+-   ✅ **Split long components**
+-   ✅ **Use `async/await`** rather than `.then()`
+-   ✅ **Always type** return values of public functions
+-   ✅ **Never ignore a network error** (always at least a `throw`)
 
 ---
 
 ## 📝 10. Commits
 
-**Convention simple et claire :**
+**Simple and clear convention:**
 
 ```
-feat: ajoute le hook useProducts
-fix: supprime erreur de mapping Produit
-refactor: déplace stores Zustand
-style: nettoie SCSS
-docs: ajoute code_conventions.md
+feat: add useProducts hook
+fix: remove Product mapping error
+refactor: move Zustand stores
+style: clean up SCSS
+docs: add code_conventions.md
 ```
 
 ---
 
 ## 🏁 Conclusion
 
-Cette documentation définit les conventions de style, **indépendantes de l'architecture**.
+This documentation defines style conventions, **independent of architecture**.
 
-**Cursor doit appliquer systématiquement ces règles** lors de la génération ou la modification de fichiers.
+**Cursor must systematically apply these rules** when generating or modifying files.

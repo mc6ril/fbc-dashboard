@@ -8,53 +8,53 @@ priority: medium
 
 # Intent
 
-Maintenir des conventions de code strictes et cohérentes pour le style, le nommage, les patterns TypeScript et la qualité du code, indépendamment de l'architecture.
+Maintain strict and consistent code conventions for style, naming, TypeScript patterns, and code quality, independent of architecture.
 
 ## CRITICAL RULES - CODE CONVENTIONS NEVER OPTIONAL
 
 ### 1. TypeScript Style - STRICT ENFORCEMENT
 
--   **ALWAYS** utiliser TypeScript strict en toutes circonstances
--   **NEVER** utiliser `any` - toujours typer explicitement
--   **ALWAYS** privilégier les types explicites
--   **ALWAYS** écrire des fonctions courtes, lisibles et pures
--   **NEVER** créer de logique inutilement complexe
+-   **ALWAYS** use TypeScript strict at all times
+-   **NEVER** use `any` - always type explicitly
+-   **ALWAYS** prefer explicit types
+-   **ALWAYS** write short, readable, and pure functions
+-   **NEVER** create unnecessarily complex logic
 
 ### 2. SCSS / Styling - MANDATORY STRUCTURE
 
-#### Structure SCSS
+#### SCSS Structure
 
--   **ALWAYS** placer le SCSS global dans `styles/global.scss`
--   **ALWAYS** placer les variables dans `styles/variables/*`
--   **ALWAYS** placer les composants UI dans `styles/components/*`
+-   **ALWAYS** place global SCSS in `styles/global.scss`
+-   **ALWAYS** place variables in `styles/variables/*`
+-   **ALWAYS** place UI components in `styles/components/*`
 
-#### Variables SCSS - MANDATORY USAGE
+#### SCSS Variables - MANDATORY USAGE
 
--   **ALWAYS** utiliser uniquement des variables depuis `styles/variables/*` pour tous les styles
--   **NEVER** créer de styles avec des valeurs hardcodées (couleurs, espacements, tailles, etc.)
--   **ALWAYS** si une variable n'existe pas dans `styles/variables/*`, l'ajouter dans la section dédiée du fichier approprié
--   **NEVER** utiliser de valeurs directes (ex: `#fff`, `16px`, `1rem`) sans passer par une variable
+-   **ALWAYS** use only variables from `styles/variables/*` for all styles
+-   **NEVER** create styles with hardcoded values (colors, spacing, sizes, etc.)
+-   **ALWAYS** if a variable doesn't exist in `styles/variables/*`, add it to the dedicated section of the appropriate file
+-   **NEVER** use direct values (e.g., `#fff`, `16px`, `1rem`) without using a variable
 
-#### Règles de nommage SCSS
+#### SCSS Naming Rules
 
--   **ALWAYS** nommer les classes en kebab-case : `.product-card`
--   **ALWAYS** utiliser `__` pour les sous-éléments : `.product-card__title`
--   **ALWAYS** utiliser `--` pour les variations : `.button--primary`
--   **NEVER** utiliser de CSS inline dans les composants React
--   **NEVER** utiliser `!important`
+-   **ALWAYS** name classes in kebab-case: `.product-card`
+-   **ALWAYS** use `__` for sub-elements: `.product-card__title`
+-   **ALWAYS** use `--` for variations: `.button--primary`
+-   **NEVER** use inline CSS in React components
+-   **NEVER** use `!important`
 
 ### 3. React / Next.js Components - STRICT PATTERNS
 
-#### Format de composant
+#### Component Format
 
--   **ALWAYS** utiliser arrow function avec export default
--   **NEVER** utiliser de classes ES6
--   **NEVER** utiliser `export function`
--   **ALWAYS** nommer les composants en PascalCase
--   **ALWAYS** utiliser `const ComponentName = () => {}`
--   **ALWAYS** utiliser `export default ComponentName` à la fin
+-   **ALWAYS** use arrow function with export default
+-   **NEVER** use ES6 classes
+-   **NEVER** use `export function`
+-   **ALWAYS** name components in PascalCase
+-   **ALWAYS** use `const ComponentName = () => {}`
+-   **ALWAYS** use `export default ComponentName` at the end
 
-**Structure obligatoire :**
+**Mandatory structure:**
 
 ```typescript
 const ComponentName = () => {
@@ -66,10 +66,10 @@ export default ComponentName;
 
 #### Props
 
--   **ALWAYS** définir le type de props au-dessus du composant
--   **ALWAYS** utiliser `type` pour les props (jamais `interface`)
+-   **ALWAYS** define props type above the component
+-   **ALWAYS** use `type` for props (never `interface`)
 
-**Structure obligatoire :**
+**Mandatory structure:**
 
 ```typescript
 type Props = {
@@ -85,25 +85,25 @@ export default ProductList;
 
 #### JSX
 
--   **NEVER** faire d'appels réseau dans le JSX
--   **NEVER** mettre de logique métier dans le JSX
--   **NEVER** faire de calcul lourd dans le JSX
--   **ALWAYS** utiliser `&&` ou ternaires pour les conditions
--   **NEVER** utiliser `if` dans JSX
+-   **NEVER** make network calls in JSX
+-   **NEVER** put business logic in JSX
+-   **NEVER** do heavy calculations in JSX
+-   **ALWAYS** use `&&` or ternaries for conditions
+-   **NEVER** use `if` in JSX
 
-#### Fichiers
+#### Files
 
--   **ALWAYS** utiliser l'extension `.tsx` pour les composants
--   **ALWAYS** respecter : un fichier = un composant principal
+-   **ALWAYS** use `.tsx` extension for components
+-   **ALWAYS** respect: one file = one main component
 
 ### 4. Zustand Stores - UI STATE ONLY
 
--   **ALWAYS** créer un store par domaine d'état UI (filtres, modales, sélection, thème, etc.)
--   **NEVER** mettre d'effets secondaires dans les stores
--   **NEVER** créer de lien direct avec Supabase, React Query ou logique métier
--   **ALWAYS** nommer les stores : `useXxxStore.ts`
+-   **ALWAYS** create one store per UI state domain (filters, modals, selection, theme, etc.)
+-   **NEVER** put side effects in stores
+-   **NEVER** create direct link with Supabase, React Query, or business logic
+-   **ALWAYS** name stores: `useXxxStore.ts`
 
-**Structure obligatoire :**
+**Mandatory structure:**
 
 ```typescript
 export const useFilterStore = create<FilterState>((set) => ({
@@ -114,12 +114,12 @@ export const useFilterStore = create<FilterState>((set) => ({
 
 ### 5. React Query Hooks - DATA FETCHING PATTERNS
 
--   **ALWAYS** créer un hook par ressource : `useProducts`, `useStockMovements`, etc.
--   **ALWAYS** utiliser un queryKey explicite et stable : `queryKey: ["products"]`
--   **NEVER** faire d'appel Supabase direct - uniquement exécution d'un usecase
--   **ALWAYS** retourner : `data`, `isLoading`, `error`
+-   **ALWAYS** create one hook per resource: `useProducts`, `useStockMovements`, etc.
+-   **ALWAYS** use explicit and stable queryKey: `queryKey: ["products"]`
+-   **NEVER** make direct Supabase call - only execute a usecase
+-   **ALWAYS** return: `data`, `isLoading`, `error`
 
-**Structure obligatoire :**
+**Mandatory structure:**
 
 ```typescript
 export function useProducts() {
@@ -134,20 +134,20 @@ export function useProducts() {
 
 #### Types
 
--   **ALWAYS** placer les types métiers dans `core/domain` et les utiliser partout via imports
--   **NEVER** utiliser de préfixes (pas de `IProduct`, `IUser`)
--   **ALWAYS** préférer : `Product`, `StockMovement`
+-   **ALWAYS** place business types in `core/domain` and use them everywhere via imports
+-   **NEVER** use prefixes (no `IProduct`, `IUser`)
+-   **ALWAYS** prefer: `Product`, `StockMovement`
 
 #### Interface vs Type vs Enum
 
--   **ALWAYS** utiliser `interface` **UNIQUEMENT** pour les classes
--   **ALWAYS** utiliser `type` pour tout le reste (props, objets, unions, intersections, etc.)
--   **ALWAYS** utiliser `enum` pour les constantes énumérées
+-   **ALWAYS** use `interface` **ONLY** for classes
+-   **ALWAYS** use `type` for everything else (props, objects, unions, intersections, etc.)
+-   **ALWAYS** use `enum` for enumerated constants
 
-**Exemples obligatoires :**
+**Mandatory examples:**
 
 ```typescript
-// ✅ Interface uniquement pour les classes
+// ✅ Interface only for classes
 interface IRepository {
     list(): Promise<Product[]>;
 }
@@ -156,7 +156,7 @@ class ProductRepository implements IRepository {
     // ...
 }
 
-// ✅ Type pour les props, objets, etc.
+// ✅ Type for props, objects, etc.
 type Product = {
     id: string;
     name: string;
@@ -166,71 +166,71 @@ type Props = {
     products: Product[];
 };
 
-// ✅ Enum pour les constantes
+// ✅ Enum for constants
 enum ProductStatus {
     ACTIVE = "active",
     INACTIVE = "inactive",
 }
 ```
 
-#### Nommage
+#### Naming
 
--   **ALWAYS** utiliser camelCase pour variables et fonctions
--   **ALWAYS** utiliser PascalCase pour types / composants
+-   **ALWAYS** use camelCase for variables and functions
+-   **ALWAYS** use PascalCase for types / components
 
-#### Nommage de fichiers
+#### File Naming
 
--   `ProductTable.tsx` → Composant
--   `useProducts.ts` → Hook React Query
--   `useProductFilterStore.ts` → Store Zustand
--   `productRepositorySupabase.ts` → Repository infrastructure
+-   `ProductTable.tsx` → Component
+-   `useProducts.ts` → React Query hook
+-   `useProductFilterStore.ts` → Zustand store
+-   `productRepositorySupabase.ts` → Infrastructure repository
 
 ### 7. Tests - MANDATORY COVERAGE
 
--   **ALWAYS** écrire des tests unitaires pour `domain` et `usecases`
--   **NEVER** rendre les tests UI obligatoires pour les composants de pages
--   **ALWAYS** écrire des tests obligatoires pour les composants réutilisables dans `presentation/components/ui`
+-   **ALWAYS** write unit tests for `domain` and `usecases`
+-   **NEVER** make UI tests mandatory for page components
+-   **ALWAYS** write mandatory tests for reusable components in `presentation/components/ui`
 
 ### 8. Imports - ORDER AND CLEANLINESS
 
-#### Ordre obligatoire
+#### Mandatory Order
 
-1. Librairies externes (React, Zustand, React Query…)
+1. External libraries (React, Zustand, React Query…)
 2. Types / domain
 3. Usecases
 4. Infrastructure
 5. Presentation (components, hooks, stores)
-6. Styles ou SCSS modules
-7. Imports relatifs
+6. Styles or SCSS modules
+7. Relative imports
 
-#### Règles
+#### Rules
 
--   **ALWAYS** supprimer les imports non utilisés
+-   **ALWAYS** remove unused imports
 
 ### 9. Code Quality - BEST PRACTICES
 
--   **ALWAYS** nommer les fonctions selon ce qu'elles font vraiment
--   **ALWAYS** préférer les fonctions pures
--   **ALWAYS** découper les composants trop longs
--   **ALWAYS** utiliser `async/await` plutôt que `.then()`
--   **ALWAYS** typer les valeurs de retour des fonctions publiques
--   **NEVER** ignorer une erreur réseau (toujours au moins un `throw`)
+-   **ALWAYS** name functions according to what they actually do
+-   **ALWAYS** prefer pure functions
+-   **ALWAYS** split components that are too long
+-   **ALWAYS** use `async/await` rather than `.then()`
+-   **ALWAYS** type return values of public functions
+-   **NEVER** ignore a network error (always at least a `throw`)
 
 ## CODE CONVENTION VIOLATIONS - AUTO-STOP CONDITIONS
 
 ### 10. Critical Violations - ALWAYS STOP
 
-1. **Utilisation de `any`** → STOP et typer explicitement
-2. **CSS inline dans composant** → STOP et utiliser SCSS
-3. **Valeur hardcodée dans SCSS** → STOP et créer/utiliser une variable dans `styles/variables/*`
-4. **`export function` pour composant** → STOP et utiliser `const ComponentName = () => {}`
-5. **`interface` pour props** → STOP et utiliser `type`
-6. **`if` dans JSX** → STOP et utiliser `&&` ou ternaire
-7. **Logique métier dans JSX** → STOP et déplacer dans un hook ou usecase
-8. **Appel réseau dans composant** → STOP et utiliser un hook React Query
-9. **Effet secondaire dans store Zustand** → STOP et déplacer la logique
-10. **Imports non utilisés** → STOP et supprimer
-11. **Fonction sans type de retour** → STOP et typer explicitement
+1. **Use of `any`** → STOP and type explicitly
+2. **Inline CSS in component** → STOP and use SCSS
+3. **Hardcoded value in SCSS** → STOP and create/use a variable in `styles/variables/*`
+4. **`export function` for component** → STOP and use `const ComponentName = () => {}`
+5. **`interface` for props** → STOP and use `type`
+6. **`if` in JSX** → STOP and use `&&` or ternary
+7. **Business logic in JSX** → STOP and move to a hook or usecase
+8. **Network call in component** → STOP and use a React Query hook
+9. **Side effect in Zustand store** → STOP and move the logic
+10. **Unused imports** → STOP and remove
+11. **Function without return type** → STOP and type explicitly
 
 ## CODE CONVENTION COMPLIANCE - MANDATORY VERIFICATION
 
@@ -240,46 +240,46 @@ Before EVERY code generation:
 
 ✅ **TypeScript**
 
--   TypeScript strict activé?
--   Aucun `any` utilisé?
--   Types explicites partout?
+-   TypeScript strict enabled?
+-   No `any` used?
+-   Explicit types everywhere?
 
 ✅ **Components**
 
--   Format arrow function avec export default?
--   Props typées avec `type`?
--   Pas de logique métier dans JSX?
+-   Arrow function format with export default?
+-   Props typed with `type`?
+-   No business logic in JSX?
 
 ✅ **Styling**
 
--   SCSS dans les bons dossiers?
--   Toutes les valeurs utilisent des variables depuis `styles/variables/*`?
--   Variables manquantes ajoutées dans `styles/variables/*`?
--   Classes en kebab-case?
--   Pas de CSS inline?
--   Pas de valeurs hardcodées?
+-   SCSS in correct directories?
+-   All values use variables from `styles/variables/*`?
+-   Missing variables added in `styles/variables/*`?
+-   Classes in kebab-case?
+-   No inline CSS?
+-   No hardcoded values?
 
 ✅ **State Management**
 
--   Store Zustand pour UI state uniquement?
--   Hook React Query appelle un usecase?
--   Pas d'effets secondaires dans stores?
+-   Zustand store for UI state only?
+-   React Query hook calls a usecase?
+-   No side effects in stores?
 
 ✅ **Types**
 
--   `interface` uniquement pour classes?
--   `type` pour props et objets?
--   `enum` pour constantes?
+-   `interface` only for classes?
+-   `type` for props and objects?
+-   `enum` for constants?
 
 ✅ **Imports**
 
--   Ordre respecté?
--   Imports non utilisés supprimés?
+-   Order respected?
+-   Unused imports removed?
 
 ✅ **Code Quality**
 
--   Fonctions pures préférées?
--   Types de retour explicites?
--   Gestion d'erreurs appropriée?
+-   Pure functions preferred?
+-   Explicit return types?
+-   Appropriate error handling?
 
 This ensures consistent, maintainable, and high-quality code across the entire codebase.
