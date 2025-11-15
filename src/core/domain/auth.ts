@@ -86,6 +86,7 @@ export type AuthError = {
  * when the authentication state changes in the application.
  *
  * The event types correspond to Supabase's authentication event types:
+ * - "INITIAL_SESSION": Initial session is retrieved from storage on app startup (emitted once on mount)
  * - "SIGNED_IN": User has successfully signed in
  * - "SIGNED_OUT": User has signed out or token has expired/invalidated
  * - "TOKEN_REFRESHED": Access token has been automatically refreshed by Supabase
@@ -96,6 +97,7 @@ export type AuthError = {
  * where authentication event types need to be referenced or checked.
  */
 export type AuthEventType =
+    | "INITIAL_SESSION"
     | "SIGNED_IN"
     | "SIGNED_OUT"
     | "TOKEN_REFRESHED"

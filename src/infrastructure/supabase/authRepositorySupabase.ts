@@ -112,7 +112,7 @@ const mapSupabaseSessionToDomain = (supabaseSession: {
  * to domain Session type if present. The session is null when the user signs out
  * or the token expires/invalidates.
  *
- * Supabase events match our domain events exactly: SIGNED_IN, SIGNED_OUT,
+ * Supabase events match our domain events: INITIAL_SESSION, SIGNED_IN, SIGNED_OUT,
  * TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY. We cast the event string
  * to AuthEventType as Supabase guarantees these event types.
  *
@@ -136,7 +136,7 @@ const mapSupabaseEventToDomain = (
     } | null
 ): SessionChangeEvent => {
     // Map Supabase event strings to domain AuthEventType
-    // Supabase events match our domain events: SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY
+    // Supabase events match our domain events: INITIAL_SESSION, SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY
     const event = supabaseEvent as AuthEventType;
 
     // Map session to domain type if present, otherwise null

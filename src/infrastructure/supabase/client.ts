@@ -71,7 +71,16 @@ const validateEnvironmentVariables = (): void => {
  * The client is configured with:
  * - Auth persistence: Uses browser localStorage for session persistence
  * - Auto-refresh: Automatically refreshes expired tokens
- * - Default options: Uses Supabase's recommended defaults
+ * - Session URL detection: DISABLED to prevent expired URL sessions from clearing valid localStorage sessions
+ *
+ * **Why `detectSessionInUrl` is disabled:**
+ * When enabled, Supabase checks the URL for session parameters (used for OAuth callbacks).
+ * If an expired/invalid session is found in the URL, Supabase may emit SIGNED_OUT events
+ * and clear localStorage before checking for a valid session stored in localStorage.
+ * This causes session persistence issues where valid sessions are cleared on page refresh.
+ *
+ * If OAuth is needed in the future, this should be re-enabled with proper handling
+ * of expired URL sessions to avoid clearing valid localStorage sessions.
  *
  * @returns {SupabaseClient} Configured Supabase client instance
  * @throws {Error} Throws an error if required environment variables are missing
@@ -89,7 +98,11 @@ const createSupabaseClient = (): SupabaseClient => {
         auth: {
             persistSession: true,
             autoRefreshToken: true,
-            detectSessionInUrl: true,
+            // Disabled to prevent expired URL sessions from clearing valid localStorage sessions
+            // When enabled, if Supabase finds an expired session in the URL (e.g., from a previous
+            // OAuth callback), it may emit SIGNED_OUT and clear localStorage before INITIAL_SESSION
+            // can restore the valid session from localStorage
+            detectSessionInUrl: false,
         },
     });
 };

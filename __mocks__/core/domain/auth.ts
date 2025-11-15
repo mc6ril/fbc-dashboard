@@ -103,9 +103,11 @@ export const createMockSessionChangeEvent = (
     session: Session | null = null,
     overrides?: Partial<SessionChangeEvent>
 ): SessionChangeEvent => {
-    // If session is not provided and event is not SIGNED_OUT, create a mock session
+    // If session is not provided and event requires a session, create a mock session
+    // SIGNED_OUT and INITIAL_SESSION can have null sessions (user signed out or no session in storage)
+    // Other events (SIGNED_IN, TOKEN_REFRESHED, USER_UPDATED) require a session
     const eventSession =
-        session === null && event !== "SIGNED_OUT"
+        session === null && event !== "SIGNED_OUT" && event !== "INITIAL_SESSION"
             ? createMockSession()
             : session;
 

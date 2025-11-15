@@ -751,7 +751,7 @@ describe("Authentication Usecases", () => {
             expect(cleanup1).toBe(mockCleanup);
         });
 
-        it("should handle all event types correctly (SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY)", () => {
+        it("should handle all event types correctly (INITIAL_SESSION, SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY)", () => {
             // Arrange
             const mockCallback: AuthStateChangeCallback = jest.fn();
             const mockCleanup = jest.fn(() => {});
@@ -764,6 +764,7 @@ describe("Authentication Usecases", () => {
             expect(mockRepo.onAuthStateChange).toHaveBeenCalledTimes(1);
 
             // Simulate different event types by calling the callback directly
+            const initialSessionEvent = createMockSessionChangeEvent("INITIAL_SESSION");
             const signedInEvent = createMockSessionChangeEvent("SIGNED_IN");
             const signedOutEvent = createMockSessionChangeEvent("SIGNED_OUT", null);
             const tokenRefreshedEvent = createMockSessionChangeEvent("TOKEN_REFRESHED");
@@ -777,6 +778,7 @@ describe("Authentication Usecases", () => {
                 .calls[0][0] as AuthStateChangeCallback;
 
             // Test all event types
+            repositoryCallback(initialSessionEvent);
             repositoryCallback(signedInEvent);
             repositoryCallback(signedOutEvent);
             repositoryCallback(tokenRefreshedEvent);
@@ -784,7 +786,8 @@ describe("Authentication Usecases", () => {
             repositoryCallback(passwordRecoveryEvent);
 
             // Assert - callback should have been called with all events
-            expect(mockCallback).toHaveBeenCalledTimes(5);
+            expect(mockCallback).toHaveBeenCalledTimes(6);
+            expect(mockCallback).toHaveBeenCalledWith(initialSessionEvent);
             expect(mockCallback).toHaveBeenCalledWith(signedInEvent);
             expect(mockCallback).toHaveBeenCalledWith(signedOutEvent);
             expect(mockCallback).toHaveBeenCalledWith(tokenRefreshedEvent);
@@ -814,6 +817,67 @@ describe("Authentication Usecases", () => {
             expect(mockCallback).toHaveBeenCalledWith(
                 expect.objectContaining({
                     event: "SIGNED_OUT",
+                    session: null,
+                })
+            );
+        });
+
+        it("should handle INITIAL_SESSION event with session", () => {
+            // Arrange
+            const mockCallback: AuthStateChangeCallback = jest.fn();
+            const mockCleanup = jest.fn(() => {});
+            const mockSession = createMockSession();
+            mockRepo.onAuthStateChange.mockReturnValue(mockCleanup);
+
+            // Act
+            subscribeToAuthChanges(mockRepo, mockCallback);
+
+            // Get the callback passed to the repository
+            const repositoryCallback = mockRepo.onAuthStateChange.mock
+                .calls[0][0] as AuthStateChangeCallback;
+
+            // Simulate INITIAL_SESSION event with session (session restored from storage)
+            const initialSessionEvent = createMockSessionChangeEvent(
+                "INITIAL_SESSION",
+                mockSession
+            );
+            repositoryCallback(initialSessionEvent);
+
+            // Assert
+            expect(mockCallback).toHaveBeenCalledTimes(1);
+            expect(mockCallback).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    event: "INITIAL_SESSION",
+                    session: mockSession,
+                })
+            );
+        });
+
+        it("should handle INITIAL_SESSION event without session", () => {
+            // Arrange
+            const mockCallback: AuthStateChangeCallback = jest.fn();
+            const mockCleanup = jest.fn(() => {});
+            mockRepo.onAuthStateChange.mockReturnValue(mockCleanup);
+
+            // Act
+            subscribeToAuthChanges(mockRepo, mockCallback);
+
+            // Get the callback passed to the repository
+            const repositoryCallback = mockRepo.onAuthStateChange.mock
+                .calls[0][0] as AuthStateChangeCallback;
+
+            // Simulate INITIAL_SESSION event without session (no session in storage)
+            const initialSessionEvent = createMockSessionChangeEvent(
+                "INITIAL_SESSION",
+                null
+            );
+            repositoryCallback(initialSessionEvent);
+
+            // Assert
+            expect(mockCallback).toHaveBeenCalledTimes(1);
+            expect(mockCallback).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    event: "INITIAL_SESSION",
                     session: null,
                 })
             );
