@@ -1,106 +1,65 @@
 ---
 name: "Refactor Design"
-description: "Refactor UI to Design System compliance using UI Designer"
+description: "Refactor UI to SCSS variables and accessibility compliance using UI Designer"
 agent: "UI Designer"
-tags: ["ui", "design-system", "refactor", "a11y"]
+tags: ["ui", "scss", "refactor", "a11y"]
 ---
 
 # Refactor Design
 
 ## Overview
 
-Refactor the selected file(s) to improve design system compliance using the **UI Designer** agent. Replace custom components with design system components, and ensure consistent styling patterns while maintaining the same visual appearance and functionality.
+Refactor the selected file(s) to improve SCSS variables compliance and accessibility using the **UI Designer** agent. Replace hardcoded values with SCSS variables and ensure full accessibility compliance while maintaining the same visual appearance and functionality.
 
 ## Agent
 
 **Use**: @UI Designer
 
 The UI Designer ensures:
-- Use of `@perifit/app-design-system` components only
-- Design system tokens (spacing, colors, typography, radius)
-- Full accessibility (WCAG 2.1 AA)
-- Responsive layouts
-- **Resx for all user-facing text** (import from "modules/localisation")
+
+-   Use of SCSS variables from `styles/variables/*` only
+-   Full accessibility (WCAG 2.1 AA) using shared/a11y/ utilities
+-   Responsive layouts
+-   No inline styles
 
 ## Steps
 
-1. **Design System Component Replacement**
+1. **SCSS Variables Compliance**
 
-   - Identify custom UI components that duplicate design system functionality
-   - Replace native React Native components (View, Text, TouchableOpacity) with design system components
-   - Replace custom buttons, inputs, and form elements with design system equivalents
-   - Ensure all components use the correct variants and sizes from the design system
+    - Replace hardcoded spacing values with SCSS variables from styles/variables/\_spacing.scss
+    - Replace hardcoded colors with SCSS variables from styles/variables/\_colors.scss
+    - Replace hardcoded typography values with SCSS variables from styles/variables/\_typography.scss
+    - If variables are missing, add them to the appropriate file in styles/variables/\*
 
-2. **Styling Compliance**
+2. **Styling Improvements**
 
-   - Move all inline styles to a separate `styles.ts` file
-   - Replace hardcoded spacing values with design system spacing tokens (spacing.s, spacing.md, spacing.lg)
-   - Replace hardcoded colors with theme colors from `useTheme()` hook
-   - Replace hardcoded border radius values with design system radius tokens (radius.s, radius.md, radius.lg)
-   - Ensure all colors use semantic tokens (text.primary, fill.page, border.primary)
+    - Move all inline styles to SCSS files
+    - Use SCSS modules or global SCSS from styles/
+    - Ensure consistent styling patterns
 
-3. **Typography Improvements**
+3. **Accessibility Enhancements**
 
-   - Replace React Native `Text` components with `Typography` component from design system
-   - Use appropriate typography variants (h1, h2, h3, h4, h5, body, caption)
-   - Ensure semantic usage of typography variants
+    - Use utilities from shared/a11y/ for accessibility IDs
+    - Add appropriate `role`, `aria-label`, `aria-labelledby` attributes
+    - Use semantic HTML elements
+    - Add `aria-live` regions for dynamic content
+    - Hide decorative elements from screen readers
 
-4. **Accessibility Enhancements**
-
-   - Ensure all interactive elements have proper accessibility IDs using `CommonHelper.getAccessibilityId()`
-   - Add appropriate `accessibilityRole` and `accessibilityLabel` props
-   - Verify accessibility compliance for all UI components
-
-5. **Internationalization (i18n)**
-   - **ALWAYS use Resx for all user-facing text** (import from "modules/localisation")
-   - If translation keys are missing, directly add them to `src/modules/localisation/lokalise/en.json`
-   - Use camelCase, descriptive key names (e.g. `connectDeviceError`, `languageInfoText`)
-   - Group related keys with common prefixes
-   - Never hardcode strings
-
-6. **File Structure**
-   - Ensure component files follow the established folder structure
-   - Verify `styles.ts` file exists and is properly organized
-   - Check that types are defined in separate `types.ts` file when needed
+4. **Responsive Design**
+    - Use CSS media queries for responsive layouts
+    - Use SCSS variables for responsive spacing and sizing
 
 ## Refactor Design Checklist
 
-- [ ] Replaced custom UI components with design system components
-- [ ] Replaced native React Native components with design system equivalents
-- [ ] Moved all inline styles to `styles.ts` file
-- [ ] Replaced hardcoded spacing values with design system spacing tokens
-- [ ] Replaced hardcoded colors with theme colors from `useTheme()` hook
-- [ ] Replaced hardcoded border radius values with design system radius tokens
-- [ ] Replaced React Native `Text` components with `Typography` component
-- [ ] Used appropriate typography variants (h1, h2, h3, h4, h5, body, caption)
-- [ ] Added proper accessibility IDs to all interactive elements
-- [ ] Added appropriate `accessibilityRole` and `accessibilityLabel` props
-- [ ] Verified file structure follows established patterns
-- [ ] Ensured `styles.ts` file is properly organized
-- [ ] Verified responsive design with `IsTablet()` function when needed
-- [ ] Used design system tokens consistently throughout the file(s)
-- [ ] All user-facing text uses Resx (no hardcoded strings)
-- [ ] Missing translation keys added to `en.json` with descriptive camelCase names
+-   [ ] Replaced hardcoded spacing values with SCSS variables
+-   [ ] Replaced hardcoded colors with SCSS variables
+-   [ ] Replaced hardcoded typography values with SCSS variables
+-   [ ] Missing variables added to styles/variables/\* if needed
+-   [ ] Moved all inline styles to SCSS files
+-   [ ] Used SCSS modules or global SCSS from styles/
+-   [ ] Added proper accessibility attributes using shared/a11y/ utilities
+-   [ ] Used semantic HTML elements
+-   [ ] Added live regions for dynamic content
+-   [ ] Verified responsive design with CSS media queries
 
-## Design System Compliance
-
-### Components to Replace
-
-- **Buttons**: Use `Button` component with variants (primary, secondary, inversed, link) and sizes (big, small)
-- **Icon Buttons**: Use `IconButton` component with sizes (big, small, verySmall)
-- **Text Inputs**: Use `TextField` component for all text inputs
-- **Text Areas**: Use `TextArea` component for multi-line text
-- **Toggles**: Use `Toggle` component for on/off states
-- **Lists**: Use `ListItem` component for list items
-- **Modals**: Use `BottomSheet` from `@gorhom/bottom-sheet` for modals
-- **Typography**: Use `Typography` component for all text content
-
-### Styling Patterns
-
-- **Colors**: Always use `themeColors` from `useTheme()` hook
-- **Spacing**: Always use `spacing` tokens (spacing.s, spacing.md, spacing.lg)
-- **Radius**: Always use `radius` tokens (radius.s, radius.md, radius.lg)
-- **Files**: Always create `styles.ts` file for component styles
-- **Theme**: Always use `useTheme()` hook for theme access
-
-Provide refactored code with explanations of the design system improvements made and ensure visual appearance and functionality remain unchanged.
+Provide refactored code with explanations of the improvements made and ensure visual appearance and functionality remain unchanged.

@@ -17,83 +17,67 @@ Review code or implementation plans for architecture rule compliance using the *
 
 The Architecture Guardian performs a read-only review checking:
 
-- DI via Providers (no direct service instantiation)
-- Services/Helpers boundaries (helpers stateless, services own side-effects)
-- BLE pipeline compliance (BLE → handlers → EventService → helpers → redux → UI)
-- Redux state management (no local state for global concerns)
-- Design System usage (no inline styles, use tokens)
-- Navigation (use NavigationHelper, not direct `useNavigation()`)
-- Settings module (use centralized module, not direct AsyncStorage)
+-   Clean Architecture boundaries (Domain → Usecases → Infrastructure → Presentation)
+-   Layer separation (no Supabase in UI, no business logic in UI)
+-   React Query + Zustand usage (React Query for server state, Zustand for UI state only)
+-   SCSS variables usage (no hardcoded values)
+-   Supabase usage (only in infrastructure layer)
+-   Accessibility compliance (WCAG 2.1 AA)
 
 ## Steps
 
 1. **Scan Code/Plan**
 
-   - Review provided files or implementation plan
-   - Identify scope of changes
+    - Review provided files or implementation plan
+    - Identify scope of changes
 
 2. **Check Architecture Rules**
 
-   - **DI via Providers**: Verify no direct service instantiation (`new Service()`)
-   - **Services/Helpers**: Verify helpers are stateless (no I/O), services own side-effects
-   - **BLE Pipeline**: Verify BLE data flows through event system
-   - **Redux**: Verify no local state for global concerns
-   - **Design System**: Verify no inline styles, use tokens
-   - **Navigation**: Verify NavigationHelper usage
-   - **Settings**: Verify centralized settings module usage
+    - **Clean Architecture**: Verify layer separation and boundaries
+    - **Domain**: Verify pure TypeScript, no external dependencies
+    - **Usecases**: Verify orchestration using repositories (ports)
+    - **Infrastructure**: Verify Supabase implementations only
+    - **Presentation**: Verify no business logic, React Query hooks, Zustand stores
+    - **SCSS Variables**: Verify no hardcoded values
+    - **Accessibility**: Verify shared/a11y/ utilities usage
 
 3. **List Violations**
 
-   - Group violations by category (DI, Services, Redux, BLE, DS, Navigation, Settings)
-   - For each violation: file path, line number, rule violated, minimal fix
+    - Group violations by category (Domain, Usecases, Infrastructure, Presentation, SCSS, A11y)
+    - For each violation: file path, line number, rule violated, minimal fix
 
 4. **Propose Fixes**
-   - Provide minimal, targeted fixes (diffs only, no full rewrites)
-   - Focus on violations, not style preferences
-   - If no violations found, confirm compliance briefly
+    - Provide minimal, targeted fixes (diffs only, no full rewrites)
+    - Focus on violations, not style preferences
+    - If no violations found, confirm compliance briefly
 
 ## Architecture Review Checklist
 
-### DI / Providers
+### Clean Architecture / Layer Separation
 
-- [ ] No direct service instantiation (`new Service()`)
-- [ ] Services accessed via `ServiceProvider.get*Service()`
-- [ ] Helpers accessed via `HelperProvider.get*Helper()`
-- [ ] No custom singletons or module-level mutable state
+-   [ ] No Supabase calls in UI
+-   [ ] No business logic in UI components
+-   [ ] Domain layer is pure TypeScript
+-   [ ] Usecases use repositories (ports)
+-   [ ] Infrastructure implements ports only
+-   [ ] Presentation uses React Query hooks and Zustand stores
 
-### Services / Helpers
+### SCSS Variables
 
-- [ ] Helpers are stateless (no I/O, no side-effects)
-- [ ] Services own side-effects (BLE, network, storage)
-- [ ] Inter-service communication via EventService only
-- [ ] No direct service-to-service imports (except EventService)
+-   [ ] No hardcoded values (colors, spacing, sizes)
+-   [ ] All values use variables from styles/variables/\*
+-   [ ] Missing variables added to styles/variables/\*
 
-### BLE Pipeline
+### Supabase Usage
 
-- [ ] BLE data flows: BLE → handlers → EventService → helpers → redux → UI
-- [ ] No BLE data processing directly in components
-- [ ] Handlers only parse/validate, emit domain events
-- [ ] Helpers process events, update Redux
+-   [ ] Supabase only in infrastructure layer
+-   [ ] UI uses React Query hooks → usecases → repositories
 
-### Redux / State
+### Accessibility
 
-- [ ] Redux is single source of truth for global state
-- [ ] No local state for global concerns
-- [ ] Global modals managed via `modalReducer`
-- [ ] Immutable state updates (spread operators, no mutations)
-
-### Design System
-
-- [ ] No inline styles (use `styles.ts` file)
-- [ ] Design system tokens used (spacing, colors, radius, typography)
-- [ ] `@perifit/app-design-system` components used (no custom UI duplicates)
-- [ ] Theme colors from `useTheme()` hook
-
-### Navigation / Settings
-
-- [ ] Navigation via `NavigationHelper` (not direct `useNavigation()`)
-- [ ] Settings via centralized module (not direct AsyncStorage)
-- [ ] Screen tracking via `SegmentService.trackScreenLoaded()`
+-   [ ] Accessibility utilities from shared/a11y/ used
+-   [ ] All interactive elements have proper ARIA attributes
+-   [ ] Semantic HTML used where appropriate
 
 ## Output Format
 
@@ -107,22 +91,22 @@ The Architecture Guardian outputs:
 
 ### Violations by Category
 
-**DI / Providers**
+**Clean Architecture / Layer Separation**
 - `file:line` - Rule: {rule} - Fix: {minimal_diff}
 
-**Services / Helpers**
+**Domain / Usecases / Infrastructure**
 - `file:line` - Rule: {rule} - Fix: {minimal_diff}
 
-**Redux / State**
+**Presentation / React Query / Zustand**
 - `file:line` - Rule: {rule} - Fix: {minimal_diff}
 
-**BLE Pipeline**
+**SCSS Variables**
 - `file:line` - Rule: {rule} - Fix: {minimal_diff}
 
-**Design System**
+**Supabase Usage**
 - `file:line` - Rule: {rule} - Fix: {minimal_diff}
 
-**Navigation / Settings**
+**Accessibility**
 - `file:line` - Rule: {rule} - Fix: {minimal_diff}
 
 ### Summary
@@ -131,8 +115,8 @@ The Architecture Guardian outputs:
 
 ## Important Notes
 
-- **Read-only review**: This agent does not modify files, only identifies violations
-- **Minimal fixes**: Proposes targeted diffs, not full rewrites
-- **Concise output**: Focuses on violations, not explanations
-- **Quick checks**: Lightweight compliance verification
-- **Can be called by**: PM Agent (plan review), Dev Agent (self-review), or directly
+-   **Read-only review**: This agent does not modify files, only identifies violations
+-   **Minimal fixes**: Proposes targeted diffs, not full rewrites
+-   **Concise output**: Focuses on violations, not explanations
+-   **Quick checks**: Lightweight compliance verification
+-   **Can be called by**: PM Agent (plan review), Dev Agent (self-review), or directly

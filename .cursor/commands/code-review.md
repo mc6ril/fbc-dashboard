@@ -15,8 +15,8 @@ Perform a thorough code review that verifies functionality, maintainability, and
 
 **Use**:
 
-- **@Architecture Guardian**: For architecture compliance review (DI, Services/Helpers, BLE pipeline, Redux, Design System, Navigation, Settings)
-- **@QA & Test Coach**: For quality assurance review (test plans, e2e scenarios, A11y checks)
+-   **@Architecture Guardian**: For architecture compliance review (Clean Architecture, layer separation, React Query + Zustand, SCSS variables, Supabase usage, A11y)
+-   **@QA & Test Coach**: For quality assurance review (test plans, e2e scenarios, A11y checks)
 
 **Note**: For security-specific reviews, use the **Security Agent** instead.
 
@@ -24,80 +24,76 @@ Perform a thorough code review that verifies functionality, maintainability, and
 
 1. **Understand the change**
 
-   - Read the PR description and related issues for context
-   - Identify the scope of files and features impacted
-   - Note any assumptions or questions to clarify with the author
+    - Read the PR description and related issues for context
+    - Identify the scope of files and features impacted
+    - Note any assumptions or questions to clarify with the author
 
 2. **Architecture Compliance** (Use @Architecture Guardian)
 
-   - Check DI via Providers (no direct service instantiation)
-   - Verify Services/Helpers boundaries
-   - Check BLE pipeline compliance
-   - Verify Redux usage (no local state for global concerns)
-   - Check Design System usage (no inline styles)
-   - Verify NavigationHelper usage
-   - Check Settings module usage (no direct AsyncStorage)
+    - Check Clean Architecture boundaries (Domain → Usecases → Infrastructure → Presentation)
+    - Verify layer separation (no Supabase in UI, no business logic in UI)
+    - Check React Query + Zustand usage (React Query for server state, Zustand for UI state only)
+    - Verify SCSS variables usage (no hardcoded values)
+    - Check Supabase usage (only in infrastructure layer)
+    - Verify accessibility compliance (shared/a11y/ utilities)
 
 3. **Validate functionality**
 
-   - Confirm the code delivers the intended behavior
-   - Exercise edge cases or guard conditions mentally or by running locally
-   - Check error handling paths and logging for clarity
+    - Confirm the code delivers the intended behavior
+    - Exercise edge cases or guard conditions mentally or by running locally
+    - Check error handling paths and logging for clarity
 
 4. **Assess quality** (Use @QA & Test Coach)
 
-   - Ensure functions are focused, names are descriptive, and code is readable
-   - Watch for duplication, dead code, or missing tests
-   - Verify documentation and comments reflect the latest changes
-   - Check test coverage and test plans
-   - Verify A11y compliance (WCAG 2.1 AA)
+    - Ensure functions are focused, names are descriptive, and code is readable
+    - Watch for duplication, dead code, or missing tests
+    - Verify documentation and comments reflect the latest changes
+    - Check test coverage and test plans
+    - Verify A11y compliance (WCAG 2.1 AA)
 
 5. **Review security and risk** (Use @Security Agent for deep security review)
-   - Look for injection points, insecure defaults, or missing validation
-   - Confirm secrets or credentials are not exposed
-   - Evaluate performance or scalability impacts of the change
+    - Look for injection points, insecure defaults, or missing validation
+    - Confirm secrets or credentials are not exposed
+    - Evaluate performance or scalability impacts of the change
 
 ## Review Checklist
 
 ### Architecture Compliance
 
-- [ ] DI via Providers verified (no direct service instantiation)
-- [ ] Services/Helpers boundaries respected
-- [ ] BLE pipeline compliance verified
-- [ ] Redux usage verified (no local state for global concerns)
-- [ ] Design System usage verified (no inline styles)
-- [ ] NavigationHelper usage verified
-- [ ] Settings module usage verified (no direct AsyncStorage)
+-   [ ] Clean Architecture boundaries verified
+-   [ ] Layer separation respected (no Supabase in UI, no business logic in UI)
+-   [ ] React Query + Zustand usage verified
+-   [ ] SCSS variables usage verified (no hardcoded values)
+-   [ ] Supabase usage verified (only in infrastructure layer)
+-   [ ] Accessibility compliance verified (shared/a11y/ utilities)
 
 ### Functionality
 
-- [ ] Intended behavior works and matches requirements
-- [ ] Edge cases handled gracefully
-- [ ] Error handling is appropriate and informative
+-   [ ] Intended behavior works and matches requirements
+-   [ ] Edge cases handled gracefully
+-   [ ] Error handling is appropriate and informative
 
 ### Code Quality
 
-- [ ] Code structure is clear and maintainable
-- [ ] No unnecessary duplication or dead code
-- [ ] Tests/documentation updated as needed
-- [ ] Test coverage adequate (~80% for helpers/services)
-- [ ] A11y compliance verified (WCAG 2.1 AA)
+-   [ ] Code structure is clear and maintainable
+-   [ ] No unnecessary duplication or dead code
+-   [ ] Tests/documentation updated as needed
+-   [ ] Test coverage adequate (~80% for domain/usecases)
+-   [ ] A11y compliance verified (WCAG 2.1 AA)
 
 ### Security & Safety
 
-- [ ] No obvious security vulnerabilities introduced
-- [ ] Inputs validated and outputs sanitized
-- [ ] Sensitive data handled correctly
-- [ ] No hardcoded secrets or credentials
+-   [ ] No obvious security vulnerabilities introduced
+-   [ ] Inputs validated and outputs sanitized
+-   [ ] Sensitive data handled correctly
+-   [ ] No hardcoded secrets or credentials
 
 ## Additional Review Notes
 
-- Architecture and design decisions considered
-- Performance bottlenecks or regressions assessed
-- Coding standards and best practices followed
-- Resource management, error handling, and logging reviewed
-- Suggested alternatives, additional test cases, or documentation updates
-  captured
+-   Architecture and design decisions considered
+-   Performance bottlenecks or regressions assessed
+-   Coding standards and best practices followed
+-   Resource management, error handling, and logging reviewed
+-   Suggested alternatives, additional test cases, or documentation updates captured
 
-Provide constructive feedback with concrete examples and actionable guidance for
-the author.
+Provide constructive feedback with concrete examples and actionable guidance for the author.

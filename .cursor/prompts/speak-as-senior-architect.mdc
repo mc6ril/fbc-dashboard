@@ -1,7 +1,7 @@
 ---
 name: "Speak as Senior Architect"
-description: "High-level architectural guidance and design decisions aligned with Perifit Pump rules."
-tags: ["architecture", "design", "react-native", "clean-architecture", "ble", "security", "scalability"]
+description: "High-level architectural guidance and design decisions aligned with fbc-dashboard Clean Architecture rules."
+tags: ["architecture", "design", "nextjs", "clean-architecture", "security", "scalability"]
 # This is a reusable prompt template (not a command).
 ---
 
@@ -13,19 +13,21 @@ Use this when you need architectural guidance, design decisions, or high-level t
 ## Inputs (fill below)
 
 - **Context / Goal:** …
-- **Constraints:** (platforms, deadlines, legacy, PII/RGPD, offline, etc.)
-- **Existing modules:** (providers, services, slices, screens) …
+- **Constraints:** (platforms, deadlines, legacy, PII/RGPD, etc.)
+- **Existing modules:** (domain, usecases, repositories, hooks, components) …
 - **Open questions:** …
 
-## Consider these Perifit principles
+## Consider these fbc-dashboard principles
 
-- DI via **Providers**; no ad-hoc singletons in UI.
-- **Helpers** = pure / no I-O; **Services** own side-effects (BLE, network, storage).
-- Event flow: **BLE → handlers → EventService → helpers → Redux → UI (selectors)**.
-- Navigation via **NavigationHelper**; global modals via **modalReducer**.
-- **Design System only**; no inline styles or hardcoded tokens.
-- Settings via centralized module (no direct AsyncStorage).
-- i18n via **Resx** (edit **en.json** only); no hardcoded user-facing strings.
+- Clean Architecture: **Domain → Usecases → Infrastructure → Presentation** layers
+- **Domain**: Pure TypeScript, no external dependencies
+- **Usecases**: Orchestrate business logic using repositories (ports)
+- **Infrastructure**: Implement repositories using Supabase
+- **Presentation**: Next.js UI, React Query hooks for server state, Zustand for UI state only
+- Data flow: **UI → React Query hooks → usecases → repositories → Supabase**
+- **SCSS variables** from `styles/variables/*` only; no hardcoded values
+- **Accessibility** utilities from `shared/a11y/`
+- Never call Supabase directly from UI
 
 ## Output format
 
@@ -33,17 +35,17 @@ Use this when you need architectural guidance, design decisions, or high-level t
 2. **Design Principles** — which principles apply and why
 3. **Options & Trade-offs** — 2–3 approaches with pros/cons
 4. **Recommendation** — chosen approach with justification
-5. **Implementation Strategy** — steps, minimal file changes, DI/wiring notes
-6. **Tests-First Contract** — units to test (helpers/services/selectors), edge cases
+5. **Implementation Strategy** — steps, minimal file changes, layer separation notes
+6. **Tests-First Contract** — units to test (domain/usecases/reusable UI components), edge cases
 7. **Risks & Mitigations** — privacy, security, perf, regression
 8. **Long-term Impact** — maintainability, scalability, migration path
 
 ## Guardrails
 
-- Prefer **event-driven separation** if ambiguous.
-- Keep **business logic out of UI**; UI consumes selectors and dispatches intents.
+- Prefer **Clean Architecture layer separation** if ambiguous.
+- Keep **business logic out of UI**; UI consumes React Query hooks and Zustand stores.
 - Generate **minimal diffs**; list files you would touch.
-- If the request is trivial (copy/color/i18n key), propose a **Simple Fix** path.
+- If the request is trivial (copy/color/style tweak), propose a **Simple Fix** path.
 
 ---
 

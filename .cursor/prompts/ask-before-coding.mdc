@@ -1,7 +1,7 @@
 ---
 name: "Ask Before Coding"
 description: "Discuss and validate an approach before any implementation. No code output."
-tags: ["design", "architecture", "planning", "tdd", "review", "perifit"]
+tags: ["design", "architecture", "planning", "tdd", "review"]
 # Reusable prompt template (not a command)
 ---
 
@@ -12,44 +12,46 @@ Use this when you want to **discuss and validate** an approach _before_ implemen
 
 ## Inputs (fill below)
 
-- **What I want to implement / problem to solve:** …
-- **Context / constraints:** (deadlines, platforms, legacy, PII/RGPD, offline, etc.)
-- **Existing modules touched:** (providers, services, helpers, slices, screens)
-- **User impact & success signals:** …
-- **Open questions / uncertainties:** …
+-   **What I want to implement / problem to solve:** …
+-   **Context / constraints:** (deadlines, platforms, legacy, PII/RGPD, etc.)
+-   **Existing modules touched:** (domain, usecases, repositories, hooks, components)
+-   **User impact & success signals:** …
+-   **Open questions / uncertainties:** …
 
-## Consider Perifit Pump rules
+## Consider fbc-dashboard rules
 
-- DI via **Providers**; no ad-hoc singletons.
-- **Helpers** = pure (no I/O). **Services** own side-effects (BLE, network, storage).
-- Event flow: **BLE → handlers → EventService → helpers → Redux → UI (selectors)**.
-- Navigation via **NavigationHelper**; global modals via **modalReducer**.
-- **Design System only**; no inline styles / no hardcoded tokens.
-- Settings via centralized module (no direct AsyncStorage).
-- i18n with **Resx** (edit **en.json** only).
+-   Clean Architecture: **Domain → Usecases → Infrastructure → Presentation** layers
+-   **Domain**: Pure TypeScript, no external dependencies
+-   **Usecases**: Orchestrate business logic using repositories (ports)
+-   **Infrastructure**: Implement repositories using Supabase
+-   **Presentation**: Next.js UI, React Query hooks for server state, Zustand for UI state only
+-   Data flow: **UI → React Query hooks → usecases → repositories → Supabase**
+-   **SCSS variables** from `styles/variables/*` only; no hardcoded values
+-   **Accessibility** utilities from `shared/a11y/`
+-   Never call Supabase directly from UI
 
 ## Output Format
 
 1. **Understanding the Requirements** — restate goal; confirm scope/non-goals
-2. **Architecture Review** — fit vs. rules (DI, Services/Helpers, events, Redux, DS, Settings)
+2. **Architecture Review** — fit vs. rules (Clean Architecture, layer separation, React Query + Zustand, SCSS variables, Supabase usage)
 3. **Design Questions** — clarifying questions (edge cases, UX, data, failure modes)
 4. **Alternative Approaches** — 2–3 viable options with pros/cons
 5. **Recommendation** — chosen approach + why
-6. **Implementation Plan** — step-by-step, minimal diffs, files to touch, wiring notes
-7. **Testing Strategy** — **Define Test Contract** (units to test, edges, mocks, selectors)
+6. **Implementation Plan** — step-by-step, minimal diffs, files to touch, layer separation notes
+7. **Testing Strategy** — **Define Test Contract** (units to test: domain/usecases/reusable UI components, edges, mocks)
 8. **Potential Issues** — risks & mitigations (perf, privacy, regressions, rollout)
-9. **Next Steps** — who/what is needed to proceed (e.g., “tests: approved” gate)
+9. **Next Steps** — who/what is needed to proceed (e.g., "tests: approved" gate)
 
 ## Guardrails
 
-- **No code** (only reasoning, plans, and questions).
-- Prefer **event-driven separation** if ambiguous.
-- Aim for **minimal diffs**; list exact files you would modify.
-- If the task is trivial (copy/color/i18n key), propose a **Simple Fix** path.
+-   **No code** (only reasoning, plans, and questions).
+-   Prefer **Clean Architecture layer separation** if ambiguous.
+-   Aim for **minimal diffs**; list exact files you would modify.
+-   If the task is trivial (copy/color/style tweak), propose a **Simple Fix** path.
 
 ## 🔀 Quick Mode (trivial tasks ≤ ~5 LOC)
 
-- **Simple Fix**: 1–2 lines on what to change
-- Files to touch (max 2)
-- One-liner test (if applicable)
-- Confirm no business logic / infra change
+-   **Simple Fix**: 1–2 lines on what to change
+-   Files to touch (max 2)
+-   One-liner test (if applicable)
+-   Confirm no business logic / infra change

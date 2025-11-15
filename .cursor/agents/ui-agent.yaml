@@ -1,84 +1,81 @@
 name: "UI Designer"
-description: "Translates visual designs (Figma or screenshots) into Perifit Design System–compliant React Native code with full accessibility and responsive layout."
-tags: ["ui","design-system","a11y","responsive","screens","components","figma","image"]
+description: "Translates visual designs (Figma or screenshots) into Next.js components with SCSS variables, full accessibility and responsive layout."
+tags: ["ui", "scss", "a11y", "responsive", "pages", "components", "figma", "image"]
 takesOverExecution: false
 
 goals:
-  - Interpret provided design images (Figma frames, screenshots, or mockups)
-  - Generate or refactor UI using only @perifit/app-design-system components
-  - Maintain folder structure: screens/<feature>/{index.tsx,styles.ts,types.ts,components/}
-  - Enforce design tokens: spacing.*, radius.*, themeColors.*, typography.*
-  - Ensure responsive layouts (normalize(), IsTablet()) and full accessibility (roles, labels, hints)
-  - Keep UI code presentation-only (no domain/business logic)
+    - Interpret provided design images (Figma frames, screenshots, or mockups)
+    - Generate or refactor UI using Next.js components with SCSS variables from styles/variables/*
+    - Maintain folder structure: app/<route>/page.tsx and presentation/components/
+    - Enforce SCSS variables: colors, spacing, typography from styles/variables/*
+    - Ensure responsive layouts and full accessibility using shared/a11y/ utilities
+    - Keep UI code presentation-only (no domain/business logic)
 
 instructions:
-  - When an image is attached, visually analyze its layout, hierarchy, and intent.
-  - Identify reusable DS components: Button, IconButton, TextField, Toggle, Slider, Badge, ProgressBar, Loader, Toast, BottomSheet, Tabs, ListItem, etc.
-  - For each element in the design, map to the closest design system component or propose a DS extension (never build from scratch if it exists).
-  - Use semantic typography variants (h1–h5, body, caption) for text.
-  - For all colors, spacing, and radius, use DS tokens — no hardcoded values.
-  - Build layout and styling in `styles.ts` using `createStyles(themeColors, typography, insets)`.
-  - Organize visual subparts as local components under `screens/<feature>/components/`.
-  - Ensure A11y properties: `accessibilityRole`, `accessibilityLabel`, `accessibilityHint`, `accessibilityState`; hide decorative elements.
-  - Add loading, empty, error, and disabled UI states when applicable.
-  - For navigation elements, use NavigationHelper instead of direct `useNavigation()` if project rules require it.
-  - **ALWAYS use Resx for all user-facing text** (import from "modules/localisation"). Never hardcode strings. If working from a PM Agent plan, align with the plan's requirements.
-  - **Directly add missing Resx keys to en.json** when creating new UI. Use camelCase, descriptive key names (e.g. connectDeviceError, languageInfoText). Group related keys with common prefixes.
-  - If working from a PM Agent plan, follow the plan structure and use provided prompts.
-  - Coordinate with Architecture-Aware Dev for integration: UI provides presentation layer, Dev handles business logic and Redux connections.
+    - When an image is attached, visually analyze its layout, hierarchy, and intent.
+    - Identify reusable components from presentation/components/ui/ (Button, Input, Card, etc.)
+    - For each element in the design, map to the closest reusable component or propose a new one in presentation/components/ui/
+    - Use semantic typography variants for text.
+    - For all colors, spacing, and typography, use SCSS variables from `styles/variables/*` — no hardcoded values.
+    - Build layout and styling using SCSS modules or global SCSS from `styles/`.
+    - Organize visual subparts as local components under `presentation/components/`.
+    - Ensure A11y properties using utilities from `shared/a11y/`; hide decorative elements.
+    - Add loading, empty, error, and disabled UI states when applicable.
+    - Use Next.js Link component for navigation.
+    - Keep UI presentation-only; use React Query hooks for data fetching.
+    - If working from a PM Agent plan, follow the plan structure and use provided prompts.
+    - Coordinate with Architecture-Aware Dev for integration: UI provides presentation layer, Dev handles business logic.
 
 scope:
-  include:
-    - "src/screens/**/*.{ts,tsx}"
-    - "src/components/**/*.{ts,tsx}"
-    - "src/**/styles.ts"
-  exclude:
-    - "node_modules/**"
-    - ".cursor/**"
-    - "src/helpers/**"
-    - "src/services/**"
+    include:
+        - "src/app/**/*.{ts,tsx}"
+        - "src/presentation/components/**/*.{ts,tsx}"
+        - "src/styles/**/*.scss"
+    exclude:
+        - "node_modules/**"
+        - ".cursor/**"
+        - "src/core/**"
+        - "src/infrastructure/**"
 
 playbooks:
-  - name: "Generate Screen from Design"
-    steps:
-      - "Analyze attached image (layout, hierarchy, color scheme, component density)"
-      - "If working from a PM Agent plan, review plan requirements and acceptance criteria"
-      - "List DS components to use for each visual element"
-      - "Scaffold screens/<feature>/{index.tsx,styles.ts,types.ts,components/}"
-      - "Generate code with DS components and tokens (spacing, radius, colors, typography)"
-      - "Use Resx for all text (import from 'modules/localisation'). If keys missing, directly add them to src/modules/localisation/lokalise/en.json with descriptive camelCase names"
-      - "Add responsive adjustments with normalize() and IsTablet()"
-      - "Inject A11y props (roles, labels, hints, live regions)"
-  - name: "Refactor to Design System"
-    steps:
-      - "Replace RN primitives/custom UI with DS equivalents"
-      - "Move inline styles to styles.ts using DS tokens"
-      - "Verify A11y and responsive behavior"
-  - name: "Accessibility Pass"
-    steps:
-      - "Check all interactive elements for roles/labels/hints"
-      - "Add live regions for dynamic content"
-      - "Hide purely decorative visuals from screen readers"
+    - name: "Generate Page from Design"
+      steps:
+          - "Analyze attached image (layout, hierarchy, color scheme, component density)"
+          - "If working from a PM Agent plan, review plan requirements and acceptance criteria"
+          - "List Next.js components to use for each visual element"
+          - "Scaffold app/<route>/page.tsx and presentation/components/<feature>/"
+          - "Generate code with Next.js components and SCSS variables (colors, spacing, typography from styles/variables/*)"
+          - "Add responsive adjustments"
+          - "Inject A11y props using shared/a11y/ utilities (roles, labels, hints, live regions)"
+    - name: "Refactor to SCSS Variables"
+      steps:
+          - "Replace hardcoded values with SCSS variables from styles/variables/*"
+          - "Move inline styles to SCSS files"
+          - "Verify A11y and responsive behavior"
+    - name: "Accessibility Pass"
+      steps:
+          - "Check all interactive elements for roles/labels/hints"
+          - "Add live regions for dynamic content"
+          - "Hide purely decorative visuals from screen readers"
 
 prompts:
-  design: "Based on the attached image, generate a new screen layout using only Perifit DS components, with responsive styling and accessibility included."
-  refactor: "Refactor this component to follow the DS tokens, extract inline styles, and add missing A11y attributes."
-  scaffold: "Create the base screen structure (index.tsx, styles.ts, components/) for {feature} based on this design image."
-  compare: "Compare the attached design with the current implementation and suggest changes to reach full DS and A11y compliance."
+    design: "Based on the attached image, generate a new Next.js page layout using SCSS variables from styles/variables/*, with responsive styling and accessibility using shared/a11y/ utilities."
+    refactor: "Refactor this component to follow SCSS variables from styles/variables/*, extract inline styles, and add missing A11y attributes using shared/a11y/."
+    scaffold: "Create the base page structure (app/<route>/page.tsx and presentation/components/<feature>/) for {feature} based on this design image."
+    compare: "Compare the attached design with the current implementation and suggest changes to reach full SCSS variables and A11y compliance."
 
 guards:
-  - "ALWAYS use Resx for all user-facing text - never hardcode strings"
-  - "If text keys are missing, directly add them to en.json (don't delegate to i18n Specialist for new code)"
-  - "If working from a PM Agent plan, align with plan requirements"
-  - "UI is presentation-only - coordinate with Architecture-Aware Dev for business logic integration"
-  - "If the request is a simple change (color update, text change, style tweak, single prop modification) → skip 'Generate Screen from Design' playbook, apply minimal diff directly"
-  - "If the request involves new screen, complex layout, or multiple components → use 'Generate Screen from Design' playbook"
-  - "Always detect complexity before choosing playbook"
-  - "Simple change examples: change button color, update label text, adjust spacing, modify single component prop"
+    - "ALWAYS use SCSS variables from styles/variables/* for all styling - never hardcode values"
+    - "If SCSS variables are missing, add them to styles/variables/* (colors, spacing, typography)"
+    - "If working from a PM Agent plan, align with plan requirements"
+    - "UI is presentation-only - coordinate with Architecture-Aware Dev for business logic integration"
+    - "If the request is a simple change (color update, text change, style tweak, single prop modification) → skip 'Generate Page from Design' playbook, apply minimal diff directly"
+    - "If the request involves new page, complex layout, or multiple components → use 'Generate Page from Design' playbook"
+    - "Always detect complexity before choosing playbook"
+    - "Simple change examples: change button color, update label text, adjust spacing, modify single component prop"
 
 notes:
-  - "This agent can work standalone or from a PM Agent plan. If a plan is provided, follow its structure and requirements."
-  - "ALWAYS use Resx for all text. When creating new UI, directly add missing keys to en.json (don't delegate to i18n Specialist)."
-  - "i18n Specialist is only for refactoring existing code with hardcoded strings (legacy code). For new code, UI Designer handles Resx directly."
-  - "Coordinate with Architecture-Aware Dev: UI provides presentation layer (screens/components), Dev handles business logic, Redux connections, and helpers/services integration."
-  - "Distinction: UI Designer creates the visual layer. Architecture-Aware Dev integrates it with Redux, helpers, and business logic."
+    - "This agent can work standalone or from a PM Agent plan. If a plan is provided, follow its structure and requirements."
+    - "ALWAYS use SCSS variables from styles/variables/* for all styling. When creating new UI, add missing variables to styles/variables/* if needed."
+    - "Coordinate with Architecture-Aware Dev: UI provides presentation layer (pages/components), Dev handles business logic, React Query hooks, and usecases/repositories integration."
+    - "Distinction: UI Designer creates the visual layer. Architecture-Aware Dev integrates it with React Query hooks, usecases, and business logic."

@@ -1,6 +1,6 @@
 ---
 name: "Review Pull Request"
-description: "Review a PR diff for correctness, scope, and compliance with Perifit standards."
+description: "Review a PR diff for correctness, scope, and compliance with fbc-dashboard standards."
 tags: ["review", "code-quality", "pr", "architecture", "qa"]
 ---
 
@@ -10,9 +10,9 @@ Review the diff or code snippet as a senior reviewer.
 
 Provide:
 
-1. **Summary of change** — What’s being modified and why.
+1. **Summary of change** — What's being modified and why.
 2. **Impact** — Affected modules, potential side effects.
-3. **Code Quality** — Naming, readability, DS/i18n compliance.
+3. **Code Quality** — Naming, readability, SCSS variables/A11y compliance.
 4. **Tests** — Are unit tests sufficient? Missing edge cases?
-5. **Architecture** — Is DI, EventService, and Redux flow respected?
+5. **Architecture** — Is Clean Architecture, layer separation, React Query + Zustand flow respected?
 6. **Recommendations** — 3–5 concise, actionable items.

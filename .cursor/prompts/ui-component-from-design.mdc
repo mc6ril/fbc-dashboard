@@ -1,17 +1,17 @@
 ---
 name: "UI Component from Design"
-description: "Generate a UI component using @perifit/app-design-system from a design reference."
-tags: ["ui", "design-system", "figma", "a11y", "responsive"]
+description: "Generate a UI component using Next.js and SCSS variables from a design reference."
+tags: ["ui", "design", "figma", "a11y", "responsive", "nextjs"]
 ---
 
 # UI Component from Design
 
-Analyze the attached image and generate a React Native component using only @perifit/app-design-system.
+Analyze the attached image and generate a Next.js component using SCSS variables from `styles/variables/*` and accessibility utilities from `shared/a11y/`.
 
 Provide:
 
-1. **Component Hierarchy** — Layout + DS components used.
-2. **Accessibility Setup** — Labels, hints, states.
-3. **Responsive Design** — normalize(), IsTablet(), layout adjustments.
-4. **Code Output** — index.tsx + styles.ts using DS tokens.
-5. **State Management** — Controlled via props only (no business logic here).
+1. **Component Hierarchy** — Layout + reusable components from presentation/components/ui/
+2. **Accessibility Setup** — Labels, roles, ARIA attributes using shared/a11y/ utilities
+3. **Responsive Design** — CSS media queries, SCSS variables for spacing/sizing
+4. **Code Output** — Component using SCSS variables (no hardcoded values)
+5. **State Management** — Controlled via props only (no business logic here, use React Query hooks for data)

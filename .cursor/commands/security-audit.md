@@ -17,11 +17,12 @@ Comprehensive security review to identify and fix vulnerabilities in the codebas
 
 The Security Agent performs automated security scans including:
 
-- Dependency vulnerability checks
-- Secret detection
-- Static code analysis (SAST)
-- Native platform security (Android/iOS)
-- CI/CD pipeline security
+-   Dependency vulnerability checks
+-   Secret detection
+-   Static code analysis (SAST)
+-   Next.js security configuration
+-   Supabase security
+-   CI/CD pipeline security
 
 **Report Location**: Results are saved to `.cursor/reports/security/LATEST.md`
 
@@ -29,51 +30,61 @@ The Security Agent performs automated security scans including:
 
 1. **Recon Phase**
 
-   - Auto-detect package manager (yarn/npm/pnpm)
-   - Detect React Native version and native platforms
-   - Build target map for scanning
+    - Auto-detect package manager (yarn/npm/pnpm)
+    - Detect Next.js version and configuration
+    - Build target map for scanning
 
 2. **Dependency Audit**
 
-   - Run `yarn npm audit --all` (or npm/pnpm equivalent)
-   - Check for known vulnerabilities
-   - Identify outdated packages
-   - Review third-party dependencies
+    - Run `yarn npm audit --all` (or npm/pnpm equivalent)
+    - Check for known vulnerabilities
+    - Identify outdated packages
+    - Review third-party dependencies
 
 3. **Secret Detection**
 
-   - Run gitleaks and trufflehog scans
-   - Detect hardcoded secrets, API keys, tokens
-   - Check for exposed credentials
+    - Run gitleaks and trufflehog scans
+    - Detect hardcoded secrets, API keys, tokens
+    - Check for exposed credentials
 
 4. **Static Code Analysis**
 
-   - Run ESLint security plugins
-   - Check for common vulnerabilities (XSS, SQLi, etc.)
-   - Review authentication/authorization patterns
+    - Run ESLint security plugins
+    - Check for common vulnerabilities (XSS, SQLi, etc.)
+    - Review authentication/authorization patterns
 
-5. **Native Platform Security**
+5. **Next.js Security**
 
-   - **Android**: Review permissions, ProGuard config, keystores
-   - **iOS**: Review entitlements, Info.plist, keychain usage
-   - **React Native**: Review native module security, bridge communication
+    - Review environment variables handling
+    - Check API routes security
+    - Review middleware configuration
+    - Verify security headers
 
-6. **Infrastructure Security**
+6. **Supabase Security**
 
-   - Review CI/CD pipelines (bitbucket-pipelines.yml, codemagic.yaml)
-   - Check environment variable handling
-   - Audit network security configs
+    - Review RLS policies
+    - Check API keys management
+    - Review authentication configuration
 
-7. **Report Generation**
-   - Generate comprehensive report at `.cursor/reports/security/LATEST.md`
-   - Include Executive Summary with traffic-light status
-   - List top 10 actionable items
-   - Provide dependency upgrade suggestions
+7. **Infrastructure Security**
+
+    - Review CI/CD pipelines
+    - Check environment variable handling
+    - Audit network security configs
+
+8. **Report Generation**
+    - Generate comprehensive report at `.cursor/reports/security/LATEST.md`
+    - Include Executive Summary with traffic-light status
+    - List top 10 actionable items
+    - Provide dependency upgrade suggestions
 
 ## Security Checklist
 
-- [ ] Dependencies updated and secure
-- [ ] No hardcoded secrets
-- [ ] Input validation implemented
-- [ ] Authentication secure
-- [ ] Authorization properly configured
+-   [ ] Dependencies updated and secure
+-   [ ] No hardcoded secrets
+-   [ ] Input validation implemented
+-   [ ] Authentication secure
+-   [ ] Authorization properly configured
+-   [ ] Environment variables properly managed
+-   [ ] Next.js security headers configured
+-   [ ] Supabase RLS policies reviewed

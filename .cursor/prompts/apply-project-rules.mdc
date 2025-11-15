@@ -1,0 +1,60 @@
+# Apply fbc-dashboard Rules
+
+Use this prompt to ensure code strictly follows all fbc-dashboard project rules and conventions.
+
+## Prompt
+
+Review the following code/change and ensure it strictly adheres to all fbc-dashboard rules:
+
+**[Paste code or describe the change here]**
+
+Please verify compliance with:
+
+1. **Architecture Rules**:
+
+    - ✅ Clean Architecture: Domain → Usecases → Infrastructure → Presentation
+    - ✅ Domain layer: Pure TypeScript, no external dependencies
+    - ✅ Usecases layer: Orchestrate business logic using repositories (ports)
+    - ✅ Infrastructure layer: Implement repositories using Supabase
+    - ✅ Presentation layer: Next.js UI, React Query hooks, Zustand stores
+    - ✅ Data flow: UI → React Query hooks → usecases → repositories → Supabase
+    - ✅ Never call Supabase directly from UI
+    - ✅ Zustand for UI state only, React Query for server state
+
+2. **Code Quality Rules**:
+
+    - ✅ Import order: external → domain → usecases → infrastructure → presentation → shared → styles
+    - ✅ Explicit return types on all functions
+    - ✅ Types (not interfaces) for component props
+    - ✅ Comprehensive JSDoc comments
+    - ✅ Error handling with try-catch and logging
+
+3. **UI Rules**:
+
+    - ✅ SCSS variables from `styles/variables/*` only (no hardcoded values)
+    - ✅ No inline styles (use SCSS files)
+    - ✅ Accessibility utilities from `shared/a11y/`
+    - ✅ Semantic HTML elements
+    - ✅ Full accessibility (WCAG 2.1 AA)
+
+4. **Performance**:
+
+    - ✅ React.memo for expensive components
+    - ✅ useCallback for event handlers
+    - ✅ useMemo for expensive calculations
+    - ✅ React Query optimization (queryKeys, staleTime, select, enabled)
+    - ✅ Zustand selectors (specific slices, not entire state)
+
+5. **Testing**:
+    - ✅ Tests in `__tests__/` directory (not in src/)
+    - ✅ Unit tests for domain/usecases/reusable UI components only
+    - ✅ No page component tests
+    - ✅ TypeScript only (.test.ts or .test.tsx)
+
+If any violations are found:
+
+-   **STOP** and list all violations
+-   Explain why each violates the rules
+-   Suggest corrections before proceeding
+
+If compliant, confirm and proceed with implementation.

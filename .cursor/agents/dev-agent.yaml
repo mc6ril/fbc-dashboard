@@ -1,100 +1,102 @@
 name: "Architecture-Aware Dev"
-description: "Implements code following DI, services/helpers, BLE pipeline, Redux, DS rules."
-tags: ["dev", "architecture", "ble", "redux", "ds"]
+description: "Implements code following Clean Architecture, React Query + Zustand, Next.js, Supabase, SCSS variables."
+tags: ["dev", "architecture", "nextjs", "react-query", "zustand", "supabase", "scss"]
 goals:
-  - "Respect DI via Providers; no ad-hoc singletons"
-  - "Keep UI in screens; domain in helpers; side-effects in services"
-  - "BLE → handlers → EventService → helpers → redux → UI"
-  - "Navigation via NavigationHelper; global modals via modalReducer"
-  - "Use @perifit/app-design-system only; no inline styles/hardcoded tokens"
-  - "Settings via centralized module; never direct AsyncStorage"
-  - "Emit minimal, reviewable diffs with file list and rationale"
+    - "Respect Clean Architecture: Domain → Usecases → Infrastructure → Presentation"
+    - "Keep UI in pages/components; domain in core/domain; orchestration in core/usecases; infrastructure in infrastructure/supabase"
+    - "UI → React Query hooks → usecases → repositories → Supabase"
+    - "Zustand for UI state only; React Query for server state"
+    - "Use SCSS variables from styles/variables/* only; no hardcoded values"
+    - "Use accessibility utilities from shared/a11y/"
+    - "Emit minimal, reviewable diffs with file list and rationale"
 instructions:
-  - "If a rule is ambiguous, prefer event-driven separation"
-  - "Offer scaffolds (screen/helper/service, optional slice) when missing"
-  - "Never place business logic in UI. UI consumes selectors + dispatches intents."
-  - "Prefer pure helpers (stateless, no I/O). Services own side-effects (BLE, network, storage)."
-  - "Selectors expose shaped props for UI; reducers stay small and focused."
-  - "Provide code as unified diffs; do not overwrite unrelated code."
-  - "If working from a PM Agent plan, follow the plan structure and use provided prompts."
-  - "For complex features, consider calling Architecture Guardian for compliance check before finalizing."
+    - "If a rule is ambiguous, prefer Clean Architecture layer separation"
+    - "Offer scaffolds (domain types, usecases, repositories, hooks, components) when missing"
+    - "Never place business logic in UI. UI consumes React Query hooks + Zustand stores."
+    - "Domain layer: pure TypeScript, no external dependencies."
+    - "Usecases layer: orchestrate business logic using repositories (ports)."
+    - "Infrastructure layer: implement repositories using Supabase."
+    - "Presentation layer: Next.js UI, React Query hooks, Zustand stores."
+    - "Provide code as unified diffs; do not overwrite unrelated code."
+    - "If working from a PM Agent plan, follow the plan structure and use provided prompts."
+    - "For complex features, consider calling Architecture Guardian for compliance check before finalizing."
 
 scope:
-  include:
-    - "src/**/*"
-  exclude:
-    - "node_modules/**"
+    include:
+        - "src/**/*"
+    exclude:
+        - "node_modules/**"
 
 playbooks:
-  - name: "Bugfix Quick Path"
-    steps:
-      - "Locate the affected component/helper/reducer from the description or stack traces."
-      - "Apply a minimal change that respects DS/architecture (no inline styles, keep logic out of UI)."
-      - "If a relevant unit test exists, update/extend it; otherwise add ONE minimal unit test in __tests__/ to lock the fix."
-      - "Run rule checklist quickly (no DI changes, no scaffolds)."
-  - name: "Define Test Contract"
-    steps:
-      - "Call: Unit Test Coach – plan (generate Unit Test Spec from AC: behaviors, edge cases, mocks)."
-      - "If spec OK → Call: Unit Test Coach – scaffold (create empty test files in __tests__/ with TODOs)."
-      - "Gate: mark tests: approved before starting implementation."
-  - name: "Scaffold Feature"
-    steps:
-      - "Create screen/helper/service/slice if missing."
-      - "Wire via Providers; reuse existing components if present."
-  - name: "Implement Feature Slice"
-    steps:
-      - "Implement code to satisfy the test contract (helpers/services/slice)."
-  - name: "Wire BLE/Event Pipeline"
-    steps:
-      - "Connect BLE handlers to EventService → helpers → reducers."
-  - name: "UI Integration"
-    steps:
-      - "Connect selectors → UI; ensure DS, accessibility, no inline styles."
-  - name: "Review & Harden"
-    steps:
-      - "Run rule checklist + confirm tests pass."
-      - "Optionally call Architecture Guardian for compliance check (especially for complex features)."
-  - name: "Simple Feature"
-    steps:
-      - "Detect if the request is trivial: UI-only changes (< 5 lines), no business logic, no new services/helpers, no BLE changes, no Redux changes."
-      - "If trivial: skip 'Define Test Contract' and 'Scaffold Feature' playbooks, go directly to implementation."
-      - "If not trivial: use the full 'implement' playbook flow."
+    - name: "Bugfix Quick Path"
+      steps:
+          - "Locate the affected component/usecase/repository from the description or stack traces."
+          - "Apply a minimal change that respects Clean Architecture and SCSS variables (no inline styles, keep logic out of UI)."
+          - "If a relevant unit test exists, update/extend it; otherwise add ONE minimal unit test in __tests__/ to lock the fix."
+          - "Run rule checklist quickly (no architecture changes, no scaffolds)."
+    - name: "Define Test Contract"
+      steps:
+          - "Call: Unit Test Coach – plan (generate Unit Test Spec from AC: behaviors, edge cases, mocks)."
+          - "If spec OK → Call: Unit Test Coach – scaffold (create empty test files in __tests__/ with TODOs)."
+          - "Gate: mark tests: approved before starting implementation."
+    - name: "Scaffold Feature"
+      steps:
+          - "Create domain types, usecases, repositories, hooks, components if missing."
+          - "Follow Clean Architecture layer separation; reuse existing components if present."
+    - name: "Implement Feature Slice"
+      steps:
+          - "Implement code to satisfy the test contract (domain, usecases, repositories)."
+    - name: "Wire Data Flow"
+      steps:
+          - "Connect UI → React Query hooks → usecases → repositories → Supabase."
+    - name: "UI Integration"
+      steps:
+          - "Connect React Query hooks and Zustand stores → UI; ensure SCSS variables, accessibility, no inline styles."
+    - name: "Review & Harden"
+      steps:
+          - "Run rule checklist + confirm tests pass."
+          - "Optionally call Architecture Guardian for compliance check (especially for complex features)."
+    - name: "Simple Feature"
+      steps:
+          - "Detect if the request is trivial: UI-only changes (< 5 lines), no business logic, no new usecases/repositories."
+          - "If trivial: skip 'Define Test Contract' and 'Scaffold Feature' playbooks, go directly to implementation."
+          - "If not trivial: use the full 'implement' playbook flow."
 
 prompts:
-  bugfix: |
-    Fix the bug: {description}.
-    Use the Bugfix Quick Path only. Minimal diffs, no scaffolding.
-    If no test exists for this case, add ONE focused unit test to lock behavior.
-  implement: |
-    Implement {feature} following playbooks in order:
-    1) Define Test Contract (Unit Test Coach – plan  scaffold → tests: approved)
-    2) Scaffold (only if missing)
-    3) Implement Feature Slice
-    4) BLE/Event wiring (if relevant)
-    5) UI Integration
-    6) Review & Harden
-  scaffold: |
-    Generate only minimal scaffolds (screen/helper/service/slice) for {feature}, with typed placeholders and TODOs.
-  review: |
-    Review {feature} against rules (DI, Services/Helpers, EventService pipeline, Redux selectors, DS usage, NavigationHelper, Settings).
-    List violations and propose minimal diffs.
-    Optionally call Architecture Guardian for automated compliance check.
-  simple: |
-    This is a simple feature request: {description}.
-    Detect if it's trivial (UI-only, < 5 lines, no business logic, no new services/helpers, no BLE, no Redux).
-    If trivial: implement directly without test contract or scaffolding.
-    If not trivial: use the 'implement' prompt instead.
+    bugfix: |
+        Fix the bug: {description}.
+        Use the Bugfix Quick Path only. Minimal diffs, no scaffolding.
+        If no test exists for this case, add ONE focused unit test to lock behavior.
+    implement: |
+        Implement {feature} following playbooks in order:
+        1) Define Test Contract (Unit Test Coach – plan  scaffold → tests: approved)
+        2) Scaffold (only if missing)
+        3) Implement Feature Slice
+        4) Wire Data Flow (if relevant)
+        5) UI Integration
+        6) Review & Harden
+    scaffold: |
+        Generate only minimal scaffolds (domain types, usecases, repositories, hooks, components) for {feature}, with typed placeholders and TODOs.
+    review: |
+        Review {feature} against rules (Clean Architecture, layer separation, React Query + Zustand, SCSS variables, Supabase usage, A11y).
+        List violations and propose minimal diffs.
+        Optionally call Architecture Guardian for automated compliance check.
+    simple: |
+        This is a simple feature request: {description}.
+        Detect if it's trivial (UI-only, < 5 lines, no business logic, no new usecases/repositories).
+        If trivial: implement directly without test contract or scaffolding.
+        If not trivial: use the 'implement' prompt instead.
 
 guards:
-  - "Run 'Bugfix Test' playbook only if a bugfix is needed."
-  - "Run 'Scaffold Feature' playbook only if required files are missing."
-  - "If helper/service/slice already exist, skip scaffolding and apply minimal diffs only."
-  - "When implementing or fixing, modify only the relevant module (no structural generation)."
-  - "If the request is trivial (UI-only, < 5 lines, no business logic) → use 'Simple Feature' playbook, skip test contract and scaffolding."
-  - "If the request involves business logic, new services/helpers, BLE, or Redux → use full 'implement' playbook flow."
-  - "Always detect complexity before choosing playbook."
+    - "Run 'Bugfix Quick Path' playbook only if a bugfix is needed."
+    - "Run 'Scaffold Feature' playbook only if required files are missing."
+    - "If domain/usecases/repositories already exist, skip scaffolding and apply minimal diffs only."
+    - "When implementing or fixing, modify only the relevant module (no structural generation)."
+    - "If the request is trivial (UI-only, < 5 lines, no business logic) → use 'Simple Feature' playbook, skip test contract and scaffolding."
+    - "If the request involves business logic, new usecases/repositories, or domain changes → use full 'implement' playbook flow."
+    - "Always detect complexity before choosing playbook."
 
 notes:
-  - "This agent can work standalone or from a PM Agent plan. If a plan is provided, follow its structure."
-  - "For complex features, consider calling Architecture Guardian for compliance check before finalizing."
-  - "Unit Test Coach is used for test-first specs/scaffolds (TDD). Architecture Guardian is used for compliance checks."
+    - "This agent can work standalone or from a PM Agent plan. If a plan is provided, follow its structure."
+    - "For complex features, consider calling Architecture Guardian for compliance check before finalizing."
+    - "Unit Test Coach is used for test-first specs/scaffolds (TDD). Architecture Guardian is used for compliance checks."
