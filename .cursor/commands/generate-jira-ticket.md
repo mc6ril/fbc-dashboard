@@ -55,7 +55,13 @@ The Jira Ticket Generator:
     - Check the saved location displayed in the output
     - Ticket is ready to copy-paste into Jira
 
-5. **Copy to Jira** (Optional)
+5. **Create Git Branch** (If not already created)
+
+    - Use the provided branch name from the ticket
+    - Create branch: `git checkout -b feat/fbc-{number}-{short-description}`
+    - Start working on the feature
+
+6. **Copy to Jira** (Optional)
     - Copy the formatted ticket from the saved file
     - Paste into Jira
     - Add any additional context or attachments
@@ -70,6 +76,7 @@ The generated ticket includes:
 -   **Priority**: High/Medium/Low
 -   **Story Points**: 1-13 estimation
 -   **Labels**: Relevant tags
+-   **Git Branch**: Suggested branch name (format: `feat/fbc-{number}-{short-description}`)
 -   **Description**: Context and business value
 -   **User Story**: As a... I want... So that...
 -   **Acceptance Criteria**: Testable, specific criteria
@@ -92,6 +99,7 @@ results should be displayed in a table with pagination.
 The agent will generate a complete Jira ticket with:
 
 -   Title: "Add product search with filters and real-time results"
+-   Git Branch: `feat/fbc-5-add-product-search` (example, actual number depends on existing tickets)
 -   User Story: As a user, I want to search products... So that I can quickly find what I need
 -   Acceptance Criteria: Search by name, category, stock status, real-time updates, pagination
 -   Technical Considerations: Domain (Product type), Usecases (searchProducts), Infrastructure (productRepositorySupabase), Presentation (SearchBar component, useProducts hook)
@@ -107,6 +115,8 @@ The agent will generate a complete Jira ticket with:
 
 ## Important Notes
 
+-   **Git Branch**: Each ticket includes a suggested Git branch name following the format `feat/fbc-{number}-{short-description}`
+-   **Branch Creation**: Create the branch before starting work using: `git checkout -b feat/fbc-{number}-{short-description}`
 -   **Manual copy-paste**: The agent generates the ticket content, but you need to create it in Jira manually
 -   **Clean Architecture alignment**: All tickets reference the project's Clean Architecture structure
 -   **Testable criteria**: Acceptance criteria are written to be testable and specific

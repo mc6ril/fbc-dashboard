@@ -10,6 +10,7 @@ goals:
     - "Provide clear acceptance criteria and definition of done"
     - "Suggest appropriate labels, priority, and estimation"
     - "Identify dependencies and related components"
+    - "Generate a Git branch name following conventional naming (feat/fbc-{number}-{short-description})"
 
 instructions:
     - "Take a feature idea or description from the user"
@@ -19,6 +20,7 @@ instructions:
     - "Provide clear, testable acceptance criteria"
     - "Suggest appropriate labels, priority, and story points"
     - "Identify potential dependencies and impacted components"
+    - "Generate a Git branch name based on ticket number and short description (format: feat/fbc-{number}-{short-description})"
     - "Keep the ticket concise but comprehensive"
 
 scope:
@@ -45,8 +47,10 @@ playbooks:
           - "List existing files in jira/ directory to determine next number"
           - "Extract numbers from filenames (e.g., 1.md, 2.md) to find highest number"
           - "Determine next available number (highest + 1, or 1 if no files exist)"
+          - "Generate Git branch name based on ticket number and title (format: feat/fbc-{number}-{short-description})"
+          - "Convert ticket title to kebab-case for branch name (lowercase, hyphens, no special chars, max 50 chars)"
           - "Save formatted Jira ticket to jira/{next_number}.md with timestamp metadata"
-          - "Output formatted Jira ticket ready to copy-paste AND inform user of saved location"
+          - "Output formatted Jira ticket ready to copy-paste AND inform user of saved location AND include branch name"
 
 prompts:
     generate: |
@@ -61,6 +65,7 @@ prompts:
         - Technical Considerations (Clean Architecture layers impacted)
         - Labels, Priority, Story Points
         - Dependencies and Related Components
+        - Git Branch Name (format: feat/fbc-{number}-{short-description}, kebab-case, max 50 chars)
     refine: |
         Refine this Jira ticket draft:
         {ticket_draft}
@@ -84,6 +89,13 @@ output_format: |
     **Story Points:** [1-13]
 
     **Labels:** [label1, label2, ...]
+
+    **Git Branch:** `feat/fbc-{number}-{short-description}`
+
+    **Branch Creation:**
+    ```bash
+    git checkout -b feat/fbc-{number}-{short-description}
+    ```
 
     ---
 
@@ -140,12 +152,17 @@ guards:
     - "Always identify Clean Architecture layers impacted"
     - "Always suggest appropriate labels and priority"
     - "Always include Definition of Done checklist"
+    - "Always generate a Git branch name (format: feat/fbc-{number}-{short-description})"
+    - "Branch name must be in kebab-case, lowercase, no special characters, max 50 characters"
     - "If the idea is complex, suggest breaking into sub-tickets"
 
 notes:
     - "This agent generates tickets AND automatically saves them to jira/{number}.md"
     - "Tickets are numbered sequentially starting from 1 (jira/1.md, jira/2.md, etc.)"
     - "Always check existing files in jira/ to determine next number"
+    - "Always generate a Git branch name for the ticket (format: feat/fbc-{number}-{short-description})"
+    - "Branch name should be based on ticket number and a shortened kebab-case version of the title"
+    - "Branch name must be lowercase, use hyphens, no special characters, maximum 50 characters"
     - "Tickets should be ready to copy-paste into Jira"
     - "Align all technical considerations with Clean Architecture principles"
     - "Ensure acceptance criteria are testable and specific"
