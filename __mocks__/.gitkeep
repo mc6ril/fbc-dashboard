@@ -1,0 +1,3 @@
+# This directory contains all mock files for testing
+# Mocks should match the module being mocked (e.g., __mocks__/infrastructure/supabase/client.ts)
+

@@ -1,0 +1,269 @@
+---
+alwaysApply: true
+name: "Generated Files Management"
+description: "Automatic file saving rules for Jira tickets and reports/audits. All generated files must be saved in dedicated directories with proper naming conventions."
+globs: ["jira/**/*", "report/**/*", ".cursor/**/*"]
+priority: medium
+---
+
+# Intent
+
+Ensure all generated files (Jira tickets, reports, audits) are automatically saved in organized directories following consistent naming conventions and numbering systems.
+
+## CRITICAL RULES - FILE MANAGEMENT NEVER OPTIONAL
+
+### 1. Jira Tickets - AUTOMATIC SAVING
+
+-   **ALWAYS** save generated Jira tickets in `jira/` directory at project root
+-   **ALWAYS** use incremental numbering starting from 1: `jira/1.md`, `jira/2.md`, `jira/3.md`, etc.
+-   **ALWAYS** read existing files in `jira/` directory to determine next number
+-   **ALWAYS** create `jira/` directory if it doesn't exist
+-   **ALWAYS** use English for file and directory names
+-   **NEVER** overwrite existing ticket files
+-   **NEVER** use timestamps or random names for tickets
+-   **ALWAYS** save the ticket content as markdown format
+
+**File naming pattern**:
+
+```
+jira/1.md
+jira/2.md
+jira/3.md
+...
+```
+
+**Implementation steps**:
+
+1. Check if `jira/` directory exists, create if missing
+2. List existing files in `jira/` directory
+3. Extract numbers from filenames (e.g., `1.md`, `2.md`)
+4. Determine next available number (highest + 1, or 1 if no files exist)
+5. Save ticket to `jira/{next_number}.md`
+6. Inform user of saved file location
+
+### 2. Reports and Audits - AUTOMATIC SAVING
+
+-   **ALWAYS** save reports and audits in `report/` directory at project root
+-   **ALWAYS** create subdirectory based on report type (e.g., `report/security/`, `report/architecture/`, `report/performance/`)
+-   **ALWAYS** use English for directory and file names
+-   **ALWAYS** use descriptive filenames with timestamps: `report/{type}/{name}-{timestamp}.md`
+-   **NEVER** save reports in `.cursor/reports/` (use `report/` at root instead)
+-   **ALWAYS** create parent directories if they don't exist
+-   **ALWAYS** use ISO 8601 format for timestamps: `YYYY-MM-DD-HHMMSS`
+
+**Directory structure**:
+
+```
+report/
+├── security/
+│   ├── security-audit-2025-01-27-143022.md
+│   └── security-review-2025-01-27-150000.md
+├── architecture/
+│   ├── architecture-review-2025-01-27-160000.md
+│   └── compliance-check-2025-01-27-170000.md
+├── performance/
+│   └── performance-audit-2025-01-27-180000.md
+└── code-quality/
+    └── code-review-2025-01-27-190000.md
+```
+
+**Report type mapping**:
+
+-   Security audits/reviews → `report/security/`
+-   Architecture reviews/compliance → `report/architecture/`
+-   Performance audits → `report/performance/`
+-   Code quality reviews → `report/code-quality/`
+-   Test reports → `report/testing/`
+-   General audits → `report/audit/`
+
+**File naming pattern**:
+
+```
+report/{type}/{report-name}-{YYYY-MM-DD-HHMMSS}.md
+```
+
+**Implementation steps**:
+
+1. Determine report type from command/agent name
+2. Check if `report/` directory exists, create if missing
+3. Check if `report/{type}/` subdirectory exists, create if missing
+4. Generate timestamp in ISO 8601 format (YYYY-MM-DD-HHMMSS)
+5. Create descriptive filename based on report type and timestamp
+6. Save report to `report/{type}/{filename}.md`
+7. Inform user of saved file location
+
+### 3. File Content Format
+
+#### Jira Tickets
+
+-   **ALWAYS** include full ticket content as generated
+-   **ALWAYS** include timestamp at the top: `Generated: {YYYY-MM-DD HH:MM:SS}`
+-   **ALWAYS** include ticket number in content if relevant
+-   **ALWAYS** use markdown format for readability
+
+**Template**:
+
+```markdown
+---
+Generated: 2025-01-27 14:30:22
+Ticket Number: 1
+---
+
+[Ticket content here]
+```
+
+#### Reports/Audits
+
+-   **ALWAYS** include report metadata at the top
+-   **ALWAYS** include timestamp, report type, and command used
+-   **ALWAYS** use markdown format for readability
+
+**Template**:
+
+```markdown
+---
+Generated: 2025-01-27 14:30:22
+Report Type: security
+Command: security-audit
+---
+
+[Report content here]
+```
+
+### 4. Directory Creation - MANDATORY
+
+-   **ALWAYS** create directories automatically before saving files
+-   **ALWAYS** create `.gitkeep` files in empty directories to preserve them in Git
+-   **ALWAYS** verify directory exists before file operations
+-   **NEVER** fail silently if directory creation fails
+
+**Implementation**:
+
+1. Check if directory exists
+2. Create directory if missing (including parent directories)
+3. Create `.gitkeep` file if directory is empty
+4. Verify directory creation before saving file
+
+### 5. File Naming Conventions - STRICT ENFORCEMENT
+
+#### English Only
+
+-   **ALWAYS** use English for all directory and file names
+-   **NEVER** use French or other languages in paths
+-   **ALWAYS** use lowercase with hyphens for directories: `security`, `code-quality`, `architecture`
+-   **ALWAYS** use lowercase with hyphens for filenames: `security-audit-2025-01-27.md`
+
+#### Formatting Rules
+
+-   **ALWAYS** use lowercase for directory names
+-   **ALWAYS** use hyphens (`-`) as word separators in filenames and directories
+-   **ALWAYS** avoid spaces in filenames (use hyphens instead)
+-   **ALWAYS** use `.md` extension for markdown files
+-   **NEVER** use special characters except hyphens and underscores in timestamps
+
+## FILE MANAGEMENT VIOLATIONS - AUTO-STOP CONDITIONS
+
+### 6. Critical Violations - ALWAYS STOP
+
+1. **Saving Jira ticket without number** → STOP and determine next number from existing files
+2. **Saving report without subdirectory** → STOP and create appropriate subdirectory
+3. **Using non-English names** → STOP and use English names
+4. **Saving in wrong directory** → STOP and use correct directory (`jira/` or `report/{type}/`)
+5. **Overwriting existing files** → STOP and use next available number/timestamp
+6. **Missing directory creation** → STOP and create directory before saving
+
+## FILE MANAGEMENT COMPLIANCE - MANDATORY VERIFICATION
+
+### 7. Code Generation Checklist
+
+Before EVERY file save:
+
+✅ **Jira Tickets**
+
+-   `jira/` directory exists or created?
+-   Existing files checked for next number?
+-   File saved as `jira/{number}.md`?
+-   English naming used?
+-   Content includes timestamp?
+
+✅ **Reports/Audits**
+
+-   `report/` directory exists or created?
+-   Subdirectory `report/{type}/` exists or created?
+-   Timestamp generated in ISO 8601 format?
+-   File saved as `report/{type}/{name}-{timestamp}.md`?
+-   English naming used?
+-   Content includes metadata?
+
+✅ **Directory Management**
+
+-   Parent directories created?
+-   `.gitkeep` files added if needed?
+-   Directory verified before save?
+
+## EXAMPLES
+
+### Jira Ticket Example
+
+**Command**: `/generate-jira-ticket` or `@Jira Ticket Generator`
+
+**Process**:
+
+1. Check `jira/` directory
+2. List files: `jira/1.md`, `jira/2.md`, `jira/3.md`
+3. Determine next number: 4
+4. Save to: `jira/4.md`
+
+**File content**:
+
+```markdown
+---
+Generated: 2025-01-27 14:30:22
+Ticket Number: 4
+---
+
+## Jira Ticket
+
+**Title:** Add product search feature
+...
+```
+
+### Security Audit Example
+
+**Command**: `/security-audit` or `@Security Agent`
+
+**Process**:
+
+1. Determine type: `security`
+2. Check/create `report/` directory
+3. Check/create `report/security/` subdirectory
+4. Generate timestamp: `2025-01-27-143022`
+5. Save to: `report/security/security-audit-2025-01-27-143022.md`
+
+**File content**:
+
+```markdown
+---
+Generated: 2025-01-27 14:30:22
+Report Type: security
+Command: security-audit
+---
+
+# Security Audit Report
+
+...
+```
+
+### Architecture Review Example
+
+**Command**: `/architecture-review` or `@Architecture Guardian`
+
+**Process**:
+
+1. Determine type: `architecture`
+2. Check/create `report/` directory
+3. Check/create `report/architecture/` subdirectory
+4. Generate timestamp: `2025-01-27-160000`
+5. Save to: `report/architecture/architecture-review-2025-01-27-160000.md`
+
+This ensures consistent file management and easy retrieval of generated files while maintaining clean project structure.

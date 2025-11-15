@@ -6,6 +6,7 @@
     ".cursor/rules/code-quality/performance-optimization.mdc",
     ".cursor/rules/code-quality/testing-patterns.mdc",
     ".cursor/rules/ui/accessibility.mdc",
-    ".cursor/rules/ui/component-structure.mdc"
+    ".cursor/rules/ui/component-structure.mdc",
+    ".cursor/rules/workflow/generated-files.mdc"
   ]
 }

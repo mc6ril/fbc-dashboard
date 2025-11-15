@@ -8,8 +8,52 @@ tags: ["bugfix", "quickfix", "nextjs", "debug"]
 
 You are fixing a **simple bug** (visual, logic, or behavior).
 
+## Usage
+
+Use this prompt for quick bug fixes that don't require architectural changes or full test suites. This is the fastest path for simple fixes like:
+- Visual bugs (styling, layout)
+- Logic errors (wrong condition, typo)
+- Behavior issues (missing handler, incorrect state update)
+
+**When to use**:
+- Bug is isolated and well-defined
+- Fix is straightforward (< 10 lines of code)
+- No architecture or layer changes needed
+- Quick turnaround required
+
+**When NOT to use**:
+- Bug requires architectural refactoring
+- Multiple files or layers affected
+- Complex business logic changes needed
+- Use `/pm-plan-from-ticket` or `@dev-agent` instead
+
+## Steps
+
 1. Identify the **root cause** and explain it in 1–2 lines.
 2. Suggest the **minimal code change** needed to fix it.
 3. Confirm no architecture, layer separation, or state structure changes are needed.
 4. Propose **ONE** focused unit test to lock the behavior.
 5. Output a **diff** only (no explanations beyond rationale).
+
+## Examples
+
+**Example 1**: Visual bug
+```
+@fix-bug.mdc
+Bug: Button color is wrong. Should be primary color from SCSS variables.
+File: src/presentation/components/ui/Button.tsx
+```
+
+**Example 2**: Logic error
+```
+@fix-bug.mdc
+Bug: isLowStock function returns true when stock is 0, should return false.
+File: src/core/domain/product.ts
+```
+
+**Example 3**: Missing handler
+```
+@fix-bug.mdc
+Bug: Click handler not called on ProductCard. onEdit prop is passed but not used.
+File: src/presentation/components/ProductCard.tsx
+```

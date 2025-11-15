@@ -1,5 +1,7 @@
 ---
 alwaysApply: true
+name: "Clean Architecture — Strict Layer Separation"
+description: "Maintain strict Clean Architecture with clear separation between Domain, Usecases, Infrastructure, and Presentation layers. No business logic in UI or infrastructure."
 ---
 
 # Intent

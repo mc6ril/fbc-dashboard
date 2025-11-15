@@ -49,8 +49,14 @@ The Jira Ticket Generator:
     - Adjust acceptance criteria or technical considerations
     - Update labels, priority, or estimation
 
-4. **Copy to Jira**
-    - Copy the formatted ticket
+4. **Ticket Saved Automatically**
+
+    - Ticket is automatically saved to `jira/{number}.md` (numbered sequentially: 1, 2, 3, etc.)
+    - Check the saved location displayed in the output
+    - Ticket is ready to copy-paste into Jira
+
+5. **Copy to Jira** (Optional)
+    - Copy the formatted ticket from the saved file
     - Paste into Jira
     - Add any additional context or attachments
     - Create sub-tickets if the feature is complex

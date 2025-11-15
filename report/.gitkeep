@@ -1,0 +1,10 @@
+# This directory contains all generated reports and audits
+# Reports are organized by type in subdirectories:
+# - report/security/ - Security audits and reviews
+# - report/architecture/ - Architecture reviews and compliance checks
+# - report/performance/ - Performance audits
+# - report/code-quality/ - Code quality reviews
+# - report/testing/ - Test reports
+# - report/audit/ - General audits
+# Files are automatically generated with timestamps: report/{type}/{name}-{YYYY-MM-DD-HHMMSS}.md
+

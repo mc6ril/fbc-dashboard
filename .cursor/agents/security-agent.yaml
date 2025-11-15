@@ -26,9 +26,9 @@ instructions: |
     1) **Recon**: auto-detect package managers, Next.js version, Supabase usage,
        CI/CD pipelines, and configuration files. Build a target map.
     2) **Scan**: run non-destructive, read-only checks listed in `tools.shell.allowed_commands`.
-    3) **Report**: produce a single markdown report at `.cursor/reports/security/LATEST.md`
+    3) **Report**: produce a single markdown report at `report/security/security-audit-{YYYY-MM-DD-HHMMSS}.md`
        with sections: Executive Summary, Risk Register (by severity), Detailed Findings,
-       Code Diffs, Dependency Upgrades, and Final Checklists.
+       Code Diffs, Dependency Upgrades, and Final Checklists. Always use English for file and directory names.
 
     Be stack-aware:
       - If `yarn.lock` present → prefer yarn commands (this project uses Yarn).
@@ -60,7 +60,7 @@ tools:
             - "npx snyk test --json || true"
             - "npx eslint . -f json || true"
             - "npx eslint --ext .ts,.tsx,.js src || true"
-            - "npx gitleaks detect --no-banner --report-format=json --report-path=.cursor/reports/security/gitleaks.json || true"
+            - "npx gitleaks detect --no-banner --report-format=json --report-path=report/security/gitleaks.json || true"
             - "npx trufflehog filesystem --json . || true"
 
     filesystem:
@@ -78,7 +78,7 @@ tools:
             - "jest.config.js"
             - ".eslintrc.js"
         write_paths:
-            - ".cursor/reports/security"
+            - "report/security"
 
     http:
         allowed_domains:
@@ -96,7 +96,7 @@ commands:
           2) Run ONLY safe, read-only scans using the allowed shell commands.
           3) Aggregate results and produce a concise **Executive Summary** with a
              traffic-light status (Green/Amber/Red) and top 10 actionable items.
-          4) Persist a full report to `.cursor/reports/security/LATEST.md` with the structure:
+          4) Persist a full report to `report/security/security-audit-{YYYY-MM-DD-HHMMSS}.md` with the structure:
              - Title, Timestamp, Repository overview
              - Executive Summary (traffic light + bullet points)
              - Dependency Vulnerabilities (grouped by package + version + advisory link)
@@ -137,7 +137,7 @@ commands:
             - For each issue: **Title**, **Severity**, **Location**, **Why it matters**, **Proof/Signal**,
               **Fix (with code diff)**, **Testing steps**, **Residual risk**.
             - Summarize into a prioritized remediation plan (1–2 weeks, >2 weeks, backlog).
-            - Update `.cursor/reports/security/LATEST.md` and include the **Security Review Checklist**.
+            - Save report to `report/security/security-review-{YYYY-MM-DD-HHMMSS}.md` and include the **Security Review Checklist**.
 
 checklists:
     audit:
@@ -163,9 +163,9 @@ checklists:
         - "Checked CI/CD pipeline secrets management"
 
 artifacts:
-    report_path: ".cursor/reports/security/LATEST.md"
+    report_path: "report/security/security-audit-{timestamp}.md"
     attachments:
-        - ".cursor/reports/security/gitleaks.json"
+        - "report/security/gitleaks.json"
 
 project_structure:
     type: "nextjs-web-app"

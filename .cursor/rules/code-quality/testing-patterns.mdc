@@ -14,7 +14,7 @@ Testing focuses exclusively on business logic (domain, usecases) and reusable UI
 
 ## A) Test File Location
 
-scope: file.path matches ^(src|**tests**|**mocks**)/.+\.(ts|tsx)$
+scope: file.path matches ^(src|__tests__|__mocks__)/.+\.(ts|tsx)$
 
 -   **NEVER** create test files in `src/` directory
 -   **NEVER** create test files alongside source files (e.g., `src/core/domain/product.test.ts`)
@@ -26,7 +26,7 @@ scope: file.path matches ^(src|**tests**|**mocks**)/.+\.(ts|tsx)$
 
 ## B) Test Types
 
-scope: file.path matches ^**tests**/.+\.test\.(ts|tsx)$
+scope: file.path matches ^__tests__/.+\.test\.(ts|tsx)$
 
 -   **ALWAYS** write unit tests for:
     -   Domain (`__tests__/core/domain/*.test.ts`) - Business rules and pure logic
@@ -42,7 +42,7 @@ scope: file.path matches ^**tests**/.+\.test\.(ts|tsx)$
 
 ## C) Testing Framework
 
-scope: file.path matches ^**tests**/.+\.test\.(ts|tsx)$
+scope: file.path matches ^__tests__/.+\.test\.(ts|tsx)$
 
 -   **ALWAYS** use Jest as the testing framework
 -   **ALWAYS** use TypeScript for all test files
@@ -57,7 +57,7 @@ scope: file.path matches ^**tests**/.+\.test\.(ts|tsx)$
 
 ## D) Test Structure
 
-scope: file.path matches ^**tests**/.+\.test\.(ts|tsx)$
+scope: file.path matches ^__tests__/.+\.test\.(ts|tsx)$
 
 -   **ALWAYS** use `describe()` blocks to group related tests
 -   **ALWAYS** use `it()` or `test()` for individual test cases
@@ -70,7 +70,7 @@ scope: file.path matches ^**tests**/.+\.test\.(ts|tsx)$
 
 ## E) Mocking
 
-scope: file.path matches ^(**tests**|**mocks**)/.+\.(ts|tsx)$
+scope: file.path matches ^(__tests__|__mocks__)/.+\.(ts|tsx)$
 
 -   **ALWAYS** place mock files in `__mocks__/` directory at project root
 -   **ALWAYS** use TypeScript for mock files (`.ts` or `.tsx`)
@@ -86,7 +86,7 @@ scope: file.path matches ^(**tests**|**mocks**)/.+\.(ts|tsx)$
 
 ## F) Domain Tests
 
-scope: file.path matches ^**tests**/core/domain/.+\.test\.ts$
+scope: file.path matches ^__tests__/core/domain/.+\.test\.ts$
 
 -   **ALWAYS** test pure business rules and validation logic
 -   **ALWAYS** test domain functions without external dependencies
@@ -96,7 +96,7 @@ scope: file.path matches ^**tests**/core/domain/.+\.test\.ts$
 
 ## G) Usecase Tests
 
-scope: file.path matches ^**tests**/core/usecases/.+\.test\.ts$
+scope: file.path matches ^__tests__/core/usecases/.+\.test\.ts$
 
 -   **ALWAYS** mock repository dependencies
 -   **ALWAYS** test usecase orchestration and business flow
@@ -107,7 +107,7 @@ scope: file.path matches ^**tests**/core/usecases/.+\.test\.ts$
 
 ## H) Reusable UI Component Tests
 
-scope: file.path matches ^**tests**/presentation/components/ui/.+\.test\.tsx$
+scope: file.path matches ^__tests__/presentation/components/ui/.+\.test\.tsx$
 
 -   **ALWAYS** use React Testing Library for component rendering
 -   **ALWAYS** test component behavior and user interactions

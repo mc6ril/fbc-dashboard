@@ -15,6 +15,8 @@ Review code or implementation plans for architecture rule compliance using the *
 
 **Use**: @Architecture Guardian
 
+**Report Location**: For full audits, reports are saved to `report/architecture/architecture-review-{timestamp}.md` (timestamp format: YYYY-MM-DD-HHMMSS)
+
 The Architecture Guardian performs a read-only review checking:
 
 -   Clean Architecture boundaries (Domain → Usecases → Infrastructure → Presentation)

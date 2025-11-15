@@ -8,6 +8,25 @@ tags: ["review", "code-quality", "pr", "architecture", "qa"]
 
 Review the diff or code snippet as a senior reviewer.
 
+## Usage
+
+Use this prompt to perform a comprehensive code review following fbc-dashboard standards. This prompt ensures code quality, architecture compliance, and best practices before merging.
+
+**When to use**:
+- Reviewing a Pull Request before merge
+- Validating code changes against project standards
+- Checking architecture compliance
+- Ensuring test coverage and quality
+
+**How to use**:
+1. Open the PR diff or select the code changes
+2. Reference this prompt: `@review-pr.mdc`
+3. The AI will provide a structured review following all project rules
+
+**Alternative**: For quick architecture checks, use `/architecture-review` or `/code-review` commands instead.
+
+## Review Checklist
+
 Provide:
 
 1. **Summary of change** — What's being modified and why.
@@ -16,3 +35,34 @@ Provide:
 4. **Tests** — Are unit tests sufficient? Missing edge cases?
 5. **Architecture** — Is Clean Architecture, layer separation, React Query + Zustand flow respected?
 6. **Recommendations** — 3–5 concise, actionable items.
+
+## Examples
+
+**Example 1**: Review a feature PR
+```
+@review-pr.mdc
+PR: Add product filtering feature
+Files changed:
+- src/core/domain/product.ts
+- src/core/usecases/filterProducts.ts
+- src/presentation/components/ProductFilter.tsx
+- src/presentation/hooks/useProducts.ts
+```
+
+**Example 2**: Review a bug fix PR
+```
+@review-pr.mdc
+PR: Fix low stock calculation
+Files changed:
+- src/core/domain/product.ts
+- __tests__/core/domain/product.test.ts
+```
+
+**Example 3**: Review a refactoring PR
+```
+@review-pr.mdc
+PR: Refactor to use SCSS variables
+Files changed:
+- src/presentation/components/ui/Button.tsx
+- src/styles/components/_button.scss
+```

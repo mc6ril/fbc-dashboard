@@ -8,6 +8,21 @@ tags: ["documentation", "onboarding", "context", "analysis"]
 
 Explain what this file does and how it fits into the app.
 
+## Usage
+
+Use this prompt when you need to understand a source file's purpose, structure, and relationships within the codebase. This is particularly useful for:
+- Onboarding new developers
+- Understanding unfamiliar code
+- Analyzing dependencies and coupling
+- Identifying refactoring opportunities
+
+**How to use**:
+1. Open or select the file you want to explain
+2. Reference this prompt: `@explain-file.mdc`
+3. The AI will analyze the file and provide a comprehensive explanation
+
+## Output Format
+
 Provide:
 
 1. **Purpose** — High-level goal of this file.
@@ -17,3 +32,23 @@ Provide:
 5. **Interactions** — How it connects to other layers (hooks, usecases, repositories, UI).
 6. **Risks** — Known technical debt or coupling.
 7. **Refactor Ideas** — Simplifications or improvements.
+
+## Examples
+
+**Example 1**: Explain a domain file
+```
+@explain-file.mdc
+[File: src/core/domain/product.ts]
+```
+
+**Example 2**: Explain a usecase file
+```
+@explain-file.mdc
+[File: src/core/usecases/listProducts.ts]
+```
+
+**Example 3**: Explain a component file
+```
+@explain-file.mdc
+[File: src/presentation/components/ui/Button.tsx]
+```

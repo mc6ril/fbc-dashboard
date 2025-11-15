@@ -24,7 +24,7 @@ The Security Agent performs a deep-dive manual review covering:
 -   Supabase Security
 -   Infrastructure & CI/CD Security
 
-**Report Location**: Results are saved to `.cursor/reports/security/LATEST.md`
+**Report Location**: Results are saved to `report/security/security-review-{timestamp}.md` (timestamp format: YYYY-MM-DD-HHMMSS)
 
 ## Steps
 

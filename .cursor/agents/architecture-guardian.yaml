@@ -21,6 +21,7 @@ scope:
     include:
         - "src/**/*"
         - ".cursor/rules/**/*"
+        - "report/**/*"
     exclude:
         - "node_modules/**"
         - "__tests__/**"
@@ -44,6 +45,14 @@ playbooks:
           - "Inspect code changes for rule violations"
           - "Focus on: Supabase calls in UI, business logic in UI, layer separation violations, hardcoded values, missing A11y"
           - "List violations with minimal diffs to fix"
+    - name: "Architecture Audit"
+      steps:
+          - "Perform comprehensive architecture review"
+          - "Check all Clean Architecture boundaries and layer separation"
+          - "Generate timestamp in ISO 8601 format (YYYY-MM-DD-HHMMSS)"
+          - "Check if report/architecture/ directory exists, create if missing"
+          - "Save full report to report/architecture/architecture-review-{timestamp}.md"
+          - "Output summary in chat AND inform user of saved report location"
 
 prompts:
     review: |
@@ -98,3 +107,6 @@ notes:
     - "Called by PM Agent to review plans before implementation"
     - "Can be called by Dev Agent for self-review before commit"
     - "Does not execute fixes, only identifies and proposes"
+    - "When generating full audit reports, save to report/architecture/architecture-review-{timestamp}.md"
+    - "Always use English for file and directory names"
+    - "Timestamp format: YYYY-MM-DD-HHMMSS"

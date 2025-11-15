@@ -24,7 +24,7 @@ The Security Agent performs automated security scans including:
 -   Supabase security
 -   CI/CD pipeline security
 
-**Report Location**: Results are saved to `.cursor/reports/security/LATEST.md`
+**Report Location**: Results are saved to `report/security/security-audit-{timestamp}.md` (timestamp format: YYYY-MM-DD-HHMMSS)
 
 ## Steps
 
@@ -73,10 +73,11 @@ The Security Agent performs automated security scans including:
     - Audit network security configs
 
 8. **Report Generation**
-    - Generate comprehensive report at `.cursor/reports/security/LATEST.md`
+    - Generate comprehensive report at `report/security/security-audit-{timestamp}.md`
     - Include Executive Summary with traffic-light status
     - List top 10 actionable items
     - Provide dependency upgrade suggestions
+    - Timestamp format: YYYY-MM-DD-HHMMSS
 
 ## Security Checklist
 

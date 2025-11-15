@@ -1,0 +1,4 @@
+# This directory contains all generated Jira tickets
+# Tickets are numbered sequentially: jira/1.md, jira/2.md, jira/3.md, etc.
+# Files are automatically generated when using @Jira Ticket Generator or /generate-jira-ticket
+

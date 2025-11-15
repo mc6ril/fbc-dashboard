@@ -25,6 +25,7 @@ scope:
     include:
         - "src/**/*"
         - ".cursor/rules/**/*"
+        - "jira/**/*"
     exclude:
         - "node_modules/**"
 
@@ -40,7 +41,12 @@ playbooks:
           - "List technical considerations (architecture layers, dependencies)"
           - "Suggest labels, priority, and story points"
           - "Identify dependencies and related tickets"
-          - "Output formatted Jira ticket ready to copy-paste"
+          - "Check if jira/ directory exists, create if missing"
+          - "List existing files in jira/ directory to determine next number"
+          - "Extract numbers from filenames (e.g., 1.md, 2.md) to find highest number"
+          - "Determine next available number (highest + 1, or 1 if no files exist)"
+          - "Save formatted Jira ticket to jira/{next_number}.md with timestamp metadata"
+          - "Output formatted Jira ticket ready to copy-paste AND inform user of saved location"
 
 prompts:
     generate: |
@@ -137,8 +143,11 @@ guards:
     - "If the idea is complex, suggest breaking into sub-tickets"
 
 notes:
-    - "This agent generates tickets, it does not create them in Jira (manual copy-paste required)"
+    - "This agent generates tickets AND automatically saves them to jira/{number}.md"
+    - "Tickets are numbered sequentially starting from 1 (jira/1.md, jira/2.md, etc.)"
+    - "Always check existing files in jira/ to determine next number"
     - "Tickets should be ready to copy-paste into Jira"
     - "Align all technical considerations with Clean Architecture principles"
     - "Ensure acceptance criteria are testable and specific"
     - "Consider suggesting sub-tickets for complex features"
+    - "File naming: use English only, incremental numbering (jira/1.md, jira/2.md, ...)"
