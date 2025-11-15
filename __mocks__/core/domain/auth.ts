@@ -7,7 +7,13 @@
  * Following DRY principles, all mock data creation is centralized here.
  */
 
-import type { User, Session, AuthError } from "@/core/domain/auth";
+import type {
+    User,
+    Session,
+    AuthError,
+    SessionChangeEvent,
+    AuthEventType,
+} from "@/core/domain/auth";
 
 /**
  * Creates a mock User for testing.
@@ -74,6 +80,40 @@ export const createMockAuthError = (
         code: "ERROR",
         message: "An error occurred",
         status: 500,
+        ...overrides,
+    };
+};
+
+/**
+ * Creates a mock SessionChangeEvent for testing.
+ *
+ * @param {AuthEventType} [event] - Event type (default: "SIGNED_IN")
+ * @param {Session | null} [session] - Session object or null (default: creates mock session)
+ * @param {Partial<SessionChangeEvent>} [overrides] - Optional overrides for default event properties
+ * @returns {SessionChangeEvent} Mock SessionChangeEvent object with default values and optional overrides
+ *
+ * @example
+ * ```typescript
+ * const event = createMockSessionChangeEvent("SIGNED_OUT", null);
+ * const signedInEvent = createMockSessionChangeEvent("SIGNED_IN", mockSession);
+ * ```
+ */
+export const createMockSessionChangeEvent = (
+    event: AuthEventType = "SIGNED_IN",
+    session: Session | null = null,
+    overrides?: Partial<SessionChangeEvent>
+): SessionChangeEvent => {
+    // If session is not provided and event requires a session, create a mock session
+    // SIGNED_OUT and INITIAL_SESSION can have null sessions (user signed out or no session in storage)
+    // Other events (SIGNED_IN, TOKEN_REFRESHED, USER_UPDATED) require a session
+    const eventSession =
+        session === null && event !== "SIGNED_OUT" && event !== "INITIAL_SESSION"
+            ? createMockSession()
+            : session;
+
+    return {
+        event,
+        session: eventSession,
         ...overrides,
     };
 };
