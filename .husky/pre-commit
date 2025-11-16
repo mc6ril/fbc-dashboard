@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+set -e
+
+echo "Running ESLint (no warnings allowed)..."
+if command -v yarn >/dev/null 2>&1; then
+  yarn lint . --max-warnings=0
+else
+  npx --yes eslint . --max-warnings=0
+fi
+
+echo "Running unit tests before commit (jest --bail)..."
+if command -v yarn >/dev/null 2>&1; then
+  yarn test --bail
+else
+  npx --yes jest --bail
+fi
+
+echo "Lint and tests passed. Proceeding with commit."
+
+
