@@ -1,0 +1,10 @@
+@use "../variables/colors" as *;
+@use "../variables/spacing" as *;
+@use "../variables/typography" as *;
+
+.image {
+  display: inline-block;
+  line-height: 0;
+}
+
+

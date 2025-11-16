@@ -53,3 +53,36 @@ $opacity-button-disabled: 0.5;
 // Transform values
 $transform-button-hover: translateY(-2px);
 
+// Focus ring and interactive states
+$color-focus-ring: rgba(102, 126, 234, 0.5); // matches primary tone
+
+// Link colors
+$color-link: $color-primary;
+$color-link-hover: $color-primary-dark;
+
+// Button colors
+$color-text-on-primary: #ffffff;
+$color-button-primary-bg: $color-primary;
+$color-button-primary-text: $color-text-on-primary;
+$color-button-secondary-bg: $color-background-lighter;
+$color-button-secondary-text: $color-text-primary;
+$color-button-secondary-border: $color-border;
+$color-button-ghost-text: $color-primary;
+$color-button-ghost-hover-bg: $color-primary-hover;
+
+// Input colors
+$color-input-bg: $color-background;
+$color-input-text: $color-text-primary;
+$color-input-placeholder: $color-text-muted-light;
+$color-input-border: $color-border;
+$color-input-border-hover: $color-border-hover;
+$color-input-border-focus: $color-primary;
+$color-input-disabled-bg: $color-background-disabled;
+$color-input-disabled-text: $color-text-muted;
+$color-input-error-border: $color-error;
+$color-input-error-bg: $color-error-background;
+$color-input-error-text: $color-error-text;
+
+// Disabled text
+$color-text-disabled: $color-text-muted;
+

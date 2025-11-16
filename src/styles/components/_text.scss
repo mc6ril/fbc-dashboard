@@ -1,0 +1,39 @@
+@use "../variables/colors" as *;
+@use "../variables/spacing" as *;
+@use "../variables/typography" as *;
+
+.text {
+  color: $color-text-primary;
+  font-size: $font-size-base;
+  line-height: $line-height-normal;
+
+  &--sm {
+    font-size: $font-size-sm;
+  }
+
+  &--md {
+    font-size: $font-size-base;
+  }
+
+  &--lg {
+    font-size: $font-size-lg;
+  }
+
+  &--muted {
+    color: $color-text-muted;
+  }
+
+  &--medium {
+    font-weight: $font-weight-medium;
+  }
+
+  &--semibold {
+    font-weight: $font-weight-semibold;
+  }
+
+  &--bold {
+    font-weight: $font-weight-bold;
+  }
+}
+
+

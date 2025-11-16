@@ -72,12 +72,12 @@ Use this exact structure for every sub-ticket to ensure consistency:
 
 **Acceptance Criteria:**
 
--   {AC1}
--   {AC2}
--   {AC3}
+-   [] {AC1}
+-   [] {AC2}
+-   [] {AC3}
 
 **Definition of Done:**
-{Completion criteria beyond ACs (tests passing, lint, docs, review, etc.)}
+{Completion criteria beyond ACs (tests passing, lint, docs, review, etc.)} same format as AC
 
 **Estimated Effort:** {e.g., 3h}
 

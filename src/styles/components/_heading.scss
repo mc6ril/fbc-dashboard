@@ -1,0 +1,19 @@
+@use "../variables/colors" as *;
+@use "../variables/spacing" as *;
+@use "../variables/typography" as *;
+
+.heading {
+  color: $color-text-primary;
+  font-weight: $heading-font-weight;
+  line-height: $heading-line-height;
+  margin: 0 0 $spacing-subtitle-margin-bottom 0;
+
+  &--h1 { font-size: $heading-h1-size; }
+  &--h2 { font-size: $heading-h2-size; }
+  &--h3 { font-size: $heading-h3-size; }
+  &--h4 { font-size: $heading-h4-size; }
+  &--h5 { font-size: $heading-h5-size; }
+  &--h6 { font-size: $heading-h6-size; }
+}
+
+

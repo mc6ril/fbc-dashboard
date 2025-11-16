@@ -23,15 +23,6 @@ export function getAccessibilityId(key: A11yIdKey | string, suffix?: string): st
 }
 
 /**
- * Compose a space-separated `aria-describedby` value from a list of optional ids.
- * Returns undefined if no valid ids are provided to avoid rendering empty attributes.
- */
-export function ariaDescribedByIds(...ids: Array<string | null | undefined>): string | undefined {
-  const parts = ids.filter((v): v is string => typeof v === "string" && v.trim().length > 0);
-  return parts.length > 0 ? parts.join(" ") : undefined;
-}
-
-/**
  * Helper to get common, well-named ids for form fields:
  * - label id
  * - helper text id
