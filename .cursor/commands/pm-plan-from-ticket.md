@@ -58,6 +58,36 @@ Explain briefly how the feature should fit into our architecture layers.
 
 Each with full metadata (AC/DoD/Estimate/Dependencies/etc.).
 
+#### Sub-Ticket Format (REQUIRED)
+
+Use this exact structure for every sub-ticket to ensure consistency:
+
+```markdown
+### Sub-Ticket {TicketNumber}.{Index}
+
+**Title:** {Concise, action-oriented}
+
+**Rationale:**
+{Why this is needed and how it supports the goal}
+
+**Acceptance Criteria:**
+
+-   [] {AC1}
+-   [] {AC2}
+-   [] {AC3}
+
+**Definition of Done:**
+{Completion criteria beyond ACs (tests passing, lint, docs, review, etc.)} same format as AC
+
+**Estimated Effort:** {e.g., 3h}
+
+**Dependencies:** {None | references to other sub-tickets}
+
+**Owner:** {Role or person}
+
+**Risk Notes:** {Key risks and mitigations}
+```
+
 ### Unit Test Spec (Test-First Protocol)
 
 -   Files & paths (in **tests**/)

@@ -1,0 +1,21 @@
+@use "../variables/colors" as *;
+@use "../variables/spacing" as *;
+@use "../variables/typography" as *;
+
+.link {
+  color: $color-link;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: $transition-default;
+
+  &:hover {
+    color: $color-link-hover;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: $shadow-sm $color-focus-ring;
+  }
+}
+
+

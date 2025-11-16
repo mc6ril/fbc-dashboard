@@ -21,20 +21,7 @@
   box-shadow: $shadow-lg $color-shadow;
 }
 
-.title {
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-bold;
-  margin-bottom: $spacing-sm;
-  color: $color-text-primary;
-  text-align: center;
-}
-
-.description {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
-  margin-bottom: $spacing-2xl;
-  text-align: center;
-}
+/* Title/description now handled by design system components */
 
 .formContainer {
   display: flex;
@@ -49,33 +36,7 @@
   gap: $spacing-sm;
 }
 
-.label {
-  font-weight: $font-weight-semibold;
-  color: $color-text-primary;
-  font-size: $font-size-sm;
-}
-
-.input {
-  padding: $spacing-input-padding-y $spacing-md;
-  border: $border-width-thin solid $color-border;
-  border-radius: $radius-md;
-  font-size: $font-size-base;
-  font-family: inherit;
-  transition: $transition-default;
-  background-color: $color-background;
-}
-
-.input:focus {
-  outline: none;
-  border-color: $color-primary;
-  box-shadow: $shadow-sm $color-shadow-primary;
-}
-
-.input:disabled {
-  background-color: $color-background-disabled;
-  cursor: not-allowed;
-  opacity: $opacity-disabled;
-}
+/* Form label/input styles removed; Input DS component provides styling */
 
 .buttonsContainer {
   display: flex;
@@ -84,44 +45,7 @@
   flex-wrap: wrap;
 }
 
-.button {
-  flex: 1;
-  min-width: $button-min-width;
-  padding: $spacing-button-padding-y $spacing-lg;
-  border: none;
-  border-radius: $radius-md;
-  font-size: $font-size-base;
-  font-weight: $font-weight-semibold;
-  cursor: pointer;
-  transition: $transition-default;
-  font-family: inherit;
-}
-
-.button:disabled {
-  opacity: $opacity-button-disabled;
-  cursor: not-allowed;
-}
-
-.buttonPrimary {
-  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
-  color: $color-background;
-}
-
-.buttonPrimary:hover:not(:disabled) {
-  transform: $transform-button-hover;
-  box-shadow: $shadow-md $color-shadow-primary-hover;
-}
-
-.buttonSecondary {
-  background-color: $color-background;
-  color: $color-text-primary;
-  border: $border-width-thin solid $color-border;
-}
-
-.buttonSecondary:hover:not(:disabled) {
-  background-color: $color-background-disabled;
-  border-color: $color-border-hover;
-}
+/* Page-level button styles removed; Button DS component provides styling */
 
 .errorContainer {
   margin-bottom: $spacing-xl;
@@ -163,12 +87,6 @@
   margin-bottom: $spacing-xs;
 }
 
-.errorMessage {
-  margin: 0;
-  line-height: $line-height-normal;
-  color: $color-error-text;
-}
-
 .infoBox {
   background: linear-gradient(135deg, $color-background-light 0%, $color-background-lighter 100%);
   border: $border-width-thin solid $color-border-light;
@@ -177,19 +95,7 @@
   margin-top: $spacing-md;
 }
 
-.infoTitle {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
-  margin-bottom: $spacing-md;
-  color: $color-text-primary;
-}
-
-.loading {
-  color: $color-text-secondary;
-  font-style: italic;
-  text-align: center;
-  padding: $spacing-md;
-}
+/* Heading and loading typography now handled by DS components */
 
 .infoSection {
   margin-bottom: $spacing-section-margin;
@@ -199,12 +105,7 @@
   margin-bottom: 0;
 }
 
-.infoSubtitle {
-  font-size: $font-size-base;
-  font-weight: $font-weight-semibold;
-  margin-bottom: $spacing-subtitle-margin-bottom;
-  color: $color-text-tertiary;
-}
+/* Subtitle typography handled by Heading DS component */
 
 .infoContent {
   display: flex;
@@ -212,12 +113,7 @@
   gap: $spacing-info-gap;
 }
 
-.infoContent p {
-  margin: 0;
-  color: $color-text-quaternary;
-  font-size: $font-size-sm;
-  line-height: $line-height-relaxed;
-}
+/* Paragraph typography handled by Text DS component */
 
 .infoContent strong {
   font-weight: $font-weight-semibold;
@@ -254,17 +150,13 @@
     padding: $spacing-main-padding-mobile $spacing-lg;
   }
 
-  .title {
-    font-size: $font-size-xl;
-  }
+  /* Title responsive size handled by DS component */
 
   .buttonsContainer {
     flex-direction: column;
   }
 
-  .button {
-    width: 100%;
-  }
+  /* Buttons responsiveness handled by DS Button when needed */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -272,54 +164,14 @@
     background-color: $color-background-dark;
   }
 
-  .title {
-    color: $color-text-light;
-  }
-
-  .description {
-    color: $color-text-muted;
-  }
-
-  .label {
-    color: $color-text-light;
-  }
-
-  .input {
-    background-color: $color-background-secondary;
-    border-color: $color-border-dark;
-    color: $color-text-light;
-  }
-
-  .input:focus {
-    border-color: $color-primary;
-  }
-
-  .buttonSecondary {
-    background-color: $color-background-secondary;
-    color: $color-text-light;
-    border-color: $color-border-dark;
-  }
-
-  .buttonSecondary:hover:not(:disabled) {
-    background-color: $color-background-tertiary;
-  }
+  /* DS components handle dark-mode typography and controls */
 
   .infoBox {
     background: linear-gradient(135deg, $color-background-secondary 0%, $color-background-darker 100%);
     border-color: $color-border-dark;
   }
 
-  .infoTitle {
-    color: $color-text-light;
-  }
-
-  .infoSubtitle {
-    color: $color-text-muted-light;
-  }
-
-  .infoContent p {
-    color: $color-text-muted-light;
-  }
+  /* Headings/Text colors handled by DS components */
 
   .infoContent strong {
     color: $color-text-light;

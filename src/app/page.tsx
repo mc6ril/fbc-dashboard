@@ -5,6 +5,10 @@ import { useSignIn, useSignUp, useSignOut, useSession, useUser } from "@/present
 import { useAuthStore } from "@/presentation/stores/useAuthStore";
 import type { SignInCredentials, SignUpCredentials, AuthEventType } from "@/core/domain/auth";
 import styles from "./page.module.scss";
+import Heading from "@/presentation/components/ui/Heading";
+import Text from "@/presentation/components/ui/Text";
+import Input from "@/presentation/components/ui/Input";
+import Button from "@/presentation/components/ui/Button";
 
 /** Demo page for auth flow and persistent session. */
 const Home = () => {
@@ -39,9 +43,10 @@ const Home = () => {
         // Detect state changes by comparing with previous value
         const previousSession = previousStoreSessionRef.current;
         
+        let rafId: number | null = null;
         if (storeSession !== previousSession) {
             // Use requestAnimationFrame to defer state update and avoid cascading renders
-            requestAnimationFrame(() => {
+            rafId = requestAnimationFrame(() => {
                 if (storeSession && !previousSession) {
                     // Session appeared (sign in or restored from persistence)
                     setLastAuthEvent({
@@ -60,7 +65,19 @@ const Home = () => {
             // Update ref synchronously (no re-render)
             previousStoreSessionRef.current = storeSession;
         }
+        return () => {
+            if (rafId !== null) {
+                cancelAnimationFrame(rafId);
+            }
+        };
     }, [storeSession]);
+
+    const onEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setEmail(e.target.value);
+    }, []);
+    const onPasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setPassword(e.target.value);
+    }, []);
 
     const handleSignIn = useCallback(async () => {
         if (!email || !password) {
@@ -116,11 +133,11 @@ const Home = () => {
     return (
         <div className={styles.container}>
             <main className={styles.main}>
-                <h1 className={styles.title}>Authentication Test - Persistent Session</h1>
-                <p className={styles.description}>
+                <Heading level={1}>Authentication Test - Persistent Session</Heading>
+                <Text>
                     Test React Query authentication hooks with Supabase. Session persists across
                     page refreshes and syncs in real-time across all browser tabs.
-                </p>
+                </Text>
 
                 {/* Session Persistence Indicator */}
                 {activeSession && (
@@ -128,10 +145,10 @@ const Home = () => {
                         <div className={styles.indicatorIcon}>🔄</div>
                         <div className={styles.indicatorContent}>
                             <strong className={styles.indicatorTitle}>Persistent Session Active</strong>
-                            <p className={styles.indicatorMessage}>
+                            <Text>
                                 Your session is active and will persist across page refreshes.
                                 Changes in other browser tabs will sync automatically.
-                            </p>
+                            </Text>
                         </div>
                     </div>
                 )}
@@ -150,14 +167,14 @@ const Home = () => {
                                     ? "Signed Out"
                                     : "Auth State Changed"}
                             </strong>
-                            <p className={styles.syncMessage}>
+                            <Text>
                                 {lastAuthEvent.type === "SIGNED_IN"
                                     ? "Authentication state updated. Session is now active and synchronized."
                                     : "You have been signed out. Session cleared."}
-                            </p>
-                            <p className={styles.syncTime}>
+                            </Text>
+                            <Text>
                                 {lastAuthEvent.timestamp.toLocaleTimeString()}
-                            </p>
+                            </Text>
                         </div>
                     </div>
                 )}
@@ -165,70 +182,65 @@ const Home = () => {
                 {/* Form */}
                 <div className={styles.formContainer}>
                     <div className={styles.formGroup}>
-                        <label htmlFor="email" className={styles.label}>
-                            Email
-                        </label>
-                        <input
+                        <Input
                             id="email"
                             type="email"
+                            label="Email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className={styles.input}
+                            onChange={onEmailChange}
                             placeholder="cyril.lesot@yahoo.fr"
                             required
-                            aria-required="true"
-                            aria-invalid={signIn.error || signUp.error ? "true" : "false"}
                             disabled={isLoading}
+                            error={signIn.error || signUp.error ? "Invalid email or sign-in error" : undefined}
                         />
                     </div>
                     <div className={styles.formGroup}>
-                        <label htmlFor="password" className={styles.label}>
-                            Password
-                        </label>
-                        <input
+                        <Input
                             id="password"
                             type="password"
+                            label="Password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className={styles.input}
+                            onChange={onPasswordChange}
                             placeholder="Azerty123"
                             required
-                            aria-required="true"
-                            aria-invalid={signIn.error || signUp.error ? "true" : "false"}
                             disabled={isLoading}
+                            error={signIn.error || signUp.error ? "Invalid password or sign-up error" : undefined}
                         />
                     </div>
                 </div>
 
                 {/* Action Buttons */}
                 <div className={styles.buttonsContainer}>
-                    <button
+                    <Button
                         onClick={handleSignUp}
-                        className={`${styles.button} ${styles.buttonPrimary}`}
+                        variant="primary"
                         disabled={isLoading || !email || !password}
+                        loading={signUp.isPending}
                     >
                         {signUp.isPending ? "Signing Up..." : "Sign Up"}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         onClick={handleSignIn}
-                        className={`${styles.button} ${styles.buttonPrimary}`}
+                        variant="primary"
                         disabled={isLoading || !email || !password}
+                        loading={signIn.isPending}
                     >
                         {signIn.isPending ? "Signing In..." : "Sign In"}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         onClick={handleSignOut}
-                        className={`${styles.button} ${styles.buttonSecondary}`}
+                        variant="secondary"
                         disabled={isLoading || !activeSession}
+                        loading={signOut.isPending}
                     >
                         {signOut.isPending ? "Signing Out..." : "Sign Out"}
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Cross-Tab Sync Instructions */}
                 {activeSession && (
                     <div className={styles.syncInstructions}>
-                        <h3 className={styles.instructionsTitle}>Test Cross-Tab Synchronization</h3>
+                        <Heading level={3}>Test Cross-Tab Synchronization</Heading>
                         <ol className={styles.instructionsList}>
                             <li>Open this page in a new browser tab</li>
                             <li>
@@ -249,9 +261,9 @@ const Home = () => {
                                 <div className={styles.errorIcon} aria-hidden="true">⚠️</div>
                                 <div className={styles.errorContent}>
                                     <strong className={styles.errorTitle}>Sign In Error</strong>
-                                    <p className={styles.errorMessage}>
+                                    <Text>
                                         {signIn.error?.message || "Unknown error"}
-                                    </p>
+                                    </Text>
                                 </div>
                             </div>
                         )}
@@ -260,15 +272,15 @@ const Home = () => {
                                 <div className={styles.errorIcon} aria-hidden="true">⚠️</div>
                                 <div className={styles.errorContent}>
                                     <strong className={styles.errorTitle}>Sign Up Error</strong>
-                                    <p className={styles.errorMessage}>
+                                    <Text>
                                         {signUp.error?.message || "Unknown error"}
-                                    </p>
-                                    <p className={styles.errorMessage}>
+                                    </Text>
+                                    <Text>
                                         {signUp.error?.code || "Unknown error"}
-                                    </p>
-                                    <p className={styles.errorMessage}>
+                                    </Text>
+                                    <Text>
                                         {signUp.error?.status || "Unknown error"}
-                                    </p>
+                                    </Text>
                                 </div>
                             </div>
                         )}
@@ -277,9 +289,9 @@ const Home = () => {
                                 <div className={styles.errorIcon} aria-hidden="true">⚠️</div>
                                 <div className={styles.errorContent}>
                                     <strong className={styles.errorTitle}>Sign Out Error</strong>
-                                    <p className={styles.errorMessage}>
+                                    <Text>
                                         {signOut.error?.message || "Unknown error"}
-                                    </p>
+                                    </Text>
                                 </div>
                             </div>
                         )}
@@ -288,9 +300,9 @@ const Home = () => {
                                 <div className={styles.errorIcon} aria-hidden="true">⚠️</div>
                                 <div className={styles.errorContent}>
                                     <strong className={styles.errorTitle}>Session Error</strong>
-                                    <p className={styles.errorMessage}>
+                                    <Text>
                                         {sessionError?.message || "Unknown error"}
-                                    </p>
+                                    </Text>
                                 </div>
                             </div>
                         )}
@@ -299,9 +311,9 @@ const Home = () => {
                                 <div className={styles.errorIcon} aria-hidden="true">⚠️</div>
                                 <div className={styles.errorContent}>
                                     <strong className={styles.errorTitle}>User Error</strong>
-                                    <p className={styles.errorMessage}>
+                                    <Text>
                                         {userError?.message || "Unknown error"}
-                                    </p>
+                                    </Text>
                                 </div>
                             </div>
                         )}
@@ -311,63 +323,63 @@ const Home = () => {
                 {/* Information Box */}
                 {(activeSession || activeUser || isLoading) && (
                     <div className={styles.infoBox}>
-                        <h2 className={styles.infoTitle}>Session Information</h2>
+                        <Heading level={2}>Session Information</Heading>
                         {isLoading && (
-                            <p className={styles.loading} role="status" aria-live="polite">
+                            <Text role="status" aria-live="polite">
                                 Loading...
-                            </p>
+                            </Text>
                         )}
                         {activeSession && (
                             <div className={styles.infoSection}>
-                                <h3 className={styles.infoSubtitle}>
+                                <Heading level={3}>
                                     Session{" "}
                                     <span className={styles.statusBadge} title="Real-time sync active">
                                         🔄 Live
                                     </span>
-                                </h3>
+                                </Heading>
                                 <div className={styles.infoContent}>
-                                    <p>
+                                    <Text>
                                         <strong>Access Token:</strong>{" "}
                                         <span className={styles.token}>
                                             {activeSession.accessToken.substring(0, 30)}...
                                         </span>
-                                    </p>
-                                    <p>
+                                    </Text>
+                                    <Text>
                                         <strong>Expires At:</strong>{" "}
                                         {new Date(activeSession.expiresAt).toLocaleString()}
-                                    </p>
-                                    <p>
+                                    </Text>
+                                    <Text>
                                         <strong>Status:</strong>{" "}
                                         <span className={styles.status}>
                                             {isPersistent ? "Persistent" : "Active"}
                                         </span>
-                                    </p>
-                                    <p className={styles.syncNote}>
+                                    </Text>
+                                    <Text>
                                         💡 Session is synchronized across all browser tabs in real-time.
-                                    </p>
+                                    </Text>
                                 </div>
                             </div>
                         )}
                         {activeUser && (
                             <div className={styles.infoSection}>
-                                <h3 className={styles.infoSubtitle}>
+                                <Heading level={3}>
                                     User{" "}
                                     <span className={styles.statusBadge} title="Real-time sync active">
                                         🔄 Live
                                     </span>
-                                </h3>
+                                </Heading>
                                 <div className={styles.infoContent}>
-                                    <p>
+                                    <Text>
                                         <strong>ID:</strong>{" "}
                                         <span className={styles.id}>{activeUser.id}</span>
-                                    </p>
-                                    <p>
+                                    </Text>
+                                    <Text>
                                         <strong>Email:</strong> {activeUser.email}
-                                    </p>
-                                    <p>
+                                    </Text>
+                                    <Text>
                                         <strong>Created At:</strong>{" "}
                                         {new Date(activeUser.createdAt).toLocaleString()}
-                                    </p>
+                                    </Text>
                                 </div>
                             </div>
                         )}

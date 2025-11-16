@@ -1,0 +1,92 @@
+@use "../variables/colors" as *;
+@use "../variables/spacing" as *;
+@use "../variables/typography" as *;
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-buttons-gap;
+  padding: $spacing-button-padding-y $spacing-button-padding-x;
+  border-radius: $radius-md;
+  border: $border-width-thin solid transparent;
+  cursor: pointer;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  line-height: $line-height-normal;
+  transition: $transition-default;
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: $shadow-sm $color-focus-ring;
+  }
+
+  &--full {
+    width: 100%;
+  }
+
+  &--sm {
+    padding: calc($spacing-button-padding-y - 0.25rem) calc($spacing-button-padding-x - 0.25rem);
+    font-size: $font-size-sm;
+  }
+
+  &--lg {
+    padding: calc($spacing-button-padding-y + 0.25rem) calc($spacing-button-padding-x + 0.25rem);
+    font-size: $font-size-lg;
+  }
+
+  &--primary {
+    background: $color-button-primary-bg;
+    color: $color-button-primary-text;
+    border-color: $color-button-primary-bg;
+
+    &:hover:not(.button--disabled) {
+      transform: $transform-button-hover;
+      box-shadow: $shadow-md $color-shadow-primary-hover;
+    }
+  }
+
+  &--secondary {
+    background: $color-button-secondary-bg;
+    color: $color-button-secondary-text;
+    border-color: $color-button-secondary-border;
+
+    &:hover:not(.button--disabled) {
+      transform: $transform-button-hover;
+      box-shadow: $shadow-md $color-shadow;
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $color-button-ghost-text;
+    border-color: transparent;
+
+    &:hover:not(.button--disabled) {
+      background: $color-button-ghost-hover-bg;
+    }
+  }
+
+  &--disabled {
+    cursor: not-allowed;
+    opacity: $opacity-button-disabled;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .button__spinner {
+    width: 1em;
+    height: 1em;
+    border: 2px solid $color-text-on-primary;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: button-spin 0.8s linear infinite;
+  }
+}
+
+@keyframes button-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+

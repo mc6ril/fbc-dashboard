@@ -82,6 +82,34 @@ report/
 report/{type}/{report-name}-{YYYY-MM-DD-HHMMSS}.md
 ```
 
+#### Planning Reports naming (project convention)
+
+-   For planning artifacts, this project uses: `report/planning/plan-fbc-{ticketNumber}-{short-slug}.md`
+-   The `{ticketNumber}` matches the Jira ticket number saved in `jira/{number}.md`
+-   Example: `report/planning/plan-fbc-5-light-design-system.md`
+-   Timestamps are optional for planning reports in this repository and are not required.
+
+When generating planning reports, prefer the `plan-fbc-{ticketNumber}-{slug}.md` naming to stay consistent with historical files.
+
+##### Planning Reports header metadata (REQUIRED)
+
+All planning reports MUST include the following frontmatter keys:
+
+```
+---
+Generated: {YYYY-MM-DD HH:MM:SS}
+Report Type: planning
+Command: pm-plan-from-ticket
+Ticket: FBC-{ticketNumber}
+---
+```
+
+Notes:
+
+-   `Ticket` MUST be in the format `FBC-{ticketNumber}` (e.g., `FBC-5`), not a file path.
+-   `Generated` must use a space between date and time (not a `T`).
+-   Additional keys can be added but MUST NOT replace the required keys above.
+
 **Implementation steps**:
 
 1. Determine report type from command/agent name
@@ -91,6 +119,14 @@ report/{type}/{report-name}-{YYYY-MM-DD-HHMMSS}.md
 5. Create descriptive filename based on report type and timestamp
 6. Save report to `report/{type}/{filename}.md`
 7. Inform user of saved file location
+
+For planning reports:
+
+1. Determine the related Jira ticket number
+2. Generate slug from the feature title in lowercase with hyphens
+3. Save to `report/planning/plan-fbc-{ticketNumber}-{slug}.md`
+4. Inform user of saved file location
+5. Ensure required frontmatter is present with `Ticket: FBC-{ticketNumber}`
 
 ### 3. File Content Format
 

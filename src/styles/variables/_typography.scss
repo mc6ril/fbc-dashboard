@@ -28,3 +28,15 @@ $line-height-relaxed: 1.6;
 // Font families
 $font-family-mono: 'Courier New', monospace;
 
+// Heading sizes map (semantic levels)
+$heading-h1-size: $font-size-2xl;
+$heading-h2-size: $font-size-xl;
+$heading-h3-size: $font-size-lg;
+$heading-h4-size: $font-size-base;
+$heading-h5-size: $font-size-sm;
+$heading-h6-size: $font-size-xs;
+
+// Heading weights
+$heading-font-weight: $font-weight-bold;
+$heading-line-height: $line-height-normal;
+
