@@ -263,6 +263,12 @@ const Home = () => {
                                     <p className={styles.errorMessage}>
                                         {signUp.error?.message || "Unknown error"}
                                     </p>
+                                    <p className={styles.errorMessage}>
+                                        {signUp.error?.code || "Unknown error"}
+                                    </p>
+                                    <p className={styles.errorMessage}>
+                                        {signUp.error?.status || "Unknown error"}
+                                    </p>
                                 </div>
                             </div>
                         )}

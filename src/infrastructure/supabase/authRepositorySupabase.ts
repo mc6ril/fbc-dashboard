@@ -108,59 +108,110 @@ const mapSupabaseEventToDomain = (
 const transformSupabaseErrorToAuthError = (
     supabaseError: SupabaseAuthError
 ): AuthError => {
+    // Extract potential structured code provided by Supabase when available
+    const supabaseCodeRaw =
+        (supabaseError as unknown as { code?: string | null }).code ??
+        (supabaseError as unknown as { error?: { code?: string | null } }).error?.code ??
+        null;
+    const supabaseCode = typeof supabaseCodeRaw === "string" ? supabaseCodeRaw.toLowerCase() : null;
     const errorMessage = (supabaseError.message || "").toLowerCase();
     const status = supabaseError.status;
     let code: string = "AUTH_ERROR";
 
-    // First, try to detect specific error patterns from message
+    // 1) Prefer explicit Supabase error codes when present
+    // Map known Supabase codes to our domain-friendly codes
+    if (supabaseCode) {
+        const codeMap: Record<string, string> = {
+            // Credentials / auth flow
+            invalid_credentials: "INVALID_CREDENTIALS",
+            session_expired: "INVALID_CREDENTIALS",
+            session_not_found: "INVALID_CREDENTIALS",
+            reauthentication_needed: "INVALID_CREDENTIALS",
+            bad_jwt: "INVALID_CREDENTIALS",
+            // Email / phone presence
+            email_exists: "EMAIL_ALREADY_EXISTS",
+            user_already_exists: "EMAIL_ALREADY_EXISTS",
+            email_address_invalid: "INVALID_EMAIL_FORMAT",
+            email_not_confirmed: "EMAIL_NOT_CONFIRMED",
+            // Password
+            weak_password: "WEAK_PASSWORD",
+            same_password: "WEAK_PASSWORD",
+            // Rate limits
+            over_request_rate_limit: "RATE_LIMIT_EXCEEDED",
+            over_email_send_rate_limit: "RATE_LIMIT_EXCEEDED",
+            over_sms_send_rate_limit: "RATE_LIMIT_EXCEEDED",
+            // Validation
+            validation_failed: "VALIDATION_ERROR",
+            bad_json: "VALIDATION_ERROR",
+            bad_code_verifier: "VALIDATION_ERROR",
+            // Generic conflicts
+            conflict: "VALIDATION_ERROR",
+        };
+        if (codeMap[supabaseCode]) {
+            code = codeMap[supabaseCode];
+        }
+    }
+
+    // 2) If no mapped code yet, try to detect specific error patterns from message
     // This provides better user experience than generic status codes
-    if (errorMessage.includes("already registered") || 
-        errorMessage.includes("already exists") ||
-        errorMessage.includes("user already registered") ||
-        errorMessage.includes("email address is already registered")) {
-        code = "EMAIL_ALREADY_EXISTS";
-    } else if (
-        errorMessage.includes("email not confirmed") ||
-        errorMessage.includes("email_not_confirmed") ||
-        errorMessage.includes("confirm your email") ||
-        errorMessage.includes("email confirmation required")
-    ) {
-        code = "EMAIL_NOT_CONFIRMED";
-    } else if (
-        errorMessage.includes("password") &&
-        (errorMessage.includes("weak") ||
-            errorMessage.includes("too short") ||
-            errorMessage.includes("too long") ||
-            errorMessage.includes("requirements"))
-    ) {
-        code = "WEAK_PASSWORD";
-    } else if (
-        errorMessage.includes("invalid email") ||
-        errorMessage.includes("invalid email format") ||
-        errorMessage.includes("email format is invalid")
-    ) {
-        code = "INVALID_EMAIL_FORMAT";
-    } else if (
-        errorMessage.includes("invalid login") ||
-        errorMessage.includes("invalid credentials") ||
-        errorMessage.includes("wrong password") ||
-        errorMessage.includes("incorrect password") ||
-        status === 401
-    ) {
-        code = "INVALID_CREDENTIALS";
-    } else if (
-        errorMessage.includes("rate limit") ||
-        errorMessage.includes("too many requests") ||
-        status === 429
-    ) {
-        code = "RATE_LIMIT_EXCEEDED";
-    } else if (status === 400 || status === 422) {
-        // Fallback for 400/422 when message doesn't match known patterns
-        // These can be various validation errors
-        code = "VALIDATION_ERROR";
-    } else if (status) {
-        // For other status codes, use the status as code
-        code = `HTTP_${status}`;
+    if (code === "AUTH_ERROR") {
+        if (errorMessage.includes("already registered") || 
+            errorMessage.includes("already exists") ||
+            errorMessage.includes("user already registered") ||
+            errorMessage.includes("email address is already registered")) {
+            code = "EMAIL_ALREADY_EXISTS";
+        } else if (
+            errorMessage.includes("email not confirmed") ||
+            errorMessage.includes("email_not_confirmed") ||
+            errorMessage.includes("confirm your email") ||
+            errorMessage.includes("email confirmation required")
+        ) {
+            code = "EMAIL_NOT_CONFIRMED";
+        } else if (
+            errorMessage.includes("password") &&
+            (errorMessage.includes("weak") ||
+                errorMessage.includes("too short") ||
+                errorMessage.includes("too long") ||
+                errorMessage.includes("requirements"))
+        ) {
+            code = "WEAK_PASSWORD";
+        } else if (
+            errorMessage.includes("invalid email") ||
+            errorMessage.includes("invalid email format") ||
+            errorMessage.includes("email format is invalid")
+        ) {
+            code = "INVALID_EMAIL_FORMAT";
+        } else if (
+            errorMessage.includes("invalid login") ||
+            errorMessage.includes("invalid credentials") ||
+            errorMessage.includes("wrong password") ||
+            errorMessage.includes("incorrect password")
+        ) {
+            code = "INVALID_CREDENTIALS";
+        } else if (
+            errorMessage.includes("rate limit") ||
+            errorMessage.includes("too many requests")
+        ) {
+            code = "RATE_LIMIT_EXCEEDED";
+        }
+    }
+
+    // 3) Status-based fallback if still generic
+    if (code === "AUTH_ERROR") {
+        if (status === 401) {
+            code = "INVALID_CREDENTIALS";
+        } else if (status === 429) {
+            code = "RATE_LIMIT_EXCEEDED";
+        } else if (status === 400 || status === 422) {
+            code = "VALIDATION_ERROR";
+        } else if (status) {
+            code = `HTTP_${status}`;
+        }
+    }
+
+    // 4) As a final fallback, preserve unknown Supabase code to avoid losing information
+    if (code === "AUTH_ERROR" && supabaseCode) {
+        code = `SUPABASE_${supabaseCode.toUpperCase()}`;
     }
 
     return {
@@ -222,10 +273,21 @@ export const authRepositorySupabase: AuthRepository = {
 
         // Supabase may return null session if email confirmation is required
         if (!data.session) {
+            // Distinguish between existing account vs confirmation required
+            const identitiesLength =
+                (data.user as unknown as { identities?: unknown[] }).identities?.length ?? 0;
+
+            if (identitiesLength === 0) {
+                throw {
+                    code: "EMAIL_ALREADY_EXISTS",
+                    message: "This email address is already registered.",
+                    status: 409,
+                } satisfies AuthError;
+            }
+
             throw {
                 code: "EMAIL_CONFIRMATION_REQUIRED",
-                message:
-                    "Sign up successful but email confirmation is required. Please check your email.",
+                message: "Email confirmation required. Please check your inbox.",
             } satisfies AuthError;
         }
 
