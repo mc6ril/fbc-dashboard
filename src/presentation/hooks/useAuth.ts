@@ -1,20 +1,4 @@
-/**
- * Authentication React Query Hooks
- *
- * React Query hooks for authentication operations in the FBC Dashboard.
- * These hooks connect the UI to usecases and manage async state, caching,
- * and error handling. They also synchronize state with the Zustand store.
- *
- * Following Clean Architecture and React Query best practices:
- * - Hooks call usecases (not direct repository calls)
- * - Hooks sync state with Zustand store after operations
- * - Mutations invalidate related queries on success
- * - Proper error handling and loading states
- * - Stable query keys for caching
- *
- * These hooks are used by React components to perform authentication
- * operations and access authentication state.
- */
+/** Authentication React Query hooks (Presentation). Minimal orchestration only. */
 
 "use client";
 
@@ -38,32 +22,7 @@ import { authRepositorySupabase } from "../../infrastructure/supabase/authReposi
 import { useAuthStore } from "../stores/useAuthStore";
 import { queryKeys } from "./queryKeys";
 
-/**
- * Hook for signing in a user.
- *
- * Mutation hook that signs in a user with email and password credentials.
- * On success, updates the Zustand store with session and user data, and
- * invalidates session and user queries to refetch fresh data.
- *
- * @returns {object} Mutation object with mutate, mutateAsync, data, isLoading, error, etc.
- *
- * @example
- * ```tsx
- * const signIn = useSignIn();
- *
- * const handleSignIn = async () => {
- *   try {
- *     await signIn.mutateAsync({
- *       email: "user@example.com",
- *       password: "password123"
- *     });
- *     // User is now signed in, store is updated
- *   } catch (error) {
- *     // Handle error
- *   }
- * };
- * ```
- */
+/** Sign-in mutation hook; syncs Zustand and invalidates related queries. */
 export const useSignIn = () => {
     const queryClient = useQueryClient();
     const setSession = useAuthStore((state) => state.setSession);
@@ -96,32 +55,7 @@ export const useSignIn = () => {
     });
 };
 
-/**
- * Hook for signing up a new user.
- *
- * Mutation hook that creates a new user account and signs them in.
- * On success, updates the Zustand store with session and user data, and
- * invalidates session and user queries to refetch fresh data.
- *
- * @returns {object} Mutation object with mutate, mutateAsync, data, isLoading, error, etc.
- *
- * @example
- * ```tsx
- * const signUp = useSignUp();
- *
- * const handleSignUp = async () => {
- *   try {
- *     await signUp.mutateAsync({
- *       email: "newuser@example.com",
- *       password: "securePassword123"
- *     });
- *     // User is now signed up and signed in, store is updated
- *   } catch (error) {
- *     // Handle error
- *   }
- * };
- * ```
- */
+/** Sign-up mutation hook; syncs Zustand and invalidates related queries. */
 export const useSignUp = () => {
     const queryClient = useQueryClient();
     const setSession = useAuthStore((state) => state.setSession);
@@ -154,28 +88,7 @@ export const useSignUp = () => {
     });
 };
 
-/**
- * Hook for signing out the current user.
- *
- * Mutation hook that signs out the authenticated user. On success, clears
- * the Zustand store and invalidates session and user queries.
- *
- * @returns {object} Mutation object with mutate, mutateAsync, data, isLoading, error, etc.
- *
- * @example
- * ```tsx
- * const signOut = useSignOut();
- *
- * const handleSignOut = async () => {
- *   try {
- *     await signOut.mutateAsync();
- *     // User is now signed out, store is cleared
- *   } catch (error) {
- *     // Handle error
- *   }
- * };
- * ```
- */
+/** Sign-out mutation hook; clears Zustand and invalidates/removes queries. */
 export const useSignOut = () => {
     const queryClient = useQueryClient();
     const clearAuth = useAuthStore((state) => state.clearAuth);
@@ -203,27 +116,7 @@ export const useSignOut = () => {
     });
 };
 
-/**
- * Hook for retrieving the current authentication session.
- *
- * Query hook that fetches the current active session. The query is enabled
- * by default and will refetch based on React Query's default options.
- * On success, updates the Zustand store with the session data.
- *
- * @returns {object} Query object with data, isLoading, error, refetch, etc.
- *
- * @example
- * ```tsx
- * const { data: session, isLoading, error } = useSession();
- *
- * if (isLoading) return <div>Loading...</div>;
- * if (error) return <div>Error: {error.message}</div>;
- * if (session) {
- *   return <div>Authenticated: {session.user.email}</div>;
- * }
- * return <div>Not authenticated</div>;
- * ```
- */
+/** Session query hook; syncs Zustand on data changes. */
 export const useSession = () => {
     const setSession = useAuthStore((state) => state.setSession);
 
@@ -245,27 +138,7 @@ export const useSession = () => {
     return query;
 };
 
-/**
- * Hook for retrieving the current authenticated user.
- *
- * Query hook that fetches the current authenticated user. The query is enabled
- * by default and will refetch based on React Query's default options.
- * On success, updates the Zustand store with the user data.
- *
- * @returns {object} Query object with data, isLoading, error, refetch, etc.
- *
- * @example
- * ```tsx
- * const { data: user, isLoading, error } = useUser();
- *
- * if (isLoading) return <div>Loading...</div>;
- * if (error) return <div>Error: {error.message}</div>;
- * if (user) {
- *   return <div>Welcome, {user.email}!</div>;
- * }
- * return <div>Not authenticated</div>;
- * ```
- */
+/** User query hook; syncs Zustand on data changes. */
 export const useUser = () => {
     const setUser = useAuthStore((state) => state.setUser);
 

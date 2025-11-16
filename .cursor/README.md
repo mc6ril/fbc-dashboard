@@ -220,7 +220,7 @@ Before submitting code, verify:
 -   [ ] SCSS variables used (no hardcoded values)
 -   [ ] WCAG 2.1 AA accessibility
 -   [ ] Unit tests for domain/usecases
--   [ ] Complete JSDoc documentation
+-   [ ] Documentation follows lean policy (domain/ports mandatory; usecases brief; infra/presentation minimal)
 -   [ ] No business logic in UI
 -   [ ] No direct Supabase call from UI
 

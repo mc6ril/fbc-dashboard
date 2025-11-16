@@ -1,17 +1,4 @@
-/**
- * React Query Provider
- *
- * Provides React Query (TanStack Query) context to the application.
- * This provider must wrap the application root to enable React Query hooks
- * throughout the component tree.
- *
- * The QueryClient is configured with default options for caching, refetching,
- * and error handling. These defaults can be customized based on application needs.
- *
- * React Query DevTools are automatically included in development environment
- * for debugging queries, mutations, and cache state. DevTools are excluded
- * from production builds to reduce bundle size.
- */
+/** React Query Provider with sensible defaults; includes DevTools in development. */
 
 "use client";
 
@@ -23,27 +10,7 @@ type Props = {
     children: ReactNode;
 };
 
-/**
- * React Query Provider component.
- *
- * Wraps the application with React Query context, enabling all React Query
- * hooks (useQuery, useMutation, etc.) to work throughout the component tree.
- *
- * The QueryClient is created once and reused across renders using useState
- * to ensure a stable instance.
- *
- * @param {Props} props - Component props
- * @param {ReactNode} props.children - Child components to wrap with React Query context
- * @returns {JSX.Element} QueryClientProvider wrapping children
- *
- * @example
- * ```tsx
- * // In app/layout.tsx:
- * <ReactQueryProvider>
- *   {children}
- * </ReactQueryProvider>
- * ```
- */
+/** Wraps children with React Query context; stable `QueryClient` via useState. */
 const ReactQueryProvider = ({ children }: Props) => {
     // Create QueryClient once and reuse it
     // This ensures the client instance is stable across renders

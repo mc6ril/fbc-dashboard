@@ -1,19 +1,6 @@
 /**
- * Authentication Repository Supabase Implementation
- *
- * Concrete implementation of the AuthRepository interface using Supabase as the
- * authentication provider. This is the only layer that directly interacts with
- * Supabase authentication APIs.
- *
- * This repository:
- * - Implements the AuthRepository interface contract
- * - Maps Supabase types to domain types (User, Session)
- * - Transforms Supabase errors to AuthError domain type
- * - Handles all Supabase-specific authentication logic
- *
- * Following Clean Architecture principles, this repository isolates Supabase
- * implementation details from the rest of the application, allowing easy
- * replacement with another authentication provider if needed.
+ * Supabase implementation of `AuthRepository` (Infrastructure).
+ * Maps Supabase types to domain types and transforms errors to `AuthError`.
  */
 
 import { supabaseClient } from "./client";
@@ -29,17 +16,7 @@ import type {
 } from "../../core/domain/auth";
 import type { AuthError as SupabaseAuthError } from "@supabase/supabase-js";
 
-/**
- * Maps Supabase user object to domain User type.
- *
- * Converts Supabase's snake_case field names (created_at, updated_at) to
- * camelCase (createdAt, updatedAt) and ensures ISO 8601 string format
- * for date fields.
- *
- * @param {object} supabaseUser - Supabase user object from auth API
- * @returns {User} Domain User type
- * @throws {Error} Throws if required user fields are missing
- */
+/** Map Supabase user to domain `User`. Throws if required fields are missing. */
 const mapSupabaseUserToDomain = (supabaseUser: {
     id: string;
     email?: string;
@@ -62,16 +39,7 @@ const mapSupabaseUserToDomain = (supabaseUser: {
     };
 };
 
-/**
- * Maps Supabase session object to domain Session type.
- *
- * Converts Supabase's snake_case field names (access_token, refresh_token,
- * expires_at) to camelCase and maps the nested user object.
- *
- * @param {object} supabaseSession - Supabase session object from auth API
- * @returns {Session} Domain Session type
- * @throws {Error} Throws if required session fields are missing
- */
+/** Map Supabase session to domain `Session`. Throws if required fields are missing. */
 const mapSupabaseSessionToDomain = (supabaseSession: {
     access_token: string;
     refresh_token?: string | null;
@@ -105,22 +73,7 @@ const mapSupabaseSessionToDomain = (supabaseSession: {
     };
 };
 
-/**
- * Maps Supabase auth state change event to domain SessionChangeEvent type.
- *
- * Converts Supabase's event string to domain AuthEventType and maps the session
- * to domain Session type if present. The session is null when the user signs out
- * or the token expires/invalidates.
- *
- * Supabase events match our domain events: INITIAL_SESSION, SIGNED_IN, SIGNED_OUT,
- * TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY. We cast the event string
- * to AuthEventType as Supabase guarantees these event types.
- *
- * @param {string} supabaseEvent - Supabase auth state change event string
- * @param {object | null} supabaseSession - Supabase session object or null
- * @returns {SessionChangeEvent} Domain SessionChangeEvent type
- * @throws {Error} Throws if session mapping fails when session is provided
- */
+/** Map Supabase auth event/session to domain `SessionChangeEvent`. */
 const mapSupabaseEventToDomain = (
     supabaseEvent: string,
     supabaseSession: {
@@ -151,25 +104,7 @@ const mapSupabaseEventToDomain = (
     };
 };
 
-/**
- * Transforms Supabase authentication error to domain AuthError type.
- *
- * Maps Supabase HTTP status codes and error messages to domain error codes
- * for better user experience. This function parses error messages to provide
- * specific, actionable error codes while falling back to status code mapping
- * when message parsing is inconclusive.
- *
- * The function detects common Supabase error patterns:
- * - Email already registered/exists
- * - Email not confirmed
- * - Weak password requirements
- * - Invalid email format
- * - Invalid credentials
- * - Rate limiting
- *
- * @param {SupabaseAuthError} supabaseError - Supabase authentication error
- * @returns {AuthError} Domain AuthError type with specific error code and user-friendly message
- */
+/** Transform Supabase auth error to domain `AuthError` with specific code. */
 const transformSupabaseErrorToAuthError = (
     supabaseError: SupabaseAuthError
 ): AuthError => {
@@ -235,24 +170,9 @@ const transformSupabaseErrorToAuthError = (
     };
 };
 
-/**
- * Supabase implementation of the Authentication Repository interface.
- *
- * This repository provides concrete implementations of all authentication
- * operations using Supabase as the authentication provider. All methods
- * return domain types and throw AuthError on failure.
- */
+/** Concrete `AuthRepository` using Supabase. */
 export const authRepositorySupabase: AuthRepository = {
-    /**
-     * Signs in a user with email and password credentials.
-     *
-     * Uses Supabase's `signInWithPassword` method and maps the response
-     * to domain types.
-     *
-     * @param {SignInCredentials} credentials - User's email and password
-     * @returns {Promise<{ session: Session; user: User }>} Session and user data
-     * @throws {AuthError} Throws AuthError if authentication fails
-     */
+    /** Sign in via Supabase; map to domain; throw `AuthError` on failure. */
     signIn: async (
         credentials: SignInCredentials
     ): Promise<{ session: Session; user: User }> => {
@@ -278,16 +198,7 @@ export const authRepositorySupabase: AuthRepository = {
         return { session, user };
     },
 
-    /**
-     * Signs up a new user with email and password credentials.
-     *
-     * Uses Supabase's `signUp` method and maps the response to domain types.
-     * Note: Supabase may return null session if email confirmation is required.
-     *
-     * @param {SignUpCredentials} credentials - User's email and password
-     * @returns {Promise<{ session: Session; user: User }>} Session and user data
-     * @throws {AuthError} Throws AuthError if sign-up fails
-     */
+    /** Sign up via Supabase; map to domain; may require email confirmation. */
     signUp: async (
         credentials: SignUpCredentials
     ): Promise<{ session: Session; user: User }> => {
@@ -323,15 +234,7 @@ export const authRepositorySupabase: AuthRepository = {
         return { session, user };
     },
 
-    /**
-     * Signs out the currently authenticated user.
-     *
-     * Uses Supabase's `signOut` method to invalidate the current session.
-     * This operation is idempotent and safe to call multiple times.
-     *
-     * @returns {Promise<void>} Resolves when sign-out is complete
-     * @throws {AuthError} Throws AuthError if sign-out fails
-     */
+    /** Sign out via Supabase (idempotent). */
     signOut: async (): Promise<void> => {
         const { error } = await supabaseClient.auth.signOut();
 
@@ -340,20 +243,7 @@ export const authRepositorySupabase: AuthRepository = {
         }
     },
 
-    /**
-     * Retrieves the current active session for the authenticated user.
-     *
-     * Uses Supabase's `getSession` method to retrieve the current session.
-     * Returns null if no active session exists.
-     *
-     * If a 401 or 403 error occurs (indicating an invalid/expired session),
-     * the method automatically clears the invalid session by calling `signOut()`
-     * and returns null instead of throwing an error. This prevents stale sessions
-     * from causing crashes on page load.
-     *
-     * @returns {Promise<Session | null>} Current session or null
-     * @throws {AuthError} Throws AuthError if session retrieval fails (except for 401/403 which return null)
-     */
+    /** Get current session or null. Clears invalid sessions on 401/403 and returns null. */
     getSession: async (): Promise<Session | null> => {
         const { data, error } = await supabaseClient.auth.getSession();
 
@@ -383,20 +273,7 @@ export const authRepositorySupabase: AuthRepository = {
         return mapSupabaseSessionToDomain(data.session);
     },
 
-    /**
-     * Retrieves the current authenticated user information.
-     *
-     * Uses Supabase's `getUser` method to retrieve the current user.
-     * Returns null if no user is authenticated.
-     *
-     * If a 401 or 403 error occurs (indicating an invalid/expired session),
-     * the method automatically clears the invalid session by calling `signOut()`
-     * and returns null instead of throwing an error. This prevents stale sessions
-     * from causing crashes on page load.
-     *
-     * @returns {Promise<User | null>} Current user or null
-     * @throws {AuthError} Throws AuthError if user retrieval fails (except for 401/403 which return null)
-     */
+    /** Get current user or null. Clears invalid sessions on 401/403 and returns null. */
     getUser: async (): Promise<User | null> => {
         const { data, error } = await supabaseClient.auth.getUser();
 
@@ -430,44 +307,7 @@ export const authRepositorySupabase: AuthRepository = {
         return mapSupabaseUserToDomain(data.user);
     },
 
-    /**
-     * Subscribes to authentication state changes.
-     *
-     * Uses Supabase's `onAuthStateChange` method to listen to authentication
-     * state changes (sign in, sign out, token refresh, etc.). The callback
-     * receives domain-mapped events with session data.
-     *
-     * The subscription automatically synchronizes across all browser tabs and
-     * windows through Supabase's built-in localStorage mechanism. When one tab
-     * triggers a state change, all other tabs receive the event automatically.
-     *
-     * This method returns a cleanup function that must be called to unsubscribe
-     * from events and prevent memory leaks.
-     *
-     * @param {function} callback - Function to call when authentication state changes.
-     *   Receives a `SessionChangeEvent` with the event type and current session (or null).
-     * @returns {function} Cleanup function to unsubscribe from authentication state changes.
-     *   Call this function to stop receiving events and prevent memory leaks.
-     * @throws {never} This method does not throw. Supabase's `onAuthStateChange` always returns
-     *   a subscription object. If event mapping fails, errors are logged but not thrown
-     *   (to prevent unhandled errors in async callbacks from external libraries).
-     *
-     * @example
-     * ```typescript
-     * const unsubscribe = authRepositorySupabase.onAuthStateChange((event) => {
-     *   if (event.event === "SIGNED_OUT" || !event.session) {
-     *     // Handle sign out (clear stores, redirect, etc.)
-     *   } else if (event.event === "SIGNED_IN") {
-     *     // Handle sign in (update stores with new session, etc.)
-     *   } else if (event.event === "TOKEN_REFRESHED") {
-     *     // Handle token refresh (update stores with refreshed session, etc.)
-     *   }
-     * });
-     *
-     * // Later, when no longer needed:
-     * unsubscribe();
-     * ```
-     */
+    /** Subscribe to auth state changes; returns cleanup. Does not throw. */
     onAuthStateChange: (callback: AuthStateChangeCallback): (() => void) => {
         // Subscribe to Supabase auth state changes
         // Supabase's onAuthStateChange returns an object with a subscription

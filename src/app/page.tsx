@@ -6,18 +6,7 @@ import { useAuthStore } from "@/presentation/stores/useAuthStore";
 import type { SignInCredentials, SignUpCredentials, AuthEventType } from "@/core/domain/auth";
 import styles from "./page.module.scss";
 
-/**
- * Home Page - Authentication Test with Persistent Session
- *
- * Test page for React Query authentication hooks with Supabase.
- * Demonstrates persistent session management with real-time cross-tab synchronization.
- * Allows users to sign up, sign in, and sign out to test the authentication flow.
- *
- * Features:
- * - Persistent session: Session remains active after page refresh
- * - Real-time sync: Authentication state syncs across all browser tabs
- * - Auto-refresh: Tokens are automatically refreshed when they expire
- */
+/** Demo page for auth flow and persistent session. */
 const Home = () => {
     const [email, setEmail] = useState("cyril.lesot@yahoo.fr");
     const [password, setPassword] = useState("Azerty123");
