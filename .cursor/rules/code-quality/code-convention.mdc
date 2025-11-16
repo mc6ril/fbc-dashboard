@@ -20,7 +20,11 @@ Maintain strict and consistent code conventions for style, naming, TypeScript pa
 -   **ALWAYS** write short, readable, and pure functions
 -   **NEVER** create unnecessarily complex logic
 
-### 2. SCSS / Styling - MANDATORY STRUCTURE
+### 2. Control statements must use braces
+
+-   **ALWAYS** wrap control statements with braces, even for single statements.
+
+### 3. SCSS / Styling - MANDATORY STRUCTURE
 
 #### SCSS Structure
 
@@ -43,7 +47,7 @@ Maintain strict and consistent code conventions for style, naming, TypeScript pa
 -   **NEVER** use inline CSS in React components
 -   **NEVER** use `!important`
 
-### 3. React / Next.js Components - STRICT PATTERNS
+### 4. React / Next.js Components - STRICT PATTERNS
 
 #### Component Format
 
@@ -96,7 +100,7 @@ export default ProductList;
 -   **ALWAYS** use `.tsx` extension for components
 -   **ALWAYS** respect: one file = one main component
 
-### 4. Zustand Stores - UI STATE ONLY
+### 5. Zustand Stores - UI STATE ONLY
 
 -   **ALWAYS** create one store per UI state domain (filters, modals, selection, theme, etc.)
 -   **NEVER** put side effects in stores
@@ -112,7 +116,7 @@ export const useFilterStore = create<FilterState>((set) => ({
 }));
 ```
 
-### 5. React Query Hooks - DATA FETCHING PATTERNS
+### 6. React Query Hooks - DATA FETCHING PATTERNS
 
 -   **ALWAYS** create one hook per resource: `useProducts`, `useStockMovements`, etc.
 -   **ALWAYS** use explicit and stable queryKey: `queryKey: ["products"]`
@@ -130,7 +134,7 @@ export function useProducts() {
 }
 ```
 
-### 6. Types & Naming - STRICT CONVENTIONS
+### 7. Types & Naming - STRICT CONVENTIONS
 
 #### Types
 
@@ -185,13 +189,13 @@ enum ProductStatus {
 -   `useProductFilterStore.ts` → Zustand store
 -   `productRepositorySupabase.ts` → Infrastructure repository
 
-### 7. Tests - MANDATORY COVERAGE
+### 8. Tests - MANDATORY COVERAGE
 
 -   **ALWAYS** write unit tests for `domain` and `usecases`
 -   **NEVER** make UI tests mandatory for page components
 -   **ALWAYS** write mandatory tests for reusable components in `presentation/components/ui`
 
-### 8. Imports - ORDER AND CLEANLINESS
+### 9. Imports - ORDER AND CLEANLINESS
 
 #### Mandatory Order
 
@@ -207,7 +211,7 @@ enum ProductStatus {
 
 -   **ALWAYS** remove unused imports
 
-### 9. Code Quality - BEST PRACTICES
+### 10. Code Quality - BEST PRACTICES
 
 -   **ALWAYS** name functions according to what they actually do
 -   **ALWAYS** prefer pure functions
@@ -218,7 +222,7 @@ enum ProductStatus {
 
 ## CODE CONVENTION VIOLATIONS - AUTO-STOP CONDITIONS
 
-### 10. Critical Violations - ALWAYS STOP
+### 11. Critical Violations - ALWAYS STOP
 
 1. **Use of `any`** → STOP and type explicitly
 2. **Inline CSS in component** → STOP and use SCSS
@@ -234,7 +238,7 @@ enum ProductStatus {
 
 ## CODE CONVENTION COMPLIANCE - MANDATORY VERIFICATION
 
-### 11. Code Generation Checklist
+### 12. Code Generation Checklist
 
 Before EVERY code generation:
 

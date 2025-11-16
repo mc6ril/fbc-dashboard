@@ -13,6 +13,12 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    rules: {
+      // Enforce braces for all control statements (if/else/for/while/do)
+      curly: ["error", "all"],
+    },
+  },
 ]);
 
 export default eslintConfig;

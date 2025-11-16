@@ -1,6 +1,6 @@
 import React from "react";
 import { getFormFieldIds } from "@/shared/a11y/utils";
-import "@styles/components/_input.scss";
+import "@/styles/components/_input.scss";
 
 type Props = {
   id: string;
@@ -23,9 +23,15 @@ type Props = {
 
 const computeControlClassName = (base: string, hasError: boolean, isDisabled: boolean, extra?: string): string => {
   const classes = [`${base}__control`];
-  if (hasError) classes.push(`${base}__control--error`);
-  if (isDisabled) classes.push(`${base}__control--disabled`);
-  if (extra && extra.trim().length > 0) classes.push(extra);
+  if (hasError) {
+    classes.push(`${base}__control--error`);
+  }
+  if (isDisabled) {
+    classes.push(`${base}__control--disabled`);
+  }
+  if (extra && extra.trim().length > 0) {
+    classes.push(extra);
+  }
   return classes.join(" ");
 };
 

@@ -1,5 +1,5 @@
 import React from "react";
-import "@styles/components/_heading.scss";
+import "@/styles/components/_heading.scss";
 
 type HeadingLevel = 1 | 2 | 3 | 4 | 5 | 6;
 type HeadingTag = "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
@@ -13,7 +13,9 @@ type Props = {
 
 const computeClassName = (level: HeadingLevel, extra?: string): string => {
   const base = ["heading", `heading--h${level}`];
-  if (extra && extra.trim().length > 0) base.push(extra);
+  if (extra && extra.trim().length > 0) {
+    base.push(extra);
+  }
   return base.join(" ");
 };
 

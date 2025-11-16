@@ -1,6 +1,6 @@
 import NextImage, { ImageProps as NextImageProps } from "next/image";
 import React from "react";
-import "@styles/components/_image.scss";
+import "@/styles/components/_image.scss";
 
 type Props = Omit<NextImageProps, "alt" | "width" | "height"> & {
   alt: string;
@@ -11,7 +11,9 @@ type Props = Omit<NextImageProps, "alt" | "width" | "height"> & {
 
 const computeClassName = (extra?: string): string => {
   const base = ["image"];
-  if (extra && extra.trim().length > 0) base.push(extra);
+  if (extra && extra.trim().length > 0) {
+    base.push(extra);
+  }
   return base.join(" ");
 };
 

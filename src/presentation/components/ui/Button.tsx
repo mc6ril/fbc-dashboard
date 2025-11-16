@@ -1,6 +1,5 @@
 import React from "react";
-import { getAccessibilityId } from "@/shared/a11y/utils";
-import "@styles/components/_button.scss";
+import "@/styles/components/_button.scss";
 
 type ButtonVariant = "primary" | "secondary" | "ghost";
 type ButtonSize = "sm" | "md" | "lg";
@@ -20,9 +19,15 @@ type Props = {
 
 const computeClassName = (variant: ButtonVariant, size: ButtonSize, fullWidth: boolean, disabled: boolean, extra?: string): string => {
   const base = ["button", `button--${variant}`, `button--${size}`];
-  if (fullWidth) base.push("button--full");
-  if (disabled) base.push("button--disabled");
-  if (extra && extra.trim().length > 0) base.push(extra);
+  if (fullWidth) {
+    base.push("button--full");
+  }
+  if (disabled) {
+    base.push("button--disabled");
+  }
+  if (extra && extra.trim().length > 0) {
+    base.push(extra);
+  }
   return base.join(" ");
 };
 
@@ -55,8 +60,6 @@ const ButtonComponent = ({
     [isDisabled, onClick]
   );
 
-  const spinnerId = React.useMemo(() => getAccessibilityId("spinner"), []);
-
   return (
     <button
       type={type}
@@ -66,7 +69,7 @@ const ButtonComponent = ({
       aria-busy={loading || undefined}
       aria-label={ariaLabel}
     >
-      {loading && <span id={spinnerId} className="button__spinner" aria-hidden="true" />}
+      {loading && <span className="button__spinner" aria-hidden="true" />}
       {children}
     </button>
   );
