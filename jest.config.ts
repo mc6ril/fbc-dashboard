@@ -2,10 +2,12 @@ import type { Config } from "jest";
 
 const config: Config = {
     preset: "ts-jest",
-    testEnvironment: "node",
+    testEnvironment: "jsdom",
     // Add more setup options before each test is run
     setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
     moduleNameMapper: {
+        // Mock style imports FIRST so they take precedence over path aliases
+        "\\.(css|scss|sass)$": "<rootDir>/__mocks__/styleMock.ts",
         // Handle module aliases (this will be automatically configured for you based on your tsconfig.json paths)
         "^@/(.*)$": "<rootDir>/src/$1",
     },
