@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSignIn } from "@/presentation/hooks/useAuth";
 import Heading from "@/presentation/components/ui/Heading";
@@ -19,6 +19,12 @@ const SignInPage = () => {
   
   const mainId = getAccessibilityId("main", "signin");
   
+  // Reset mutation state when component mounts to ensure clean state after signout
+  useEffect(() => {
+    signIn.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
   const onEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
   }, []);
@@ -36,7 +42,9 @@ const SignInPage = () => {
     
     try {
       await signIn.mutateAsync({ email, password });
-      router.push("/dashboard");
+      // Session is already in the store after onSuccess callback
+      // Navigate immediately after successful mutation
+      router.replace("/dashboard");
     } catch {
       // Error is handled by React Query
     }

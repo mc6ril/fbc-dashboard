@@ -9,8 +9,6 @@ type AuthStoreState = {
     session: Session | null;
     /** Current authenticated user or null if no user is authenticated */
     user: User | null;
-    /** Loading state for authentication operations */
-    isLoading: boolean;
 };
 
 /** Store actions. */
@@ -21,10 +19,7 @@ type AuthStoreActions = {
     /** Update user. */
     setUser: (user: User | null) => void;
 
-    /** Update loading state. */
-    setLoading: (isLoading: boolean) => void;
-
-    /** Reset session, user, and loading. */
+    /** Reset session and user. */
     clearAuth: () => void;
 };
 
@@ -35,7 +30,6 @@ type AuthStore = AuthStoreState & AuthStoreActions;
 const initialState: AuthStoreState = {
     session: null,
     user: null,
-    isLoading: false,
 };
 
 /** Authentication Zustand store. Updated by React Query hooks after usecases. */
@@ -48,10 +42,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
     setUser: (user: User | null) => {
         set({ user });
-    },
-
-    setLoading: (isLoading: boolean) => {
-        set({ isLoading });
     },
 
     clearAuth: () => {

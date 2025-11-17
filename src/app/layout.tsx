@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ReactQueryProvider from "@/presentation/providers/ReactQueryProvider";
 import AuthStateChangeProvider from "@/presentation/providers/AuthStateChangeProvider";
+import GlobalLoaderProvider from "@/presentation/providers/GlobalLoaderProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +29,9 @@ export default function RootLayout({
     <html lang="fr">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ReactQueryProvider>
-          <AuthStateChangeProvider>{children}</AuthStateChangeProvider>
+          <AuthStateChangeProvider>
+            <GlobalLoaderProvider>{children}</GlobalLoaderProvider>
+          </AuthStateChangeProvider>
         </ReactQueryProvider>
       </body>
     </html>

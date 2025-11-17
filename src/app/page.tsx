@@ -13,7 +13,6 @@ import styles from "./page.module.scss";
 const Home = () => {
   const router = useRouter();
   const session = useAuthStore((state) => state.session);
-  const isLoadingStore = useAuthStore((state) => state.isLoading);
   const { data: sessionData, isLoading: isLoadingQuery } = useSession();
   
   // Determine if user is authenticated
@@ -21,10 +20,8 @@ const Home = () => {
     return session !== null || sessionData !== null;
   }, [session, sessionData]);
   
-  // Determine if we're still loading
-  const isLoading = useMemo(() => {
-    return isLoadingStore || isLoadingQuery;
-  }, [isLoadingStore, isLoadingQuery]);
+  // Use React Query loading state
+  const isLoading = isLoadingQuery;
   
   // Redirect based on authentication state
   useEffect(() => {
