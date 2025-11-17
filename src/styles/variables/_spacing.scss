@@ -34,6 +34,7 @@ $button-min-width: 120px;
 $main-max-width: 600px;
 $form-max-width: 500px;
 $header-min-height: 64px;
+$spinner-size: 48px;
 
 // Breakpoints
 $breakpoint-mobile: 600px;
@@ -56,4 +57,7 @@ $shadow-lg: 0 20px 60px;
 
 // Transition values
 $transition-default: all 0.2s;
+
+// Z-index values
+$z-index-overlay: 9999;
 

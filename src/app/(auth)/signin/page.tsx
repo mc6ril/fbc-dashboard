@@ -10,12 +10,14 @@ import Input from "@/presentation/components/ui/Input";
 import Button from "@/presentation/components/ui/Button";
 import { getAccessibilityId } from "@/shared/a11y/utils";
 import styles from "./page.module.scss";
+import { useAuthStore } from "@/presentation/stores/useAuthStore";
 
 const SignInPage = () => {
   const router = useRouter();
   const signIn = useSignIn();
   const [email, setEmail] = useState("cyril.lesot@yahoo.fr");
   const [password, setPassword] = useState("Azerty123");
+  const userId = useAuthStore((state) => state.user?.id);
   
   const mainId = getAccessibilityId("main", "signin");
   
@@ -42,13 +44,18 @@ const SignInPage = () => {
     
     try {
       await signIn.mutateAsync({ email, password });
-      // Session is already in the store after onSuccess callback
-      // Navigate immediately after successful mutation
-      router.replace("/dashboard");
     } catch {
       // Error is handled by React Query
     }
-  }, [email, password, signIn, router]);
+  }, [email, password, signIn]);
+
+  // Navigate to dashboard when user is authenticated
+  // Use replace instead of push to avoid adding to browser history
+  useEffect(() => {
+    if (userId) {
+      router.replace("/dashboard");
+    }
+  }, [userId, router]);
   
   const isLoading = useMemo(() => {
     return signIn.isPending;
