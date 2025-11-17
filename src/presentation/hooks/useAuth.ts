@@ -23,6 +23,9 @@ import { useAuthStore } from "@/presentation/stores/useAuthStore";
 import { useGlobalLoadingStore } from "@/presentation/stores/useGlobalLoadingStore";
 import { queryKeys } from "./queryKeys";
 
+/** Delay before stopping global loader after auth mutation (allows navigation to complete). */
+const LOADER_STOP_DELAY_MS = 100;
+
 /** Sign-in mutation hook; syncs Zustand and invalidates related queries. */
 export const useSignIn = () => {
     const queryClient = useQueryClient();
@@ -49,13 +52,19 @@ export const useSignIn = () => {
             // Invalidate and refetch session and user queries
             queryClient.invalidateQueries({ queryKey: queryKeys.auth.session() });
             queryClient.invalidateQueries({ queryKey: queryKeys.auth.user() });
-            // Keep loader active during navigation - will be stopped by dashboard layout
+            // Keep loader active during navigation - will be stopped by dashboard layout or onSettled timeout
         },
         onError: () => {
             // Stop loader on error
             stopGlobalLoading();
         },
-        // Don't stop loader in onSettled for signin - let dashboard layout handle it
+        onSettled: () => {
+            // Stop loader after a short delay to allow navigation, but ensure it always stops
+            // This prevents the loader from getting stuck if RestrictedPage redirects
+            setTimeout(() => {
+                stopGlobalLoading();
+            }, LOADER_STOP_DELAY_MS);
+        },
     });
 };
 
@@ -85,13 +94,19 @@ export const useSignUp = () => {
             // Invalidate and refetch session and user queries
             queryClient.invalidateQueries({ queryKey: queryKeys.auth.session() });
             queryClient.invalidateQueries({ queryKey: queryKeys.auth.user() });
-            // Keep loader active during navigation - will be stopped by dashboard layout
+            // Keep loader active during navigation - will be stopped by dashboard layout or onSettled timeout
         },
         onError: () => {
             // Stop loader on error
             stopGlobalLoading();
         },
-        // Don't stop loader in onSettled for signup - let dashboard layout handle it
+        onSettled: () => {
+            // Stop loader after a short delay to allow navigation, but ensure it always stops
+            // This prevents the loader from getting stuck if RestrictedPage redirects
+            setTimeout(() => {
+                stopGlobalLoading();
+            }, LOADER_STOP_DELAY_MS);
+        },
     });
 };
 
