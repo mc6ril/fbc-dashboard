@@ -1,0 +1,40 @@
+@use "../../../styles/variables/colors" as *;
+@use "../../../styles/variables/spacing" as *;
+@use "../../../styles/variables/typography" as *;
+
+.skipLink {
+  position: absolute;
+  top: -40px;
+  left: $spacing-md;
+  z-index: 1000;
+  padding: $spacing-sm $spacing-md;
+  background-color: $color-primary;
+  color: $color-text-on-primary;
+  text-decoration: none;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: $transition-default;
+
+  &:focus {
+    top: $spacing-md;
+    outline: 2px solid $color-focus-ring;
+    outline-offset: 2px;
+  }
+
+  &:hover {
+    background-color: $color-primary-dark;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .skipLink {
+    background-color: $color-primary;
+    color: $color-text-on-primary;
+
+    &:hover {
+      background-color: $color-primary-dark;
+    }
+  }
+}
+

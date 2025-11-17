@@ -1,0 +1,24 @@
+@use "../../../styles/variables/colors" as *;
+@use "../../../styles/variables/spacing" as *;
+@use "../../../styles/variables/typography" as *;
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: $spacing-lg;
+  background-color: $color-background;
+  border-bottom: $border-width-standard solid $color-border;
+  min-height: $header-min-height;
+}
+
+.title {
+  margin: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .header {
+    background-color: $color-background-dark;
+    border-color: $color-border-dark;
+  }
+}
+

@@ -2,186 +2,33 @@
 @use "../styles/variables/spacing" as *;
 @use "../styles/variables/typography" as *;
 
-.container {
+.main {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  padding: $spacing-container-padding;
+  background-color: $color-background;
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
   align-items: center;
   justify-content: center;
-  padding: $spacing-container-padding;
-  background: linear-gradient(135deg, $color-primary 0%, $color-primary-dark 100%);
-  font-family: var(--font-geist-sans, system-ui, sans-serif);
 }
 
-.main {
-  width: 100%;
-  max-width: $main-max-width;
-  background-color: $color-background;
-  border-radius: $radius-xl;
-  padding: $spacing-main-padding;
-  box-shadow: $shadow-lg $color-shadow;
-}
-
-/* Title/description now handled by design system components */
-
-.formContainer {
+.links {
   display: flex;
-  flex-direction: column;
-  gap: $spacing-form-gap;
-  margin-bottom: $spacing-xl;
-}
-
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-}
-
-/* Form label/input styles removed; Input DS component provides styling */
-
-.buttonsContainer {
-  display: flex;
-  gap: $spacing-buttons-gap;
-  margin-bottom: $spacing-xl;
+  gap: $spacing-md;
+  margin-top: $spacing-lg;
   flex-wrap: wrap;
-}
-
-/* Page-level button styles removed; Button DS component provides styling */
-
-.errorContainer {
-  margin-bottom: $spacing-xl;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-error-gap;
-}
-
-.error {
-  padding: $spacing-md;
-  background-color: $color-error-background;
-  border: $border-width-thin solid $color-error-border;
-  border-left: $border-width-medium solid $color-error;
-  border-radius: $radius-md;
-  color: $color-error;
-  display: flex;
-  gap: $spacing-error-gap;
-  align-items: flex-start;
-  font-size: $font-size-sm;
-}
-
-.errorIcon {
-  font-size: $font-size-lg;
-  flex-shrink: 0;
-  line-height: $line-height-tight;
-}
-
-.errorContent {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-}
-
-.errorTitle {
-  font-weight: $font-weight-semibold;
-  font-size: $font-size-md;
-  display: block;
-  margin-bottom: $spacing-xs;
-}
-
-.infoBox {
-  background: linear-gradient(135deg, $color-background-light 0%, $color-background-lighter 100%);
-  border: $border-width-thin solid $color-border-light;
-  border-radius: $radius-lg;
-  padding: $spacing-lg;
-  margin-top: $spacing-md;
-}
-
-/* Heading and loading typography now handled by DS components */
-
-.infoSection {
-  margin-bottom: $spacing-section-margin;
-}
-
-.infoSection:last-child {
-  margin-bottom: 0;
-}
-
-/* Subtitle typography handled by Heading DS component */
-
-.infoContent {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-info-gap;
-}
-
-/* Paragraph typography handled by Text DS component */
-
-.infoContent strong {
-  font-weight: $font-weight-semibold;
-  color: $color-text-primary;
-  margin-right: $spacing-info-gap;
-}
-
-.token {
-  font-family: $font-family-mono;
-  background-color: $color-background;
-  padding: $spacing-xs $spacing-sm;
-  border-radius: $radius-sm;
-  border: $border-width-thin solid $color-border;
-  font-size: $font-size-xs;
-  word-break: break-all;
-}
-
-.id {
-  font-family: $font-family-mono;
-  background-color: $color-background;
-  padding: $spacing-xs $spacing-sm;
-  border-radius: $radius-sm;
-  border: $border-width-thin solid $color-border;
-  font-size: $font-size-xs;
-  word-break: break-all;
+  justify-content: center;
 }
 
 @media (max-width: $breakpoint-mobile) {
-  .container {
+  .main {
     padding: $spacing-container-padding-mobile;
   }
-
-  .main {
-    padding: $spacing-main-padding-mobile $spacing-lg;
-  }
-
-  /* Title responsive size handled by DS component */
-
-  .buttonsContainer {
-    flex-direction: column;
-  }
-
-  /* Buttons responsiveness handled by DS Button when needed */
 }
 
 @media (prefers-color-scheme: dark) {
   .main {
     background-color: $color-background-dark;
   }
-
-  /* DS components handle dark-mode typography and controls */
-
-  .infoBox {
-    background: linear-gradient(135deg, $color-background-secondary 0%, $color-background-darker 100%);
-    border-color: $color-border-dark;
-  }
-
-  /* Headings/Text colors handled by DS components */
-
-  .infoContent strong {
-    color: $color-text-light;
-  }
-
-  .token,
-  .id {
-    background-color: $color-background-dark;
-    border-color: $color-border-dark;
-    color: $color-text-light;
-  }
 }
-

@@ -78,6 +78,9 @@ export const productRepositorySupabase: ProductRepository = {
 -   **ALWAYS** use React Query hooks to fetch data
 -   **ALWAYS** place reusable components (Button, Input, Card, etc.) in `presentation/components/ui/`
 -   **NEVER** create reusable components elsewhere than in `presentation/components/ui/`
+-   **ALWAYS** organize page-specific components in their own folders: `presentation/components/{componentName}/`
+-   **ALWAYS** place component files (`.tsx`, `.module.scss`, etc.) in the component folder
+-   **NEVER** place component files directly in `presentation/components/` root
 
 #### 6.2. Hooks (presentation/hooks)
 
@@ -125,7 +128,7 @@ export function useProducts() {
     -   Usecases → `core/usecases/`
     -   Repository interfaces → `core/ports/`
     -   Supabase implementations → `infrastructure/supabase/`
-    -   Page-specific UI components → `presentation/components/`
+    -   Page-specific UI components → `presentation/components/{componentName}/` (each component in its own folder)
     -   **Reusable components** (Button, Input, Card, etc.) → `presentation/components/ui/`
     -   React Query hooks → `presentation/hooks/`
     -   Zustand stores → `presentation/stores/`
@@ -157,6 +160,7 @@ export function useProducts() {
 6. **Import React/Next.js in core/** → STOP and keep core pure TypeScript
 7. **Import UI in infrastructure** → STOP and respect separation
 8. **Reusable component outside `presentation/components/ui/`** → STOP and move to `presentation/components/ui/`
+9. **Page-specific component files in root `presentation/components/`** → STOP and move to `presentation/components/{componentName}/` folder
 
 ## ARCHITECTURE COMPLIANCE - MANDATORY VERIFICATION
 
@@ -192,6 +196,7 @@ Before EVERY code generation:
 
 -   Component without business logic?
 -   Reusable components in `presentation/components/ui/`?
+-   Page-specific components in their own folders `presentation/components/{componentName}/`?
 -   Hook calls a usecase, not directly infrastructure?
 -   Zustand store for UI state only?
 

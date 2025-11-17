@@ -16,6 +16,10 @@ export const A11yIds = {
   image: "image",
   spinner: "spinner",
   status: "status",
+  main: "main",
+  nav: "nav",
+  header: "header",
+  skipLink: "skip-link",
 } as const;
 
 export type A11yIdKey = keyof typeof A11yIds;

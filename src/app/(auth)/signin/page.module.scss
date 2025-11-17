@@ -1,0 +1,55 @@
+@use "../../../styles/variables/colors" as *;
+@use "../../../styles/variables/spacing" as *;
+@use "../../../styles/variables/typography" as *;
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: $spacing-container-padding;
+  background-color: $color-background;
+  font-family: var(--font-geist-sans, system-ui, sans-serif);
+  max-width: $form-max-width;
+  margin: 0 auto;
+  justify-content: center;
+}
+
+.description {
+  margin-top: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  margin-top: $spacing-xl;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.buttonContainer {
+  margin-top: $spacing-md;
+}
+
+.links {
+  margin-top: $spacing-xl;
+  text-align: center;
+}
+
+@media (max-width: $breakpoint-mobile) {
+  .main {
+    padding: $spacing-container-padding-mobile;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .main {
+    background-color: $color-background-dark;
+  }
+}
+
