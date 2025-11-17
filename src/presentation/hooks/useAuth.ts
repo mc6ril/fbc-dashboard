@@ -49,10 +49,13 @@ export const useSignIn = () => {
             // Invalidate and refetch session and user queries
             queryClient.invalidateQueries({ queryKey: queryKeys.auth.session() });
             queryClient.invalidateQueries({ queryKey: queryKeys.auth.user() });
+            // Keep loader active during navigation - will be stopped by dashboard layout
         },
-        onSettled: () => {
+        onError: () => {
+            // Stop loader on error
             stopGlobalLoading();
         },
+        // Don't stop loader in onSettled for signin - let dashboard layout handle it
     });
 };
 
@@ -82,10 +85,13 @@ export const useSignUp = () => {
             // Invalidate and refetch session and user queries
             queryClient.invalidateQueries({ queryKey: queryKeys.auth.session() });
             queryClient.invalidateQueries({ queryKey: queryKeys.auth.user() });
+            // Keep loader active during navigation - will be stopped by dashboard layout
         },
-        onSettled: () => {
+        onError: () => {
+            // Stop loader on error
             stopGlobalLoading();
         },
+        // Don't stop loader in onSettled for signup - let dashboard layout handle it
     });
 };
 
