@@ -20,14 +20,19 @@ import {
 } from "@/core/usecases/auth";
 import { authRepositorySupabase } from "@/infrastructure/supabase/authRepositorySupabase";
 import { useAuthStore } from "@/presentation/stores/useAuthStore";
+import { useGlobalLoadingStore } from "@/presentation/stores/useGlobalLoadingStore";
 import { queryKeys } from "./queryKeys";
+
+/** Delay before stopping global loader after auth mutation (allows navigation to complete). */
+const LOADER_STOP_DELAY_MS = 100;
 
 /** Sign-in mutation hook; syncs Zustand and invalidates related queries. */
 export const useSignIn = () => {
     const queryClient = useQueryClient();
     const setSession = useAuthStore((state) => state.setSession);
     const setUser = useAuthStore((state) => state.setUser);
-    const setLoading = useAuthStore((state) => state.setLoading);
+    const startGlobalLoading = useGlobalLoadingStore((state) => state.startLoading);
+    const stopGlobalLoading = useGlobalLoadingStore((state) => state.stopLoading);
 
     return useMutation<
         { session: Session; user: User },
@@ -37,7 +42,7 @@ export const useSignIn = () => {
         mutationFn: (credentials: SignInCredentials) =>
             signInUser(authRepositorySupabase, credentials),
         onMutate: () => {
-            setLoading(true);
+            startGlobalLoading();
         },
         onSuccess: (data) => {
             // Update Zustand store
@@ -47,10 +52,18 @@ export const useSignIn = () => {
             // Invalidate and refetch session and user queries
             queryClient.invalidateQueries({ queryKey: queryKeys.auth.session() });
             queryClient.invalidateQueries({ queryKey: queryKeys.auth.user() });
+            // Keep loader active during navigation - will be stopped by dashboard layout or onSettled timeout
+        },
+        onError: () => {
+            // Stop loader on error
+            stopGlobalLoading();
         },
         onSettled: () => {
-            // Reset loading state after success or error
-            setLoading(false);
+            // Stop loader after a short delay to allow navigation, but ensure it always stops
+            // This prevents the loader from getting stuck if RestrictedPage redirects
+            setTimeout(() => {
+                stopGlobalLoading();
+            }, LOADER_STOP_DELAY_MS);
         },
     });
 };
@@ -60,7 +73,8 @@ export const useSignUp = () => {
     const queryClient = useQueryClient();
     const setSession = useAuthStore((state) => state.setSession);
     const setUser = useAuthStore((state) => state.setUser);
-    const setLoading = useAuthStore((state) => state.setLoading);
+    const startGlobalLoading = useGlobalLoadingStore((state) => state.startLoading);
+    const stopGlobalLoading = useGlobalLoadingStore((state) => state.stopLoading);
 
     return useMutation<
         { session: Session; user: User },
@@ -70,7 +84,7 @@ export const useSignUp = () => {
         mutationFn: (credentials: SignUpCredentials) =>
             signUpUser(authRepositorySupabase, credentials),
         onMutate: () => {
-            setLoading(true);
+            startGlobalLoading();
         },
         onSuccess: (data) => {
             // Update Zustand store
@@ -80,10 +94,18 @@ export const useSignUp = () => {
             // Invalidate and refetch session and user queries
             queryClient.invalidateQueries({ queryKey: queryKeys.auth.session() });
             queryClient.invalidateQueries({ queryKey: queryKeys.auth.user() });
+            // Keep loader active during navigation - will be stopped by dashboard layout or onSettled timeout
+        },
+        onError: () => {
+            // Stop loader on error
+            stopGlobalLoading();
         },
         onSettled: () => {
-            // Reset loading state after success or error
-            setLoading(false);
+            // Stop loader after a short delay to allow navigation, but ensure it always stops
+            // This prevents the loader from getting stuck if RestrictedPage redirects
+            setTimeout(() => {
+                stopGlobalLoading();
+            }, LOADER_STOP_DELAY_MS);
         },
     });
 };
@@ -92,12 +114,13 @@ export const useSignUp = () => {
 export const useSignOut = () => {
     const queryClient = useQueryClient();
     const clearAuth = useAuthStore((state) => state.clearAuth);
-    const setLoading = useAuthStore((state) => state.setLoading);
+    const startGlobalLoading = useGlobalLoadingStore((state) => state.startLoading);
+    const stopGlobalLoading = useGlobalLoadingStore((state) => state.stopLoading);
 
     return useMutation<void, AuthError, void>({
         mutationFn: () => signOutUser(authRepositorySupabase),
         onMutate: () => {
-            setLoading(true);
+            startGlobalLoading();
         },
         onSuccess: () => {
             // Clear Zustand store
@@ -110,8 +133,7 @@ export const useSignOut = () => {
             queryClient.removeQueries({ queryKey: queryKeys.auth.user() });
         },
         onSettled: () => {
-            // Reset loading state after success or error
-            setLoading(false);
+            stopGlobalLoading();
         },
     });
 };

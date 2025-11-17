@@ -24,7 +24,6 @@ type Props = {
 const RestrictedPage = ({ children }: Props) => {
   const router = useRouter();
   const session = useAuthStore((state) => state.session);
-  const isLoadingStore = useAuthStore((state) => state.isLoading);
   const { data: sessionData, isLoading: isLoadingQuery } = useSession();
   
   // Determine if user is authenticated
@@ -32,10 +31,8 @@ const RestrictedPage = ({ children }: Props) => {
     return session !== null || sessionData !== null;
   }, [session, sessionData]);
   
-  // Determine if we're still loading
-  const isLoading = useMemo(() => {
-    return isLoadingStore || isLoadingQuery;
-  }, [isLoadingStore, isLoadingQuery]);
+  // Use React Query loading state
+  const isLoading = isLoadingQuery;
   
   // Redirect to signin if not authenticated (after loading completes)
   useEffect(() => {

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSignUp } from "@/presentation/hooks/useAuth";
+import { useAuthStore } from "@/presentation/stores/useAuthStore";
 import Heading from "@/presentation/components/ui/Heading";
 import Text from "@/presentation/components/ui/Text";
 import Link from "@/presentation/components/ui/Link";
@@ -16,8 +17,14 @@ const SignUpPage = () => {
   const signUp = useSignUp();
   const [email, setEmail] = useState("cyril.lesot@yahoo.fr");
   const [password, setPassword] = useState("Azerty123");
-  
+  const userId = useAuthStore((state) => state.user?.id);
   const mainId = getAccessibilityId("main", "signup");
+  
+  // Reset mutation state when component mounts to ensure clean state
+  useEffect(() => {
+    signUp.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
   const onEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -36,11 +43,18 @@ const SignUpPage = () => {
     
     try {
       await signUp.mutateAsync({ email, password });
-      router.push("/dashboard");
     } catch {
       // Error is handled by React Query
     }
-  }, [email, password, signUp, router]);
+  }, [email, password, signUp]);
+
+  // Navigate to dashboard when user is authenticated
+  // Use replace instead of push to avoid adding to browser history
+  useEffect(() => {
+    if (userId) {
+      router.replace("/dashboard");
+    }
+  }, [userId, router]);
   
   const isLoading = useMemo(() => {
     return signUp.isPending;
