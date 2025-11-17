@@ -200,7 +200,7 @@ export const useUserProducts = (userId: string | null) => {
 
 ```typescript
 type ProductFilters = {
-    category?: string;
+    type?: string; // Product type: SAC_BANANE, POCHETTE_ORDINATEUR, etc.
     inStock?: boolean;
 };
 
@@ -255,8 +255,10 @@ import { productRepositorySupabase } from "../../infrastructure/supabase/product
 
 type CreateProductInput = {
     name: string;
-    price: number;
-    category: string;
+    type: string;
+    unitCost: number;
+    salePrice: number;
+    stock: number;
 };
 
 /**
@@ -644,10 +646,10 @@ onSuccess: () => {
 
 ```typescript
 // ❌ New object on every render
-queryKey: ["products", { category: "electronics" }];
+queryKey: ["products", { type: "SAC_BANANE" }];
 
 // ✅ Stable key from factory
-queryKey: queryKeys.products.list({ category: "electronics" });
+queryKey: queryKeys.products.list({ type: "SAC_BANANE" });
 ```
 
 ### Pitfall 3: Not Handling Loading States

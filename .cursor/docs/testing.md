@@ -68,13 +68,11 @@ import type { Product } from "@/core/domain/product";
  */
 export const createMockProduct = (overrides?: Partial<Product>): Product => ({
     id: "product-1",
-    name: "Test Product",
-    description: "Test description",
-    price: 29.99,
+    name: "Sac banane L'Assumée",
+    type: "SAC_BANANE",
+    unitCost: 10.5,
+    salePrice: 19.99,
     stock: 10,
-    category: "electronics",
-    createdAt: new Date("2024-01-01"),
-    updatedAt: new Date("2024-01-01"),
     ...overrides,
 });
 
@@ -82,9 +80,9 @@ export const createMockProduct = (overrides?: Partial<Product>): Product => ({
  * Pre-configured mock products for common test scenarios.
  */
 export const mockProducts: Product[] = [
-    createMockProduct({ id: "product-1", name: "Product 1", stock: 10 }),
-    createMockProduct({ id: "product-2", name: "Product 2", stock: 5 }),
-    createMockProduct({ id: "product-3", name: "Product 3", stock: 0 }),
+    createMockProduct({ id: "product-1", name: "Sac banane L'Assumée", type: "SAC_BANANE", stock: 10 }),
+    createMockProduct({ id: "product-2", name: "Pochette ordinateur L'Espiegle", type: "POCHETTE_ORDINATEUR", stock: 5 }),
+    createMockProduct({ id: "product-3", name: "Trousse de toilette carrée", type: "TROUSSE_TOILETTE", stock: 0 }),
 ];
 ```
 
@@ -135,10 +133,11 @@ describe("Product Domain Functions", () => {
             // Arrange
             const product: Product = {
                 id: "1",
-                name: "Test",
+                name: "Sac banane L'Assumée",
+                type: "SAC_BANANE",
+                unitCost: 10.5,
+                salePrice: 19.99,
                 stock: 5,
-                price: 10,
-                // ... other required fields
             };
 
             // Act
@@ -152,10 +151,11 @@ describe("Product Domain Functions", () => {
             // Arrange
             const product: Product = {
                 id: "1",
-                name: "Test",
+                name: "Pochette ordinateur L'Espiegle",
+                type: "POCHETTE_ORDINATEUR",
+                unitCost: 12.0,
+                salePrice: 24.99,
                 stock: 15,
-                price: 10,
-                // ... other required fields
             };
 
             // Act
@@ -169,10 +169,11 @@ describe("Product Domain Functions", () => {
             // Arrange
             const product: Product = {
                 id: "1",
-                name: "Test",
+                name: "Trousse de toilette carrée",
+                type: "TROUSSE_TOILETTE",
+                unitCost: 8.5,
+                salePrice: 16.99,
                 stock: 10,
-                price: 10,
-                // ... other required fields
             };
 
             // Act
@@ -187,8 +188,8 @@ describe("Product Domain Functions", () => {
         it("should calculate total value correctly", () => {
             // Arrange
             const products: Product[] = [
-                { id: "1", name: "Product 1", stock: 5, price: 10 /* ... */ },
-                { id: "2", name: "Product 2", stock: 3, price: 20 /* ... */ },
+                { id: "1", name: "Sac banane L'Assumée", type: "SAC_BANANE", unitCost: 10.5, salePrice: 19.99, stock: 5 },
+                { id: "2", name: "Pochette ordinateur L'Espiegle", type: "POCHETTE_ORDINATEUR", unitCost: 12.0, salePrice: 24.99, stock: 3 },
             ];
 
             // Act
@@ -263,10 +264,11 @@ describe("Product Usecases", () => {
         it("should create product via repository", async () => {
             // Arrange
             const newProduct = {
-                name: "New Product",
-                price: 29.99,
+                name: "Pochette à volants",
+                type: "POCHETTE_VOLANTS",
+                unitCost: 9.5,
+                salePrice: 18.99,
                 stock: 10,
-                // ... other fields
             };
             const createdProduct = createMockProduct({ ...newProduct, id: "new-id" });
             mockProductRepository.create.mockResolvedValue(createdProduct);
@@ -646,13 +648,11 @@ import type { Product } from "@/core/domain/product";
 describe("ProductCard Component", () => {
     const mockProduct: Product = {
         id: "1",
-        name: "Test Product",
-        description: "Test description",
-        price: 29.99,
+        name: "Sac banane L'Assumée",
+        type: "SAC_BANANE",
+        unitCost: 10.5,
+        salePrice: 19.99,
         stock: 10,
-        category: "electronics",
-        createdAt: new Date(),
-        updatedAt: new Date(),
     };
 
     describe("when product has stock", () => {
@@ -661,7 +661,7 @@ describe("ProductCard Component", () => {
             render(<ProductCard product={mockProduct} onEdit={() => {}} />);
 
             // Assert
-            expect(screen.getByText("Test Product")).toBeInTheDocument();
+            expect(screen.getByText("Sac banane L'Assumée")).toBeInTheDocument();
         });
 
         it("should display price correctly", () => {
@@ -669,7 +669,7 @@ describe("ProductCard Component", () => {
             render(<ProductCard product={mockProduct} onEdit={() => {}} />);
 
             // Assert
-            expect(screen.getByText(/29.99/)).toBeInTheDocument();
+            expect(screen.getByText(/19.99/)).toBeInTheDocument();
         });
 
         it("should display stock quantity", () => {

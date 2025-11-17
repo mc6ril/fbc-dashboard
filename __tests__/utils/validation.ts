@@ -14,5 +14,12 @@ export {
     isValidPassword,
     isValidUUID,
     isValidISO8601,
+    isValidProduct,
+    isValidActivity,
+    isNegativeForSale,
+    isValidStockMovement,
+    isValidQuantityForSource,
+    isValidActivityType,
+    isValidStockMovementSource,
 } from "@/core/domain/validation";
 
