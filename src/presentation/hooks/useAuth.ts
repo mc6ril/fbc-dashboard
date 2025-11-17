@@ -10,16 +10,16 @@ import type {
     Session,
     User,
     AuthError,
-} from "../../core/domain/auth";
+} from "@/core/domain/auth";
 import {
     signInUser,
     signUpUser,
     signOutUser,
     getCurrentSession,
     getCurrentUser,
-} from "../../core/usecases/auth";
-import { authRepositorySupabase } from "../../infrastructure/supabase/authRepositorySupabase";
-import { useAuthStore } from "../stores/useAuthStore";
+} from "@/core/usecases/auth";
+import { authRepositorySupabase } from "@/infrastructure/supabase/authRepositorySupabase";
+import { useAuthStore } from "@/presentation/stores/useAuthStore";
 import { queryKeys } from "./queryKeys";
 
 /** Sign-in mutation hook; syncs Zustand and invalidates related queries. */

@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import Input from "../../../../src/presentation/components/ui/Input";
+import Input from "@/presentation/components/ui/Input";
 
 describe("Input", () => {
   it("links label with input via htmlFor/id", () => {

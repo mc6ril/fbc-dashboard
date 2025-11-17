@@ -2,33 +2,40 @@
 @use "@/styles/variables/spacing" as *;
 @use "@/styles/variables/typography" as *;
 
-.main {
+.container {
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
-  padding: $spacing-container-padding;
   background-color: $color-background;
   font-family: var(--font-geist-sans, system-ui, sans-serif);
-  align-items: center;
-  justify-content: center;
+  position: relative;
 }
 
-.links {
+.content {
   display: flex;
-  gap: $spacing-md;
-  margin-top: $spacing-lg;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.main {
+  flex: 1;
+  padding: $spacing-lg;
+  overflow-y: auto;
 }
 
 @media (max-width: $breakpoint-mobile) {
+  .container {
+    flex-direction: column;
+  }
+
   .main {
-    padding: $spacing-container-padding-mobile;
+    padding: $spacing-md;
   }
 }
 
 @media (prefers-color-scheme: dark) {
-  .main {
+  .container {
     background-color: $color-background-dark;
   }
 }
+

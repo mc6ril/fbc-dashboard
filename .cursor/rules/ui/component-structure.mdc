@@ -76,12 +76,33 @@ export default Button;
 scope: file.path matches ^src/presentation/components/.+\.(ts|tsx)$
 
 -   ✅ **ALWAYS** place page-specific components in `presentation/components/`
+-   ✅ **ALWAYS** organize each component in its own folder: `presentation/components/{componentName}/`
+-   ✅ **ALWAYS** place component files in the component folder:
+    -   `{componentName}.tsx` - Component file
+    -   `{componentName}.module.scss` - Component styles
+    -   Other related files (types, utils, etc.) in the same folder
 -   ✅ **ALWAYS** use arrow function with export default format
 -   ✅ **ALWAYS** define props with `type` (not `interface`)
 -   ✅ **ALWAYS** receive data via props (from pages using hooks)
 -   ✅ **NEVER** call React Query hooks directly in page-specific components
 -   ✅ **NEVER** put business logic in components
 -   ❌ **NEVER** call Supabase directly
+-   ❌ **NEVER** place component files directly in `presentation/components/` root (use component folders)
+
+**Structure obligatoire :**
+
+```
+presentation/components/
+├── dashboardHeader/
+│   ├── DashboardHeader.tsx
+│   └── DashboardHeader.module.scss
+├── dashboardNavbar/
+│   ├── DashboardNavbar.tsx
+│   └── DashboardNavbar.module.scss
+└── skipLink/
+    ├── SkipLink.tsx
+    └── SkipLink.module.scss
+```
 
 ## E) Component Patterns
 
@@ -103,7 +124,8 @@ scope: file.path matches ^src/(presentation/components|app)/.+\.(ts|tsx)$
 
 -   ✅ **ALWAYS** use SCSS modules or global SCSS from `styles/`
 -   ✅ **ALWAYS** use variables from `styles/variables/*` for all values
--   ✅ **ALWAYS** create component-specific SCSS in `styles/components/` if needed
+-   ✅ **ALWAYS** place component-specific SCSS in the component folder: `{componentName}/{componentName}.module.scss`
+-   ✅ **ALWAYS** create component-specific SCSS in `styles/components/` only for global/shared component styles
 -   ✅ **ALWAYS** use kebab-case for CSS class names
 -   ✅ **ALWAYS** use BEM methodology (`__` for elements, `--` for modifiers)
 -   ❌ **NEVER** use inline styles
@@ -132,7 +154,8 @@ scope: file.path matches ^src/presentation/layouts/.+\.(ts|tsx)$
 
 # Auto-suggestions
 
--   If component has inline styles: **Move to SCSS file in `styles/components/`**.
+-   If component has inline styles: **Move to SCSS file in component folder**.
+-   If page-specific component files in root `presentation/components/`: **Move to `presentation/components/{componentName}/` folder**.
 -   If reusable component outside `presentation/components/ui/`: **Move to `presentation/components/ui/`**.
 -   If component calls Supabase directly: **Use React Query hook from `presentation/hooks/`**.
 -   If component props use `interface`: **Change to `type`**.

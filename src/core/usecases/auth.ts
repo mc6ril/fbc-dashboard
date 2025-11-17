@@ -3,15 +3,15 @@
  * Orchestrate validation and repository calls. Return domain types only.
  */
 
-import type { AuthRepository, AuthStateChangeCallback } from "../ports/authRepository";
+import type { AuthRepository, AuthStateChangeCallback } from "@/core/ports/authRepository";
 import type {
     User,
     Session,
     AuthError,
     SignInCredentials,
     SignUpCredentials,
-} from "../domain/auth";
-import { isValidEmail, isValidPassword } from "../domain/validation";
+} from "@/core/domain/auth";
+import { isValidEmail, isValidPassword } from "@/core/domain/validation";
 
 /** Creates a typed validation error. */
 const createValidationError = (message: string): AuthError => {

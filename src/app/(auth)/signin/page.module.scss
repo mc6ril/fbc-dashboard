@@ -9,16 +9,36 @@
   padding: $spacing-container-padding;
   background-color: $color-background;
   font-family: var(--font-geist-sans, system-ui, sans-serif);
-  align-items: center;
+  max-width: $form-max-width;
+  margin: 0 auto;
   justify-content: center;
 }
 
-.links {
+.description {
+  margin-top: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.form {
   display: flex;
-  gap: $spacing-md;
-  margin-top: $spacing-lg;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  gap: $spacing-lg;
+  margin-top: $spacing-xl;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.buttonContainer {
+  margin-top: $spacing-md;
+}
+
+.links {
+  margin-top: $spacing-xl;
+  text-align: center;
 }
 
 @media (max-width: $breakpoint-mobile) {
@@ -32,3 +52,4 @@
     background-color: $color-background-dark;
   }
 }
+

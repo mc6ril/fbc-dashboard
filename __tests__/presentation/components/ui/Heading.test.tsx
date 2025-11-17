@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import Heading from "../../../../src/presentation/components/ui/Heading";
+import Heading from "@/presentation/components/ui/Heading";
 
 describe("Heading", () => {
   it("renders semantic heading tags according to level", () => {

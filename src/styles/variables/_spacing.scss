@@ -32,6 +32,8 @@ $spacing-subtitle-margin-bottom: 0.75rem;
 // Component specific sizes
 $button-min-width: 120px;
 $main-max-width: 600px;
+$form-max-width: 500px;
+$header-min-height: 64px;
 
 // Breakpoints
 $breakpoint-mobile: 600px;
@@ -43,6 +45,7 @@ $radius-lg: 12px;
 $radius-xl: 16px;
 
 // Border widths
+$border-width-standard: 1px;
 $border-width-thin: 2px;
 $border-width-medium: 4px;
 

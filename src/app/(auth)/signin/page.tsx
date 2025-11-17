@@ -1,0 +1,107 @@
+"use client";
+
+import React, { useState, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useSignIn } from "@/presentation/hooks/useAuth";
+import Heading from "@/presentation/components/ui/Heading";
+import Text from "@/presentation/components/ui/Text";
+import Link from "@/presentation/components/ui/Link";
+import Input from "@/presentation/components/ui/Input";
+import Button from "@/presentation/components/ui/Button";
+import { getAccessibilityId } from "@/shared/a11y/utils";
+import styles from "./page.module.scss";
+
+const SignInPage = () => {
+  const router = useRouter();
+  const signIn = useSignIn();
+  const [email, setEmail] = useState("cyril.lesot@yahoo.fr");
+  const [password, setPassword] = useState("Azerty123");
+  
+  const mainId = getAccessibilityId("main", "signin");
+  
+  const onEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+  }, []);
+  
+  const onPasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+  }, []);
+  
+  const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    if (!email || !password) {
+      return;
+    }
+    
+    try {
+      await signIn.mutateAsync({ email, password });
+      router.push("/dashboard");
+    } catch {
+      // Error is handled by React Query
+    }
+  }, [email, password, signIn, router]);
+  
+  const isLoading = useMemo(() => {
+    return signIn.isPending;
+  }, [signIn.isPending]);
+  
+  return (
+    <main id={mainId} className={styles.main} role="main">
+      <Heading level={1}>Sign In</Heading>
+      <Text className={styles.description}>
+        Sign in to access your dashboard.
+      </Text>
+      
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <div className={styles.formGroup}>
+          <Input
+            id="email"
+            type="email"
+            label="Email"
+            value={email}
+            onChange={onEmailChange}
+            placeholder="cyril.lesot@yahoo.fr"
+            required
+            disabled={isLoading}
+            error={signIn.error ? signIn.error.message : undefined}
+          />
+        </div>
+        
+        <div className={styles.formGroup}>
+          <Input
+            id="password"
+            type="password"
+            label="Password"
+            value={password}
+            onChange={onPasswordChange}
+            placeholder="Azerty123"
+            required
+            disabled={isLoading}
+            error={signIn.error ? signIn.error.message : undefined}
+          />
+        </div>
+        
+        <div className={styles.buttonContainer}>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={isLoading || !email || !password}
+            loading={isLoading}
+            fullWidth
+          >
+            {isLoading ? "Signing in..." : "Sign In"}
+          </Button>
+        </div>
+      </form>
+      
+      <div className={styles.links}>
+        <Text>
+          Don&apos;t have an account? <Link href="/signup">Sign up</Link>
+        </Text>
+      </div>
+    </main>
+  );
+};
+
+export default SignInPage;

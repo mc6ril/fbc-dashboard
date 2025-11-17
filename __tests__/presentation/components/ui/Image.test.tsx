@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "@testing-library/react";
-import Image from "../../../../src/presentation/components/ui/Image";
+import Image from "@/presentation/components/ui/Image";
 
 // Note: Next/Image renders to an img in tests or needs mock; here we assert it mounts without crashing with required props.
 
