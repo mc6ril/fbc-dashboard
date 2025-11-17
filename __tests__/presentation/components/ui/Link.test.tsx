@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import Link from "../../../../src/presentation/components/ui/Link";
+import Link from "@/presentation/components/ui/Link";
 
 describe("Link", () => {
   it("renders Next.js Link for internal links", () => {

@@ -4,9 +4,9 @@
 
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { subscribeToAuthChanges } from "../../core/usecases/auth";
-import { authRepositorySupabase } from "../../infrastructure/supabase/authRepositorySupabase";
-import { useAuthStore } from "../stores/useAuthStore";
+import { subscribeToAuthChanges } from "@/core/usecases/auth";
+import { authRepositorySupabase } from "@/infrastructure/supabase/authRepositorySupabase";
+import { useAuthStore } from "@/presentation/stores/useAuthStore";
 import { queryKeys } from "./queryKeys";
 
 /** Hook manages subscription lifecycle; returns void. */

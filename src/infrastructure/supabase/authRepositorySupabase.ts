@@ -4,7 +4,7 @@
  */
 
 import { supabaseClient } from "./client";
-import type { AuthRepository, AuthStateChangeCallback } from "../../core/ports/authRepository";
+import type { AuthRepository, AuthStateChangeCallback } from "@/core/ports/authRepository";
 import type {
     User,
     Session,
@@ -13,7 +13,7 @@ import type {
     SignUpCredentials,
     SessionChangeEvent,
     AuthEventType,
-} from "../../core/domain/auth";
+} from "@/core/domain/auth";
 import type { AuthError as SupabaseAuthError } from "@supabase/supabase-js";
 
 /** Map Supabase user to domain `User`. Throws if required fields are missing. */

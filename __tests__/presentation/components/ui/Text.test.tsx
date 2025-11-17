@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import Text from "../../../../src/presentation/components/ui/Text";
+import Text from "@/presentation/components/ui/Text";
 
 describe("Text", () => {
   it("renders children", () => {

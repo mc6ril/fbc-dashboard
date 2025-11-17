@@ -1,6 +1,6 @@
-@use "../variables/colors" as *;
-@use "../variables/spacing" as *;
-@use "../variables/typography" as *;
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+@use "@/styles/variables/typography" as *;
 
 .link {
   color: $color-link;

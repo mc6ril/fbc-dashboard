@@ -1,5 +1,5 @@
-import { A11yIds } from "../../../src/shared/a11y/ids";
-import { getAccessibilityId, getFormFieldIds } from "../../../src/shared/a11y/utils";
+import { A11yIds } from "@/shared/a11y/ids";
+import { getAccessibilityId, getFormFieldIds } from "@/shared/a11y/utils";
 
 describe("shared/a11y/utils", () => {
   describe("getAccessibilityId", () => {

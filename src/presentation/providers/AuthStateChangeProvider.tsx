@@ -3,7 +3,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useAuthStateChange } from "../hooks/useAuthStateChange";
+import { useAuthStateChange } from "@/presentation/hooks/useAuthStateChange";
 
 type Props = {
     children: ReactNode;

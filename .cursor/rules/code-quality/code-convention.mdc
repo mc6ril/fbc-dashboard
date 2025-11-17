@@ -207,6 +207,39 @@ enum ProductStatus {
 6. Styles or SCSS modules
 7. Relative imports
 
+#### Import Path Rules
+
+-   **ALWAYS** use absolute imports with `@/` prefix for all imports from `src/`
+-   **NEVER** use relative imports (`../`, `../../`, etc.) for imports from `src/`
+-   **ALWAYS** use `@/` to reference files in `src/` directory
+-   **NEVER** use relative paths like `../../src/` or `../../../src/`
+-   **ALWAYS** use `@/styles/` for SCSS imports from `src/styles/`
+-   **NEVER** use relative paths like `../../../styles/` in SCSS files
+
+**Examples:**
+
+```typescript
+// ✅ Correct - Absolute import
+import Link from "@/presentation/components/ui/Link";
+import { useAuthStore } from "@/presentation/stores/useAuthStore";
+import { signInUser } from "@/core/usecases/auth";
+
+// ❌ Wrong - Relative import
+import Link from "../../../../src/presentation/components/ui/Link";
+import { useAuthStore } from "../stores/useAuthStore";
+import { signInUser } from "../../core/usecases/auth";
+```
+
+```scss
+// ✅ Correct - Absolute import in SCSS
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+
+// ❌ Wrong - Relative import in SCSS
+@use "../../../styles/variables/colors" as *;
+@use "../../../styles/variables/spacing" as *;
+```
+
 #### Rules
 
 -   **ALWAYS** remove unused imports
@@ -235,6 +268,8 @@ enum ProductStatus {
 9. **Side effect in Zustand store** → STOP and move the logic
 10. **Unused imports** → STOP and remove
 11. **Function without return type** → STOP and type explicitly
+12. **Relative imports from `src/`** → STOP and use absolute imports with `@/`
+13. **Relative SCSS imports from `styles/`** → STOP and use `@/styles/` instead
 
 ## CODE CONVENTION COMPLIANCE - MANDATORY VERIFICATION
 
@@ -278,6 +313,8 @@ Before EVERY code generation:
 ✅ **Imports**
 
 -   Order respected?
+-   Absolute imports with `@/` used for all `src/` imports?
+-   SCSS imports use `@/styles/` instead of relative paths?
 -   Unused imports removed?
 
 ✅ **Code Quality**

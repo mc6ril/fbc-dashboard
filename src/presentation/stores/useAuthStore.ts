@@ -1,7 +1,7 @@
 /** Authentication UI store (Zustand). Holds session, user, loading only. */
 
 import { create } from "zustand";
-import type { User, Session } from "../../core/domain/auth";
+import type { User, Session } from "@/core/domain/auth";
 
 /** Store state. */
 type AuthStoreState = {
