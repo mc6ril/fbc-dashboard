@@ -38,6 +38,7 @@ describe("Domain Validation - Product", () => {
         id: createProductId("123e4567-e89b-4d3a-a456-426614174000"),
         name: "Trousse de toilette carrée",
         type: ProductType.TROUSSE_TOILETTE,
+        coloris: "Rose pâle à motifs",
         unitCost: 10.5,
         salePrice: 19.99,
         stock: 100,
@@ -84,6 +85,35 @@ describe("Domain Validation - Product", () => {
                 unitCost: 0.01,
                 salePrice: 0.01,
             };
+            expect(isValidProduct(product)).toBe(true);
+        });
+    });
+
+    describe("isValidProduct - coloris validation", () => {
+        it("should validate product with valid coloris", () => {
+            const product: Product = {
+                ...validProduct,
+                coloris: "Rose pâle à motifs",
+            };
+            expect(isValidProduct(product)).toBe(true);
+        });
+
+        it("should reject product with empty coloris", () => {
+            const product: Product = { ...validProduct, coloris: "" };
+            expect(isValidProduct(product)).toBe(false);
+        });
+
+        it("should reject product with whitespace-only coloris", () => {
+            const product: Product = { ...validProduct, coloris: "   " };
+            expect(isValidProduct(product)).toBe(false);
+        });
+
+        it("should accept product with trimmed coloris (whitespace at edges)", () => {
+            const product: Product = {
+                ...validProduct,
+                coloris: "  Rose pâle à motifs  ",
+            };
+            // Validation trims whitespace, so this should be valid
             expect(isValidProduct(product)).toBe(true);
         });
     });

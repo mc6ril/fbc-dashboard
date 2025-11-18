@@ -138,6 +138,8 @@ export const isValidISO8601 = (value: string): boolean => {
  * - unitCost must be positive (greater than 0)
  * - salePrice must be positive (greater than 0)
  * - stock must be non-negative (greater than or equal to 0)
+ * - coloris must be a non-empty string (after trimming whitespace)
+ * - weight is optional, but if provided must be positive (greater than 0)
  *
  * @param {Product} product - Product entity to validate
  * @returns {boolean} True if product meets all business rules, false otherwise
@@ -148,24 +150,60 @@ export const isValidISO8601 = (value: string): boolean => {
  *   id: "123e4567-e89b-4d3a-a456-426614174000" as ProductId,
  *   name: "Sac banane L'Assumée",
  *   type: ProductType.SAC_BANANE,
+ *   coloris: "Rose pâle à motifs",
  *   unitCost: 10.5,
  *   salePrice: 19.99,
  *   stock: 100,
  * };
  * isValidProduct(validProduct); // true
  *
+ * const validProductWithWeight: Product = {
+ *   ...validProduct,
+ *   weight: 150.5, // Valid: positive weight
+ * };
+ * isValidProduct(validProductWithWeight); // true
+ *
+ * const validProductWithoutWeight: Product = {
+ *   ...validProduct,
+ *   // weight is optional, can be omitted
+ * };
+ * isValidProduct(validProductWithoutWeight); // true
+ *
  * const invalidProduct: Product = {
  *   ...validProduct,
  *   unitCost: -10, // Invalid: negative unitCost
  * };
  * isValidProduct(invalidProduct); // false
+ *
+ * const invalidColoris: Product = {
+ *   ...validProduct,
+ *   coloris: "   ", // Invalid: whitespace-only coloris
+ * };
+ * isValidProduct(invalidColoris); // false
+ *
+ * const invalidWeightZero: Product = {
+ *   ...validProduct,
+ *   weight: 0, // Invalid: weight must be > 0 if provided
+ * };
+ * isValidProduct(invalidWeightZero); // false
+ *
+ * const invalidWeightNegative: Product = {
+ *   ...validProduct,
+ *   weight: -10, // Invalid: weight must be > 0 if provided
+ * };
+ * isValidProduct(invalidWeightNegative); // false
  * ```
  */
 export const isValidProduct = (product: Product): boolean => {
+    const hasValidWeight =
+        product.weight === undefined || product.weight === null || product.weight > 0;
+
     return (
         product.unitCost > 0 &&
         product.salePrice > 0 &&
-        product.stock >= 0
+        product.stock >= 0 &&
+        product.coloris.trim().length > 0 &&
+        hasValidWeight
     );
 };
 
