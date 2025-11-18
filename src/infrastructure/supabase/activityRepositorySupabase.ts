@@ -25,13 +25,14 @@ type SupabaseActivityRow = {
 /**
  * Supabase insert/update payload type.
  * Used for creating and updating activities.
+ * All fields are optional to support partial updates.
  */
 type SupabaseActivityPayload = {
     product_id?: string | null;
-    type: string;
-    date: string;
-    quantity: number;
-    amount: number;
+    type?: string;
+    date?: string;
+    quantity?: number;
+    amount?: number;
     note?: string | null;
 };
 
@@ -103,18 +104,33 @@ const mapSupabaseRowToActivity = (row: SupabaseActivityRow): Activity => {
  * - undefined productId → null product_id
  * - undefined note → null note
  *
+ * For partial updates (Partial<Activity>), only includes fields that are explicitly provided.
+ * For create operations (Omit<Activity, 'id'>), all required fields must be present.
+ *
  * @param {Omit<Activity, 'id'> | Partial<Activity>} activity - Domain activity object (without id for create, partial for update)
- * @returns {SupabaseActivityPayload} Supabase payload object
+ * @returns {SupabaseActivityPayload} Supabase payload object with only provided fields
  */
 const mapActivityToSupabaseRow = (
     activity: Omit<Activity, "id"> | Partial<Activity>
 ): SupabaseActivityPayload => {
-    const payload: SupabaseActivityPayload = {
-        type: activity.type!,
-        date: activity.date!,
-        quantity: activity.quantity!,
-        amount: activity.amount!,
-    };
+    const payload: SupabaseActivityPayload = {};
+
+    // Only include fields that are explicitly provided in the activity object
+    if ("type" in activity && activity.type !== undefined) {
+        payload.type = activity.type;
+    }
+
+    if ("date" in activity && activity.date !== undefined) {
+        payload.date = activity.date;
+    }
+
+    if ("quantity" in activity && activity.quantity !== undefined) {
+        payload.quantity = activity.quantity;
+    }
+
+    if ("amount" in activity && activity.amount !== undefined) {
+        payload.amount = activity.amount;
+    }
 
     // Handle optional productId (null in database if undefined)
     if ("productId" in activity) {

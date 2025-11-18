@@ -27,14 +27,15 @@ type SupabaseProductRow = {
 /**
  * Supabase insert/update payload type.
  * Used for creating and updating products.
+ * All fields are optional to support partial updates.
  */
 type SupabaseProductPayload = {
-    name: string;
-    type: string;
-    coloris: string;
-    unit_cost: number;
-    sale_price: number;
-    stock: number;
+    name?: string;
+    type?: string;
+    coloris?: string;
+    unit_cost?: number;
+    sale_price?: number;
+    stock?: number;
     weight?: number | null;
 };
 
@@ -135,20 +136,41 @@ const mapSupabaseRowToProduct = (row: SupabaseProductRow): Product => {
  * - ProductType enum → TEXT (Supabase handles conversion)
  * - undefined weight → null weight
  *
+ * For partial updates (Partial<Product>), only includes fields that are explicitly provided.
+ * For create operations (Omit<Product, 'id'>), all required fields must be present.
+ *
  * @param {Omit<Product, 'id'> | Partial<Product>} product - Domain product object (without id for create, partial for update)
- * @returns {SupabaseProductPayload} Supabase payload object
+ * @returns {SupabaseProductPayload} Supabase payload object with only provided fields
  */
 const mapProductToSupabaseRow = (
     product: Omit<Product, "id"> | Partial<Product>
 ): SupabaseProductPayload => {
-    const payload: SupabaseProductPayload = {
-        name: product.name!,
-        type: product.type!,
-        coloris: product.coloris!,
-        unit_cost: product.unitCost!,
-        sale_price: product.salePrice!,
-        stock: product.stock!,
-    };
+    const payload: SupabaseProductPayload = {};
+
+    // Only include fields that are explicitly provided in the product object
+    if ("name" in product && product.name !== undefined) {
+        payload.name = product.name;
+    }
+
+    if ("type" in product && product.type !== undefined) {
+        payload.type = product.type;
+    }
+
+    if ("coloris" in product && product.coloris !== undefined) {
+        payload.coloris = product.coloris;
+    }
+
+    if ("unitCost" in product && product.unitCost !== undefined) {
+        payload.unit_cost = product.unitCost;
+    }
+
+    if ("salePrice" in product && product.salePrice !== undefined) {
+        payload.sale_price = product.salePrice;
+    }
+
+    if ("stock" in product && product.stock !== undefined) {
+        payload.stock = product.stock;
+    }
 
     // Handle optional weight (null in database if undefined)
     if ("weight" in product) {
