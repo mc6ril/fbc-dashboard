@@ -11,6 +11,8 @@ export const A11yIds = {
   inputLabel: "input-label",
   formFieldHelper: "form-field-helper",
   formFieldError: "form-field-error",
+  formSuccess: "form-success",
+  formError: "form-error",
   button: "button",
   link: "link",
   image: "image",
