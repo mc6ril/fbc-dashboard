@@ -1,0 +1,19 @@
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+
+.activitiesTable {
+  &__quantityPositive {
+    color: $color-text-primary;
+    font-weight: 500;
+  }
+
+  &__quantityNegative {
+    color: $color-error;
+    font-weight: 500;
+  }
+
+  &__quantityZero {
+    color: $color-text-muted;
+  }
+}
+

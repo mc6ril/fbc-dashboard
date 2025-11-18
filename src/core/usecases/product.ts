@@ -7,6 +7,27 @@ import type { ProductRepository } from "@/core/ports/productRepository";
 import type { Product } from "@/core/domain/product";
 
 /**
+ * Lists all products.
+ *
+ * This usecase retrieves all products from the repository without any filtering.
+ * Returns all products in the order returned by the repository.
+ *
+ * @param {ProductRepository} repo - Product repository for data retrieval
+ * @returns {Promise<Product[]>} Promise resolving to an array of all products, or empty array if none exist
+ * @throws {Error} If repository retrieval fails (database connection error, query error, etc.)
+ *
+ * @example
+ * ```typescript
+ * // List all products
+ * const products = await listProducts(productRepository);
+ * // Returns: [Product, Product, ...] or []
+ * ```
+ */
+export const listProducts = async (repo: ProductRepository): Promise<Product[]> => {
+    return repo.list();
+};
+
+/**
  * Lists products with low stock levels.
  *
  * This usecase filters products based on a stock threshold to identify

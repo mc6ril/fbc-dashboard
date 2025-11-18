@@ -1,0 +1,67 @@
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  background: $color-background;
+  font-size: 1rem;
+  line-height: 1.5;
+
+  &__caption {
+    text-align: left;
+    font-weight: 600;
+    margin-bottom: $spacing-md;
+    color: $color-text-primary;
+  }
+
+  &__head {
+    background: $color-background-lighter;
+  }
+
+  &__body {
+    // Body styling handled by rows and cells
+  }
+
+  &__row {
+    border-bottom: $border-width-standard solid $color-border;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: $color-background-light;
+    }
+  }
+
+  &__header {
+    padding: $spacing-md;
+    text-align: left;
+    font-weight: 600;
+    color: $color-text-primary;
+    border-bottom: $border-width-thin solid $color-border-dark;
+
+    &--row {
+      background: $color-background-lighter;
+      font-weight: 600;
+      border-right: $border-width-thin solid $color-border-dark;
+      border-bottom: $border-width-standard solid $color-border;
+    }
+  }
+
+  &__cell {
+    padding: $spacing-md;
+    color: $color-text-primary;
+    vertical-align: top;
+
+    &--empty {
+      text-align: center;
+      color: $color-text-muted;
+      padding: $spacing-xl;
+      font-style: italic;
+    }
+  }
+}
+
