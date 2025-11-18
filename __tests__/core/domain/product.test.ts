@@ -39,6 +39,7 @@ describe("Domain Types - Product", () => {
             id: createProductId("123e4567-e89b-4d3a-a456-426614174000"),
             name: "Sac banane L'Assumée",
             type: ProductType.SAC_BANANE,
+            coloris: "Rose pâle à motifs",
             unitCost: 10.5,
             salePrice: 19.99,
             stock: 100,
@@ -49,6 +50,7 @@ describe("Domain Types - Product", () => {
             expect(validProduct).toHaveProperty("id");
             expect(validProduct).toHaveProperty("name");
             expect(validProduct).toHaveProperty("type");
+            expect(validProduct).toHaveProperty("coloris");
             expect(validProduct).toHaveProperty("unitCost");
             expect(validProduct).toHaveProperty("salePrice");
             expect(validProduct).toHaveProperty("stock");
@@ -79,6 +81,11 @@ describe("Domain Types - Product", () => {
 
         it("should have stock as number", () => {
             expect(typeof validProduct.stock).toBe("number");
+        });
+
+        it("should have coloris as string", () => {
+            expect(typeof validProduct.coloris).toBe("string");
+            expect(validProduct.coloris).toBeTruthy();
         });
 
         // Field constraints tests
@@ -124,11 +131,41 @@ describe("Domain Types - Product", () => {
         });
     });
 
+    describe("Product Type - coloris field", () => {
+        const validProduct: Product = {
+            id: createProductId("123e4567-e89b-4d3a-a456-426614174000"),
+            name: "Sac banane L'Assumée",
+            type: ProductType.SAC_BANANE,
+            coloris: "Rose pâle à motifs",
+            unitCost: 10.5,
+            salePrice: 19.99,
+            stock: 100,
+        };
+
+        it("should have coloris as string", () => {
+            expect(typeof validProduct.coloris).toBe("string");
+            expect(validProduct.coloris).toBeTruthy();
+        });
+
+        it("should allow various color descriptions", () => {
+            const product1: Product = {
+                ...validProduct,
+                coloris: "Rose pâle à motifs",
+            };
+            const product2: Product = { ...validProduct, coloris: "Prune" };
+            const product3: Product = { ...validProduct, coloris: "Rouge" };
+            expect(product1.coloris).toBe("Rose pâle à motifs");
+            expect(product2.coloris).toBe("Prune");
+            expect(product3.coloris).toBe("Rouge");
+        });
+    });
+
     describe("Product Validation", () => {
         const validProduct: Product = {
             id: createProductId("123e4567-e89b-4d3a-a456-426614174000"),
             name: "Pochette ordinateur L'Espiegle",
             type: ProductType.POCHETTE_ORDINATEUR,
+            coloris: "Rose marsala",
             unitCost: 10.5,
             salePrice: 19.99,
             stock: 100,
@@ -165,6 +202,65 @@ describe("Domain Types - Product", () => {
 
         it("should accept product with zero stock", () => {
             const product: Product = { ...validProduct, stock: 0 };
+            expect(isValidProduct(product)).toBe(true);
+        });
+    });
+
+    describe("Product weight field", () => {
+        const validProduct: Product = {
+            id: createProductId("123e4567-e89b-4d3a-a456-426614174000"),
+            name: "Sac banane L'Assumée",
+            type: ProductType.SAC_BANANE,
+            coloris: "Prune",
+            unitCost: 10.5,
+            salePrice: 19.99,
+            stock: 100,
+        };
+
+        it("should allow product without weight (undefined)", () => {
+            const product: Product = {
+                id: createProductId("123e4567-e89b-4d3a-a456-426614174000"),
+                name: "Sac banane L'Assumée",
+                type: ProductType.SAC_BANANE,
+                coloris: "Prune",
+                unitCost: 10.5,
+                salePrice: 19.99,
+                stock: 100,
+                // weight is optional, can be omitted
+            };
+            expect(product.weight).toBeUndefined();
+        });
+
+        it("should allow product with valid weight", () => {
+            const product: Product = {
+                ...validProduct,
+                weight: 150.5, // grams
+            };
+            expect(product.weight).toBe(150.5);
+            expect(typeof product.weight).toBe("number");
+        });
+
+        it("should allow weight with decimal precision", () => {
+            const product: Product = {
+                ...validProduct,
+                weight: 123.45,
+            };
+            expect(product.weight).toBe(123.45);
+        });
+
+        it("should validate product with weight correctly", () => {
+            const product: Product = {
+                ...validProduct,
+                weight: 150.5,
+            };
+            expect(isValidProduct(product)).toBe(true);
+        });
+
+        it("should validate product without weight correctly", () => {
+            const product: Product = {
+                ...validProduct,
+                // weight is optional, can be omitted
+            };
             expect(isValidProduct(product)).toBe(true);
         });
     });
