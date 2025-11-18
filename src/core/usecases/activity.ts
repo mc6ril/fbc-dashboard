@@ -548,6 +548,328 @@ export const computeTotalSales = async (
 };
 
 /**
+ * Lists activities with optional filtering by date range, type, and product.
+ *
+ * This usecase retrieves activities from the repository and applies client-side
+ * filtering based on the provided filter parameters. Filtering is done in-memory
+ * for simplicity and can be optimized later by moving filtering to the repository
+ * level if performance becomes an issue.
+ *
+ * Filtering logic:
+ * - Date range: If `startDate` is provided, only activities on or after this date are included.
+ *   If `endDate` is provided, only activities on or before this date are included.
+ *   Date comparison uses ISO 8601 string comparison (lexicographic order).
+ * - Type: If `type` is provided, only activities matching this type are included.
+ * - Product: If `productId` is provided, only activities associated with this product are included.
+ * - Multiple filters: All provided filters are applied together (AND logic).
+ * - Empty filters: If no filters are provided, all activities are returned.
+ *
+ * Validation:
+ * - Date parameters must be valid ISO 8601 strings if provided.
+ * - Invalid date parameters will throw an ActivityError.
+ *
+ * Performance considerations:
+ * - Retrieves all activities from the repository and filters in memory.
+ * - For large activity lists, consider implementing filtering at repository level.
+ * - The function is optimized for small to medium datasets (< 10,000 activities).
+ *
+ * @param {ActivityRepository} repo - Activity repository for data retrieval
+ * @param {string} [startDate] - Optional start date (ISO 8601 format) to filter activities from this date onwards
+ * @param {string} [endDate] - Optional end date (ISO 8601 format) to filter activities up to this date
+ * @param {ActivityType} [type] - Optional activity type to filter by
+ * @param {ProductId} [productId] - Optional product ID to filter by
+ * @returns {Promise<Activity[]>} Promise resolving to an array of filtered activities, or empty array if none match
+ * @throws {ActivityError} If date parameters are invalid (not valid ISO 8601 format)
+ * @throws {Error} If repository retrieval fails (database connection error, query error, etc.)
+ *
+ * @example
+ * ```typescript
+ * // List all activities (no filters)
+ * const allActivities = await listActivitiesWithFilters(activityRepository);
+ * // Returns: [Activity, Activity, ...] (all activities)
+ *
+ * // Filter by date range
+ * const activitiesInRange = await listActivitiesWithFilters(
+ *   activityRepository,
+ *   "2025-01-01T00:00:00.000Z",
+ *   "2025-01-31T23:59:59.999Z"
+ * );
+ * // Returns: [Activity, Activity, ...] (activities in January 2025)
+ *
+ * // Filter by type
+ * const sales = await listActivitiesWithFilters(
+ *   activityRepository,
+ *   undefined,
+ *   undefined,
+ *   ActivityType.SALE
+ * );
+ * // Returns: [Activity, Activity, ...] (only SALE activities)
+ *
+ * // Filter by product
+ * const productActivities = await listActivitiesWithFilters(
+ *   activityRepository,
+ *   undefined,
+ *   undefined,
+ *   undefined,
+ *   productId
+ * );
+ * // Returns: [Activity, Activity, ...] (activities for specific product)
+ *
+ * // Combined filters
+ * const filtered = await listActivitiesWithFilters(
+ *   activityRepository,
+ *   "2025-01-01T00:00:00.000Z",
+ *   "2025-01-31T23:59:59.999Z",
+ *   ActivityType.SALE,
+ *   productId
+ * );
+ * // Returns: [Activity, Activity, ...] (SALE activities for product in January 2025)
+ * ```
+ */
+export const listActivitiesWithFilters = async (
+    repo: ActivityRepository,
+    startDate?: string,
+    endDate?: string,
+    type?: ActivityType,
+    productId?: ProductId
+): Promise<Activity[]> => {
+    // Validate date range parameters if provided
+    if (startDate !== undefined && !isValidISO8601(startDate)) {
+        throw createValidationError("startDate must be a valid ISO 8601 string");
+    }
+
+    if (endDate !== undefined && !isValidISO8601(endDate)) {
+        throw createValidationError("endDate must be a valid ISO 8601 string");
+    }
+
+    // Retrieve all activities
+    const allActivities = await repo.list();
+
+    // Handle empty activity list
+    if (allActivities.length === 0) {
+        return [];
+    }
+
+    // Apply filters
+    let filteredActivities = allActivities;
+
+    // Filter by date range if provided
+    if (startDate !== undefined || endDate !== undefined) {
+        filteredActivities = filteredActivities.filter((activity) => {
+            const activityDate = activity.date;
+
+            // Filter by startDate (activities on or after startDate)
+            if (startDate !== undefined && activityDate < startDate) {
+                return false;
+            }
+
+            // Filter by endDate (activities on or before endDate)
+            if (endDate !== undefined && activityDate > endDate) {
+                return false;
+            }
+
+            return true;
+        });
+    }
+
+    // Filter by type if provided
+    if (type !== undefined) {
+        filteredActivities = filteredActivities.filter(
+            (activity) => activity.type === type
+        );
+    }
+
+    // Filter by productId if provided
+    if (productId !== undefined) {
+        filteredActivities = filteredActivities.filter(
+            (activity) => activity.productId === productId
+        );
+    }
+
+    return filteredActivities;
+};
+
+/**
+ * Paginated result type for activities list.
+ *
+ * Contains the paginated activities array along with pagination metadata
+ * for building pagination UI components.
+ */
+export type PaginatedActivitiesResult = {
+    /** Array of activities for the current page */
+    activities: Activity[];
+    /** Total number of activities matching the filters (before pagination) */
+    total: number;
+    /** Current page number (1-based) */
+    page: number;
+    /** Number of activities per page */
+    pageSize: number;
+    /** Total number of pages */
+    totalPages: number;
+};
+
+/**
+ * Lists activities with filtering and pagination.
+ *
+ * This usecase combines filtering and pagination to provide a paginated list
+ * of activities. It first applies filters (date range, type, product), then
+ * sorts the results by date descending, and finally paginates the results.
+ *
+ * Filtering logic:
+ * - Date range: If `startDate` is provided, only activities on or after this date are included.
+ *   If `endDate` is provided, only activities on or before this date are included.
+ *   Date comparison uses ISO 8601 string comparison (lexicographic order).
+ * - Type: If `type` is provided, only activities matching this type are included.
+ * - Product: If `productId` is provided, only activities associated with this product are included.
+ * - Multiple filters: All provided filters are applied together (AND logic).
+ * - Empty filters: If no filters are provided, all activities are included.
+ *
+ * Pagination logic:
+ * - Page numbers are 1-based (first page is page 1, not page 0).
+ * - Default page size is 20 activities per page.
+ * - Activities are sorted by date descending (most recent first) before pagination.
+ * - Total count is calculated from filtered activities (before pagination).
+ * - Total pages is calculated as `Math.ceil(total / pageSize)`.
+ *
+ * Edge cases:
+ * - Empty results: Returns empty activities array with total: 0, totalPages: 0.
+ * - Page out of range: If page exceeds totalPages, returns empty activities array
+ *   but preserves correct pagination metadata (page, totalPages).
+ * - Invalid page: If page is less than 1, treats it as page 1.
+ *
+ * Validation:
+ * - Date parameters must be valid ISO 8601 strings if provided.
+ * - Invalid date parameters will throw an ActivityError.
+ * - Page must be a positive integer (defaults to 1 if invalid).
+ * - Page size must be a positive integer (defaults to 20 if invalid).
+ *
+ * Performance considerations:
+ * - Retrieves all activities from the repository and filters/sorts/paginates in memory.
+ * - For large activity lists, consider implementing filtering, sorting, and pagination at repository level.
+ * - The function is optimized for small to medium datasets (< 10,000 activities).
+ *
+ * @param {ActivityRepository} repo - Activity repository for data retrieval
+ * @param {string} [startDate] - Optional start date (ISO 8601 format) to filter activities from this date onwards
+ * @param {string} [endDate] - Optional end date (ISO 8601 format) to filter activities up to this date
+ * @param {ActivityType} [type] - Optional activity type to filter by
+ * @param {ProductId} [productId] - Optional product ID to filter by
+ * @param {number} [page=1] - Page number (1-based, default: 1)
+ * @param {number} [pageSize=20] - Number of activities per page (default: 20)
+ * @returns {Promise<PaginatedActivitiesResult>} Promise resolving to paginated activities result with metadata
+ * @throws {ActivityError} If date parameters are invalid (not valid ISO 8601 format)
+ * @throws {Error} If repository retrieval fails (database connection error, query error, etc.)
+ *
+ * @example
+ * ```typescript
+ * // List first page of all activities (default: page 1, pageSize 20)
+ * const result = await listActivitiesPaginated(activityRepository);
+ * // Returns: { activities: [Activity, ...], total: 100, page: 1, pageSize: 20, totalPages: 5 }
+ *
+ * // List second page with filters
+ * const result = await listActivitiesPaginated(
+ *   activityRepository,
+ *   "2025-01-01T00:00:00.000Z",
+ *   "2025-01-31T23:59:59.999Z",
+ *   ActivityType.SALE,
+ *   undefined,
+ *   2,
+ *   20
+ * );
+ * // Returns: { activities: [Activity, ...], total: 45, page: 2, pageSize: 20, totalPages: 3 }
+ *
+ * // List with custom page size
+ * const result = await listActivitiesPaginated(
+ *   activityRepository,
+ *   undefined,
+ *   undefined,
+ *   undefined,
+ *   undefined,
+ *   1,
+ *   10
+ * );
+ * // Returns: { activities: [Activity, ...], total: 100, page: 1, pageSize: 10, totalPages: 10 }
+ * ```
+ */
+export const listActivitiesPaginated = async (
+    repo: ActivityRepository,
+    startDate?: string,
+    endDate?: string,
+    type?: ActivityType,
+    productId?: ProductId,
+    page: number = 1,
+    pageSize: number = 20
+): Promise<PaginatedActivitiesResult> => {
+    // Validate and normalize pagination parameters
+    const normalizedPage = Math.max(1, Math.floor(page));
+    const normalizedPageSize = Math.max(1, Math.floor(pageSize));
+
+    // Get filtered activities using existing filtering usecase
+    const filteredActivities = await listActivitiesWithFilters(
+        repo,
+        startDate,
+        endDate,
+        type,
+        productId
+    );
+
+    // Calculate total count (before pagination)
+    const total = filteredActivities.length;
+
+    // Handle empty results
+    if (total === 0) {
+        return {
+            activities: [],
+            total: 0,
+            page: normalizedPage,
+            pageSize: normalizedPageSize,
+            totalPages: 0,
+        };
+    }
+
+    // Sort activities by date descending (most recent first)
+    const sortedActivities = [...filteredActivities].sort((a, b) => {
+        // ISO 8601 strings can be compared lexicographically for chronological order
+        // Most recent dates (larger values) should come first, so we reverse the comparison
+        if (a.date > b.date) {
+            return -1;
+        }
+        if (a.date < b.date) {
+            return 1;
+        }
+        return 0;
+    });
+
+    // Calculate total pages
+    const totalPages = Math.ceil(total / normalizedPageSize);
+
+    // Handle page out of range
+    if (normalizedPage > totalPages) {
+        return {
+            activities: [],
+            total,
+            page: normalizedPage,
+            pageSize: normalizedPageSize,
+            totalPages,
+        };
+    }
+
+    // Calculate pagination slice indices
+    const startIndex = (normalizedPage - 1) * normalizedPageSize;
+    const endIndex = startIndex + normalizedPageSize;
+
+    // Get paginated activities
+    const paginatedActivities = sortedActivities.slice(startIndex, endIndex);
+
+    return {
+        activities: paginatedActivities,
+        total,
+        page: normalizedPage,
+        pageSize: normalizedPageSize,
+        totalPages,
+    };
+};
+
+/**
  * Lists recent activities sorted by date.
  *
  * This usecase retrieves the most recent activities from the repository,

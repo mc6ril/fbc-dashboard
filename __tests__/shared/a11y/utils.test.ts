@@ -16,7 +16,6 @@ describe("shared/a11y/utils", () => {
     });
 
     it("falls back to 'unknown' when key is blank", () => {
-      // @ts-expect-error explicit test for empty string scenario
       expect(getAccessibilityId("")).toBe("a11y-unknown");
     });
   });
