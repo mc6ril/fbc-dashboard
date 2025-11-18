@@ -1,0 +1,23 @@
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+
+.card {
+  background: $color-background;
+  border: $border-width-standard solid $color-border;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  box-shadow: $shadow-md $color-shadow;
+
+  &__header {
+    margin-bottom: $spacing-md;
+  }
+
+  &__title {
+    margin: 0;
+  }
+
+  &__content {
+    // Content area - no additional styling needed by default
+  }
+}
+
