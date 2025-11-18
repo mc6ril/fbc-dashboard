@@ -1,0 +1,25 @@
+@use "@/styles/variables/spacing" as *;
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/typography" as *;
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+
+  &__error {
+    color: $color-error;
+    font-size: $font-size-sm;
+    padding: $spacing-sm $spacing-md;
+    background: $color-input-error-bg;
+    border-radius: $radius-md;
+    border: $border-width-thin solid $color-input-error-border;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $spacing-sm;
+    margin-top: $spacing-lg;
+  }
+}
+

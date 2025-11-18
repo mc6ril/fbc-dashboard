@@ -1,0 +1,66 @@
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+@use "@/styles/variables/typography" as *;
+
+.textarea-field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-info-gap;
+
+  &__label {
+    color: $color-text-primary;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+  }
+
+  &__control {
+    appearance: none;
+    background: $color-input-bg;
+    color: $color-input-text;
+    border: $border-width-thin solid $color-input-border;
+    border-radius: $radius-md;
+    padding: $spacing-input-padding-y $spacing-input-padding-x;
+    font-size: $font-size-base;
+    line-height: $line-height-normal;
+    transition: $transition-default;
+    resize: vertical;
+    font-family: inherit;
+
+    &::placeholder {
+      color: $color-input-placeholder;
+    }
+
+    &:hover {
+      border-color: $color-input-border-hover;
+    }
+
+    &:focus-visible {
+      outline: none;
+      border-color: $color-input-border-focus;
+      box-shadow: $shadow-sm $color-focus-ring;
+    }
+
+    &--disabled {
+      background: $color-input-disabled-bg;
+      color: $color-input-disabled-text;
+      cursor: not-allowed;
+    }
+
+    &--error {
+      border-color: $color-input-error-border;
+      background: $color-input-error-bg;
+      color: $color-input-error-text;
+    }
+  }
+
+  &__helper {
+    color: $color-text-secondary;
+    font-size: $font-size-sm;
+  }
+
+  &__error {
+    color: $color-error;
+    font-size: $font-size-sm;
+  }
+}
+
