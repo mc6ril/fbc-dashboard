@@ -83,3 +83,24 @@ export type Activity = {
     note?: string;
 };
 
+/**
+ * ActivityError represents an activity-related error in the system.
+ *
+ * This type standardizes error handling across all activity operations.
+ * Errors can occur during activity creation, updates, validation, or any other
+ * activity operation. The error includes a code for programmatic handling
+ * and a user-friendly message.
+ *
+ * The status field is optional because not all errors have an associated HTTP
+ * status code (e.g., local validation errors, client-side errors).
+ *
+ * @property {string} code - Error code for programmatic error handling (e.g., "VALIDATION_ERROR", "NOT_FOUND")
+ * @property {string} message - Human-readable error message for display to users
+ * @property {number} [status] - Optional HTTP status code associated with the error (e.g., 400, 404, 500). Not present for local validation errors.
+ */
+export type ActivityError = {
+    code: string;
+    message: string;
+    status?: number;
+};
+

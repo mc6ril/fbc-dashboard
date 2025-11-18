@@ -25,6 +25,14 @@ jest.mock("next/link", () => {
   };
 });
 
+// Mock useAuth hook to avoid Supabase client initialization
+jest.mock("@/presentation/hooks/useAuth", () => ({
+  useSignOut: jest.fn(() => ({
+    mutateAsync: jest.fn(),
+    isPending: false,
+  })),
+}));
+
 const mockUsePathname = usePathname as jest.MockedFunction<typeof usePathname>;
 
 describe("DashboardNavbar", () => {
