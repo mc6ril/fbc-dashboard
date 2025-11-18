@@ -1,0 +1,8 @@
+@use "@/styles/variables/colors" as *;
+
+.salesWidget {
+    &__amount {
+        color: $color-text-primary;
+    }
+}
+

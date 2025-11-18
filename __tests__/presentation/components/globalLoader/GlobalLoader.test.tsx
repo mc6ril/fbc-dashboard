@@ -1,7 +1,12 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import React from "react";
 import { render, screen, cleanup } from "@testing-library/react";
-import GlobalLoader from "@/presentation/components/globalLoader/GlobalLoader";
 import { useGlobalLoadingStore } from "@/presentation/stores/useGlobalLoadingStore";
+import { createMockGlobalLoadingStoreState } from "../../../utils/mocks";
+import GlobalLoader from "@/presentation/components/globalLoader/GlobalLoader";
 
 // Mock the store
 jest.mock("@/presentation/stores/useGlobalLoadingStore");
@@ -35,7 +40,8 @@ describe("GlobalLoader", () => {
         it("should not render anything", () => {
             // Mock the selector to return false
             mockUseGlobalLoadingStore.mockImplementation((selector) => {
-                return selector({ isLoading: false } as ReturnType<typeof useGlobalLoadingStore>);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return selector(createMockGlobalLoadingStoreState(false) as any);
             });
 
             const { container } = render(<GlobalLoader />);
@@ -48,7 +54,8 @@ describe("GlobalLoader", () => {
         beforeEach(() => {
             // Mock the selector to return true
             mockUseGlobalLoadingStore.mockImplementation((selector) => {
-                return selector({ isLoading: true } as ReturnType<typeof useGlobalLoadingStore>);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return selector(createMockGlobalLoadingStoreState(true) as any);
             });
         });
 
@@ -89,7 +96,8 @@ describe("GlobalLoader", () => {
         it("should update when loading state changes", () => {
             // Start with loading true
             mockUseGlobalLoadingStore.mockImplementation((selector) => {
-                return selector({ isLoading: true } as ReturnType<typeof useGlobalLoadingStore>);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return selector(createMockGlobalLoadingStoreState(true) as any);
             });
             const { unmount } = render(<GlobalLoader />);
 
@@ -99,7 +107,8 @@ describe("GlobalLoader", () => {
 
             // Change loading state to false and render again
             mockUseGlobalLoadingStore.mockImplementation((selector) => {
-                return selector({ isLoading: false } as ReturnType<typeof useGlobalLoadingStore>);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return selector(createMockGlobalLoadingStoreState(false) as any);
             });
             render(<GlobalLoader />);
 

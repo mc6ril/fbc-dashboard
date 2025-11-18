@@ -1,0 +1,8 @@
+@use "@/styles/variables/colors" as *;
+
+.profitWidget {
+    &__amount {
+        color: $color-text-primary;
+    }
+}
+

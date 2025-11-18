@@ -15,11 +15,23 @@ export const queryKeys = {
         user: () => ["auth", "user"] as const,
     },
 
-    // Add more resource namespaces as needed:
-    // products: {
-    //   all: () => ["products"] as const,
-    //   detail: (id: string) => ["products", id] as const,
-    //   list: (filters?: ProductFilters) => ["products", "list", filters] as const,
-    // },
+    /**
+     * Dashboard-related query keys.
+     *
+     * Used for caching dashboard metrics and widgets data.
+     */
+    dashboard: {
+        /** Query key for monthly sales amount. */
+        monthlySales: () => ["dashboard", "monthlySales"] as const,
+
+        /** Query key for monthly profit amount. */
+        monthlyProfit: () => ["dashboard", "monthlyProfit"] as const,
+
+        /** Query key for low stock products list. */
+        lowStockProducts: () => ["dashboard", "lowStockProducts"] as const,
+
+        /** Query key for recent activities list. */
+        recentActivities: () => ["dashboard", "recentActivities"] as const,
+    },
 } as const;
 

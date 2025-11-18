@@ -86,6 +86,8 @@ import {
     updateActivity,
     computeStockFromActivities,
     computeProfit,
+    computeTotalSales,
+    listRecentActivities,
 } from "@/core/usecases/activity";
 import { createMockActivity } from "../../../__mocks__/core/domain/activity";
 import { createMockActivityRepository } from "../../../__mocks__/core/ports/activityRepository";
@@ -1414,6 +1416,435 @@ describe("Activity Usecases", () => {
             // Assert
             // Profit = (20-10)*2 + (20-10)*3 = 20 + 30 = 50
             expect(result).toBe(50);
+        });
+    });
+
+    describe("computeTotalSales", () => {
+        it("should return 0 when no SALE activities exist", async () => {
+            // Arrange
+            const activities = [
+                createMockActivity({
+                    type: ActivityType.CREATION,
+                    quantity: 10,
+                }),
+                createMockActivity({
+                    type: ActivityType.STOCK_CORRECTION,
+                    quantity: -2,
+                }),
+            ];
+            mockRepo.list.mockResolvedValue(activities);
+
+            // Act
+            const result = await computeTotalSales(mockRepo);
+
+            // Assert
+            expect(result).toBe(0);
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+
+        it("should sum amounts from all SALE activities", async () => {
+            // Arrange
+            const activities = [
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 100.5,
+                    date: "2025-01-27T14:00:00.000Z",
+                }),
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 250.75,
+                    date: "2025-01-27T15:00:00.000Z",
+                }),
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 50.25,
+                    date: "2025-01-27T16:00:00.000Z",
+                }),
+            ];
+            mockRepo.list.mockResolvedValue(activities);
+
+            // Act
+            const result = await computeTotalSales(mockRepo);
+
+            // Assert
+            expect(result).toBe(401.5); // 100.5 + 250.75 + 50.25
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+
+        it("should filter by date range when provided", async () => {
+            // Arrange
+            const activities = [
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 100.0,
+                    date: "2025-01-15T14:00:00.000Z", // Before range
+                }),
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 200.0,
+                    date: "2025-01-20T14:00:00.000Z", // In range
+                }),
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 150.0,
+                    date: "2025-01-25T14:00:00.000Z", // In range
+                }),
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 300.0,
+                    date: "2025-02-01T14:00:00.000Z", // After range
+                }),
+            ];
+            mockRepo.list.mockResolvedValue(activities);
+
+            // Act
+            const result = await computeTotalSales(
+                mockRepo,
+                "2025-01-20T00:00:00.000Z",
+                "2025-01-31T23:59:59.999Z"
+            );
+
+            // Assert
+            expect(result).toBe(350.0); // 200.0 + 150.0 (only activities in range)
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+
+        it("should exclude non-SALE activities", async () => {
+            // Arrange
+            const activities = [
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 100.0,
+                    date: "2025-01-27T14:00:00.000Z",
+                }),
+                createMockActivity({
+                    type: ActivityType.CREATION,
+                    amount: 50.0, // Should be ignored
+                    date: "2025-01-27T15:00:00.000Z",
+                }),
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 200.0,
+                    date: "2025-01-27T16:00:00.000Z",
+                }),
+                createMockActivity({
+                    type: ActivityType.STOCK_CORRECTION,
+                    amount: 75.0, // Should be ignored
+                    date: "2025-01-27T17:00:00.000Z",
+                }),
+            ];
+            mockRepo.list.mockResolvedValue(activities);
+
+            // Act
+            const result = await computeTotalSales(mockRepo);
+
+            // Assert
+            expect(result).toBe(300.0); // Only SALE activities: 100.0 + 200.0
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+
+        it("should validate date parameters (ISO 8601)", async () => {
+            // Arrange
+            mockRepo.list.mockResolvedValue([]);
+
+            // Act & Assert
+            await expect(
+                computeTotalSales(mockRepo, "invalid-date")
+            ).rejects.toMatchObject({
+                code: "VALIDATION_ERROR",
+                message: "startDate must be a valid ISO 8601 string",
+            });
+
+            await expect(
+                computeTotalSales(mockRepo, undefined, "invalid-date")
+            ).rejects.toMatchObject({
+                code: "VALIDATION_ERROR",
+                message: "endDate must be a valid ISO 8601 string",
+            });
+        });
+
+        it("should handle empty activity list", async () => {
+            // Arrange
+            mockRepo.list.mockResolvedValue([]);
+
+            // Act
+            const result = await computeTotalSales(mockRepo);
+
+            // Assert
+            expect(result).toBe(0);
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+
+        it("should handle activities outside date range", async () => {
+            // Arrange
+            const activities = [
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 100.0,
+                    date: "2025-01-10T14:00:00.000Z", // Before range
+                }),
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 200.0,
+                    date: "2025-02-10T14:00:00.000Z", // After range
+                }),
+            ];
+            mockRepo.list.mockResolvedValue(activities);
+
+            // Act
+            const result = await computeTotalSales(
+                mockRepo,
+                "2025-01-20T00:00:00.000Z",
+                "2025-01-31T23:59:59.999Z"
+            );
+
+            // Assert
+            expect(result).toBe(0); // No activities in range
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+
+        it("should handle date range with only startDate", async () => {
+            // Arrange
+            const activities = [
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 100.0,
+                    date: "2025-01-15T14:00:00.000Z", // Before startDate
+                }),
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 200.0,
+                    date: "2025-01-25T14:00:00.000Z", // After startDate
+                }),
+            ];
+            mockRepo.list.mockResolvedValue(activities);
+
+            // Act
+            const result = await computeTotalSales(
+                mockRepo,
+                "2025-01-20T00:00:00.000Z"
+            );
+
+            // Assert
+            expect(result).toBe(200.0); // Only activity after startDate
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+
+        it("should handle date range with only endDate", async () => {
+            // Arrange
+            const activities = [
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 100.0,
+                    date: "2025-01-15T14:00:00.000Z", // Before endDate
+                }),
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    amount: 200.0,
+                    date: "2025-01-25T14:00:00.000Z", // After endDate
+                }),
+            ];
+            mockRepo.list.mockResolvedValue(activities);
+
+            // Act
+            const result = await computeTotalSales(
+                mockRepo,
+                undefined,
+                "2025-01-20T23:59:59.999Z"
+            );
+
+            // Assert
+            expect(result).toBe(100.0); // Only activity before endDate
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe("listRecentActivities", () => {
+        it("should return empty array when no activities exist", async () => {
+            // Arrange
+            mockRepo.list.mockResolvedValue([]);
+
+            // Act
+            const result = await listRecentActivities(mockRepo);
+
+            // Assert
+            expect(result).toEqual([]);
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+
+        it("should sort activities by date descending", async () => {
+            // Arrange
+            const activities = [
+                createMockActivity({
+                    date: "2025-01-15T14:00:00.000Z", // Oldest
+                }),
+                createMockActivity({
+                    date: "2025-01-25T14:00:00.000Z", // Newest
+                }),
+                createMockActivity({
+                    date: "2025-01-20T14:00:00.000Z", // Middle
+                }),
+            ];
+            mockRepo.list.mockResolvedValue(activities);
+
+            // Act
+            const result = await listRecentActivities(mockRepo);
+
+            // Assert
+            expect(result).toHaveLength(3);
+            expect(result[0].date).toBe("2025-01-25T14:00:00.000Z"); // Newest first
+            expect(result[1].date).toBe("2025-01-20T14:00:00.000Z"); // Middle
+            expect(result[2].date).toBe("2025-01-15T14:00:00.000Z"); // Oldest last
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+
+        it("should limit results to specified count", async () => {
+            // Arrange
+            const activities = [
+                createMockActivity({
+                    date: "2025-01-25T14:00:00.000Z", // Newest
+                }),
+                createMockActivity({
+                    date: "2025-01-24T14:00:00.000Z",
+                }),
+                createMockActivity({
+                    date: "2025-01-23T14:00:00.000Z",
+                }),
+                createMockActivity({
+                    date: "2025-01-22T14:00:00.000Z",
+                }),
+                createMockActivity({
+                    date: "2025-01-21T14:00:00.000Z", // Oldest
+                }),
+            ];
+            mockRepo.list.mockResolvedValue(activities);
+
+            // Act
+            const result = await listRecentActivities(mockRepo, 3);
+
+            // Assert
+            expect(result).toHaveLength(3);
+            expect(result[0].date).toBe("2025-01-25T14:00:00.000Z");
+            expect(result[1].date).toBe("2025-01-24T14:00:00.000Z");
+            expect(result[2].date).toBe("2025-01-23T14:00:00.000Z");
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+
+        it("should use default limit of 10 if not provided", async () => {
+            // Arrange
+            const activities = Array.from({ length: 15 }, (_, i) =>
+                createMockActivity({
+                    date: `2025-01-${String(i + 1).padStart(2, "0")}T14:00:00.000Z`,
+                })
+            );
+            mockRepo.list.mockResolvedValue(activities);
+
+            // Act
+            const result = await listRecentActivities(mockRepo);
+
+            // Assert
+            expect(result).toHaveLength(10); // Default limit
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+
+        it("should return all activities if count exceeds available", async () => {
+            // Arrange
+            const activities = [
+                createMockActivity({
+                    date: "2025-01-25T14:00:00.000Z",
+                }),
+                createMockActivity({
+                    date: "2025-01-24T14:00:00.000Z",
+                }),
+                createMockActivity({
+                    date: "2025-01-23T14:00:00.000Z",
+                }),
+            ];
+            mockRepo.list.mockResolvedValue(activities);
+
+            // Act
+            const result = await listRecentActivities(mockRepo, 10);
+
+            // Assert
+            expect(result).toHaveLength(3); // Only 3 activities available
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+
+        it("should handle activities with same date", async () => {
+            // Arrange
+            const sameDate = "2025-01-25T14:00:00.000Z";
+            const activities = [
+                createMockActivity({
+                    id: "1" as ActivityId,
+                    date: sameDate,
+                }),
+                createMockActivity({
+                    id: "2" as ActivityId,
+                    date: sameDate,
+                }),
+                createMockActivity({
+                    id: "3" as ActivityId,
+                    date: "2025-01-24T14:00:00.000Z",
+                }),
+            ];
+            mockRepo.list.mockResolvedValue(activities);
+
+            // Act
+            const result = await listRecentActivities(mockRepo);
+
+            // Assert
+            expect(result).toHaveLength(3);
+            // Activities with same date should both be included (order may vary, but both should be before the older one)
+            expect(result[0].date).toBe(sameDate);
+            expect(result[1].date).toBe(sameDate);
+            expect(result[2].date).toBe("2025-01-24T14:00:00.000Z");
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+
+        it("should include all activity types", async () => {
+            // Arrange
+            const activities = [
+                createMockActivity({
+                    type: ActivityType.SALE,
+                    date: "2025-01-25T14:00:00.000Z",
+                }),
+                createMockActivity({
+                    type: ActivityType.CREATION,
+                    date: "2025-01-24T14:00:00.000Z",
+                }),
+                createMockActivity({
+                    type: ActivityType.STOCK_CORRECTION,
+                    date: "2025-01-23T14:00:00.000Z",
+                }),
+                createMockActivity({
+                    type: ActivityType.OTHER,
+                    date: "2025-01-22T14:00:00.000Z",
+                }),
+            ];
+            mockRepo.list.mockResolvedValue(activities);
+
+            // Act
+            const result = await listRecentActivities(mockRepo);
+
+            // Assert
+            expect(result).toHaveLength(4);
+            expect(result[0].type).toBe(ActivityType.SALE);
+            expect(result[1].type).toBe(ActivityType.CREATION);
+            expect(result[2].type).toBe(ActivityType.STOCK_CORRECTION);
+            expect(result[3].type).toBe(ActivityType.OTHER);
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
+        });
+
+        it("should propagate repository error when retrieval fails", async () => {
+            // Arrange
+            const error = new Error("Database connection failed");
+            mockRepo.list.mockRejectedValue(error);
+
+            // Act & Assert
+            await expect(listRecentActivities(mockRepo)).rejects.toThrow(
+                "Database connection failed"
+            );
+            expect(mockRepo.list).toHaveBeenCalledTimes(1);
         });
     });
 });

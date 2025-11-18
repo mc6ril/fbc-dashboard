@@ -5,9 +5,10 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import { useRouter } from "next/navigation";
-import RestrictedPage from "@/presentation/components/restrictedPage/RestrictedPage";
-import { useAuthStore } from "@/presentation/stores/useAuthStore";
 import { useSession } from "@/presentation/hooks/useAuth";
+import { useAuthStore } from "@/presentation/stores/useAuthStore";
+import { createMockSession, createMockAuthStoreState } from "../../../utils/mocks";
+import RestrictedPage from "@/presentation/components/restrictedPage/RestrictedPage";
 
 // Mock Next.js router
 jest.mock("next/navigation", () => ({
@@ -37,28 +38,32 @@ describe("RestrictedPage", () => {
       replace: jest.fn(),
       prefetch: jest.fn(),
       back: jest.fn(),
+      forward: jest.fn(),
+      refresh: jest.fn(),
       pathname: "/",
       query: {},
       asPath: "/",
-    } as any);
+    } as unknown as ReturnType<typeof useRouter>);
   });
 
   it("renders children when authenticated", () => {
+    const mockSession = createMockSession();
+    
     // Mock authenticated state
     mockUseAuthStore.mockImplementation((selector) => {
-      const state = {
-        session: { accessToken: "token", expiresAt: new Date().toISOString() },
-        user: null,
-        isLoading: false,
-      };
+      const state = createMockAuthStoreState(mockSession, mockSession.user);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return selector(state as any);
     });
     
     mockUseSession.mockReturnValue({
-      data: { accessToken: "token", expiresAt: new Date().toISOString() },
+      data: mockSession,
       isLoading: false,
       error: null,
-    } as any);
+      isError: false,
+      isPending: false,
+      isSuccess: true,
+    } as unknown as ReturnType<typeof useSession>);
 
     render(
       <RestrictedPage>
@@ -73,11 +78,8 @@ describe("RestrictedPage", () => {
   it("shows loading state when auth is loading", () => {
     // Mock loading state
     mockUseAuthStore.mockImplementation((selector) => {
-      const state = {
-        session: null,
-        user: null,
-        isLoading: true,
-      };
+      const state = createMockAuthStoreState(null, null);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return selector(state as any);
     });
     
@@ -85,7 +87,10 @@ describe("RestrictedPage", () => {
       data: null,
       isLoading: true,
       error: null,
-    } as any);
+      isError: false,
+      isPending: true,
+      isSuccess: false,
+    } as unknown as ReturnType<typeof useSession>);
 
     render(
       <RestrictedPage>
@@ -101,11 +106,8 @@ describe("RestrictedPage", () => {
   it("shows access denied message when not authenticated", async () => {
     // Mock unauthenticated state
     mockUseAuthStore.mockImplementation((selector) => {
-      const state = {
-        session: null,
-        user: null,
-        isLoading: false,
-      };
+      const state = createMockAuthStoreState(null, null);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return selector(state as any);
     });
     
@@ -113,7 +115,10 @@ describe("RestrictedPage", () => {
       data: null,
       isLoading: false,
       error: null,
-    } as any);
+      isError: false,
+      isPending: false,
+      isSuccess: true,
+    } as unknown as ReturnType<typeof useSession>);
 
     render(
       <RestrictedPage>
@@ -133,11 +138,8 @@ describe("RestrictedPage", () => {
   it("redirects to /signin when not authenticated", async () => {
     // Mock unauthenticated state
     mockUseAuthStore.mockImplementation((selector) => {
-      const state = {
-        session: null,
-        user: null,
-        isLoading: false,
-      };
+      const state = createMockAuthStoreState(null, null);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return selector(state as any);
     });
     
@@ -145,7 +147,10 @@ describe("RestrictedPage", () => {
       data: null,
       isLoading: false,
       error: null,
-    } as any);
+      isError: false,
+      isPending: false,
+      isSuccess: true,
+    } as unknown as ReturnType<typeof useSession>);
 
     render(
       <RestrictedPage>
@@ -161,11 +166,8 @@ describe("RestrictedPage", () => {
   it("has proper accessibility attributes for access denied message", async () => {
     // Mock unauthenticated state
     mockUseAuthStore.mockImplementation((selector) => {
-      const state = {
-        session: null,
-        user: null,
-        isLoading: false,
-      };
+      const state = createMockAuthStoreState(null, null);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return selector(state as any);
     });
     
@@ -173,7 +175,10 @@ describe("RestrictedPage", () => {
       data: null,
       isLoading: false,
       error: null,
-    } as any);
+      isError: false,
+      isPending: false,
+      isSuccess: true,
+    } as unknown as ReturnType<typeof useSession>);
 
     render(
       <RestrictedPage>
@@ -190,11 +195,8 @@ describe("RestrictedPage", () => {
   it("has proper accessibility attributes for loading state", () => {
     // Mock loading state
     mockUseAuthStore.mockImplementation((selector) => {
-      const state = {
-        session: null,
-        user: null,
-        isLoading: true,
-      };
+      const state = createMockAuthStoreState(null, null);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return selector(state as any);
     });
     
@@ -202,7 +204,10 @@ describe("RestrictedPage", () => {
       data: null,
       isLoading: true,
       error: null,
-    } as any);
+      isError: false,
+      isPending: true,
+      isSuccess: false,
+    } as unknown as ReturnType<typeof useSession>);
 
     render(
       <RestrictedPage>

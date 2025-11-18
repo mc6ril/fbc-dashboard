@@ -1,0 +1,28 @@
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+@use "@/styles/variables/typography" as *;
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+
+  &__title {
+    margin-bottom: $spacing-md;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-lg;
+  }
+}
+
+@media (max-width: $breakpoint-mobile) {
+  .dashboard {
+    &__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+

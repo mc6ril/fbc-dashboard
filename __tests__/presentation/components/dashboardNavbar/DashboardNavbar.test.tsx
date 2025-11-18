@@ -12,19 +12,6 @@ jest.mock("next/navigation", () => ({
   usePathname: jest.fn(),
 }));
 
-// Mock Next.js Link component
-jest.mock("next/link", () => {
-  return ({ children, href, prefetch, ...props }: { children: React.ReactNode; href: string; prefetch?: boolean; [key: string]: unknown }) => {
-    // Filter out prefetch prop to avoid React warning
-    const { prefetch: _, ...linkProps } = { prefetch, ...props };
-    return (
-      <a href={href} {...linkProps}>
-        {children}
-      </a>
-    );
-  };
-});
-
 // Mock useAuth hook to avoid Supabase client initialization
 jest.mock("@/presentation/hooks/useAuth", () => ({
   useSignOut: jest.fn(() => ({
