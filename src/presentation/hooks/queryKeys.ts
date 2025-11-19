@@ -37,11 +37,19 @@ export const queryKeys = {
     /**
      * Products-related query keys.
      *
-     * Used for caching products list.
+     * Used for caching products list and individual products.
      */
     products: {
         /** Query key for all products list. */
         all: () => ["products", "all"] as const,
+
+        /**
+         * Query key for a single product by ID.
+         *
+         * @param {string} id - Product ID
+         * @returns Query key tuple for product detail
+         */
+        detail: (id: string) => ["products", "detail", id] as const,
     },
 
     /**

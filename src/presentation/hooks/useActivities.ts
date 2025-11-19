@@ -12,6 +12,7 @@ import type { PaginatedActivitiesResult } from "@/core/usecases/activity";
 import type { Activity, ActivityError } from "@/core/domain/activity";
 import { activityRepositorySupabase } from "@/infrastructure/supabase/activityRepositorySupabase";
 import { useActivityFiltersStore } from "@/presentation/stores/useActivityFiltersStore";
+import { useGlobalLoadingStore } from "@/presentation/stores/useGlobalLoadingStore";
 import { queryKeys } from "./queryKeys";
 
 /** Stale time for activities list (5 minutes) - activities don't need real-time updates */
@@ -82,6 +83,7 @@ export const useActivities = () => {
  * Uses `addActivity` usecase to create a new activity via the repository.
  * On success, invalidates all activities list queries and dashboard recent activities
  * query to ensure the UI reflects the new activity.
+ * Shows global loader during mutation to provide user feedback.
  *
  * @returns React Query mutation object with `mutate`, `mutateAsync`, `isPending`, `error`, `isSuccess`, and `data`
  *
@@ -103,14 +105,22 @@ export const useActivities = () => {
  */
 export const useAddActivity = () => {
     const queryClient = useQueryClient();
+    const startGlobalLoading = useGlobalLoadingStore((state) => state.startLoading);
+    const stopGlobalLoading = useGlobalLoadingStore((state) => state.stopLoading);
 
     return useMutation<Activity, ActivityError | Error, Omit<Activity, "id">>({
         mutationFn: (activity: Omit<Activity, "id">) => addActivity(activityRepositorySupabase, activity),
+        onMutate: () => {
+            startGlobalLoading();
+        },
         onSuccess: () => {
             // Invalidate all activities list queries (with any filters/pagination)
             queryClient.invalidateQueries({ queryKey: ["activities"] });
             // Invalidate dashboard recent activities query
             queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.recentActivities() });
+        },
+        onSettled: () => {
+            stopGlobalLoading();
         },
     });
 };

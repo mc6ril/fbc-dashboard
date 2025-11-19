@@ -1,0 +1,13 @@
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+
+.productsTable {
+    width: 100%;
+
+    // Loading, error, and empty states
+    & > :first-child {
+        padding: $spacing-md;
+        text-align: center;
+    }
+}
+

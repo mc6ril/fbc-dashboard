@@ -1,0 +1,33 @@
+@use "@/styles/variables/spacing" as *;
+
+.catalog {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: $spacing-md;
+  }
+
+  &__title {
+    margin: 0;
+  }
+
+  &__addButton {
+    text-decoration: none;
+    display: inline-block;
+  }
+}
+
+@media (max-width: $breakpoint-mobile) {
+  .catalog {
+    &__header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+}
+
