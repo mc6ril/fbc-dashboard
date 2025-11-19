@@ -17,6 +17,7 @@ import Button from "@/presentation/components/ui/Button";
 import AddActivityForm from "@/presentation/components/addActivity/AddActivityForm/AddActivityForm";
 import { getAccessibilityId } from "@/shared/a11y/utils";
 import { A11yIds } from "@/shared/a11y/ids";
+import { ACCESSIBILITY_ANNOUNCEMENT_DELAY_MS } from "@/shared/constants/timing";
 import styles from "./page.module.scss";
 
 const AddActivityPage = () => {
@@ -28,18 +29,22 @@ const AddActivityPage = () => {
     const successMessageId = useMemo(() => getAccessibilityId(A11yIds.formSuccess, "form"), []);
 
     // Handle successful form submission
+    // onSuccess is called by AddActivityForm when the mutation completes,
+    // so at this point isPending is false and isSuccess is true
     const handleSuccess = React.useCallback(() => {
         setShowSuccess(true);
     }, []);
 
     // Redirect after success message is shown
+    // The mutation is complete when onSuccess callback is called (AddActivityForm uses useAddActivity internally)
+    // GlobalLoader is already managed by the hook, so we just need to wait for the success message to be announced
     React.useEffect(() => {
         if (showSuccess) {
-            // Redirect after a delay to allow users to see the success message
-            // The delay ensures screen readers can announce the success message
+            // Redirect after a short delay to allow screen readers to announce the success message
+            // The delay is only applied once the mutation is complete (onSuccess was called)
             const redirectTimer = setTimeout(() => {
                 router.push("/dashboard/activities");
-            }, 2500); // 2.5 seconds delay
+            }, ACCESSIBILITY_ANNOUNCEMENT_DELAY_MS);
 
             // Cleanup timer on unmount
             return () => {

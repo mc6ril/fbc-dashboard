@@ -18,6 +18,8 @@ const DashboardLayout = ({ children }: Props) => {
   const stopGlobalLoading = useGlobalLoadingStore((state) => state.stopLoading);
   
   // Stop global loader when dashboard layout mounts (after navigation from signin/signup)
+  // Note: This may decrement the ref-count even if no operations are active, which is intentional
+  // cleanup after auth mutations. The ref-counting guard (Math.max(0, ...)) prevents negative values.
   useEffect(() => {
     stopGlobalLoading();
   }, [stopGlobalLoading]);
