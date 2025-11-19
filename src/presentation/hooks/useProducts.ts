@@ -6,19 +6,31 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type {
+    Product,
+    ProductId,
+    ProductModel,
+    ProductModelId,
+    ProductColoris,
+} from "@/core/domain/product";
+import { ProductType } from "@/core/domain/product";
 import {
     listProducts,
     createProduct,
     updateProduct,
     getProductById,
+    listProductModelsByType,
+    listProductColorisByModel,
 } from "@/core/usecases/product";
-import type { Product, ProductId } from "@/core/domain/product";
 import { productRepositorySupabase } from "@/infrastructure/supabase/productRepositorySupabase";
 import { useGlobalLoadingStore } from "@/presentation/stores/useGlobalLoadingStore";
 import { queryKeys } from "./queryKeys";
 
 /** Stale time for products list (5 minutes) - products don't change frequently */
 const PRODUCTS_STALE_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+/** Stale time for reference tables (10 minutes) - reference data changes very infrequently */
+const REFERENCE_STALE_TIME = 10 * 60 * 1000; // 10 minutes in milliseconds
 
 /**
  * Hook to fetch all products.
@@ -159,6 +171,98 @@ export const useUpdateProduct = () => {
         onSettled: () => {
             stopGlobalLoading();
         },
+    });
+};
+
+/**
+ * Hook to fetch product models for a specific product type.
+ *
+ * Uses `listProductModelsByType` usecase to retrieve models from the repository.
+ * Data is cached for 10 minutes to reduce unnecessary refetches.
+ * Only fetches when a valid type is provided (conditional fetching).
+ *
+ * This hook is used in cascading dropdowns where users first select a product type,
+ * then select a model for that type.
+ *
+ * @param {ProductType | null} type - Product type to filter models by. If null, hook is disabled and won't fetch.
+ * @returns React Query result with `data` (array of product models), `isLoading`, and `error`
+ *
+ * @example
+ * ```typescript
+ * const [selectedType, setSelectedType] = useState<ProductType | null>(null);
+ * const { data: models, isLoading, error } = useProductModelsByType(selectedType);
+ *
+ * if (isLoading) return <div>Loading models...</div>;
+ * if (error) return <div>Error: {error.message}</div>;
+ * if (models) {
+ *   return (
+ *     <Select
+ *       options={models.map(m => ({ value: m.id, label: m.name }))}
+ *       disabled={!selectedType || isLoading}
+ *     />
+ *   );
+ * }
+ * ```
+ */
+export const useProductModelsByType = (
+    type: ProductType | null
+): {
+    data: ProductModel[] | undefined;
+    isLoading: boolean;
+    error: Error | null;
+} => {
+    return useQuery<ProductModel[], Error>({
+        queryKey: type ? queryKeys.products.modelsByType(type) : ["products", "models", "disabled"],
+        queryFn: () => listProductModelsByType(productRepositorySupabase, type!),
+        staleTime: REFERENCE_STALE_TIME,
+        enabled: type !== null, // Only fetch if type is provided
+    });
+};
+
+/**
+ * Hook to fetch product coloris (color variations) for a specific product model.
+ *
+ * Uses `listProductColorisByModel` usecase to retrieve coloris from the repository.
+ * Data is cached for 10 minutes to reduce unnecessary refetches.
+ * Only fetches when a valid modelId is provided (conditional fetching).
+ *
+ * This hook is used in cascading dropdowns where users first select a product type,
+ * then a model, then a coloris for that model.
+ *
+ * @param {ProductModelId | null} modelId - Product model ID to filter coloris by. If null, hook is disabled and won't fetch.
+ * @returns React Query result with `data` (array of product coloris), `isLoading`, and `error`
+ *
+ * @example
+ * ```typescript
+ * const [selectedModelId, setSelectedModelId] = useState<ProductModelId | null>(null);
+ * const { data: coloris, isLoading, error } = useProductColorisByModel(selectedModelId);
+ *
+ * if (isLoading) return <div>Loading coloris...</div>;
+ * if (error) return <div>Error: {error.message}</div>;
+ * if (coloris) {
+ *   return (
+ *     <Select
+ *       options={coloris.map(c => ({ value: c.id, label: c.coloris }))}
+ *       disabled={!selectedModelId || isLoading}
+ *     />
+ *   );
+ * }
+ * ```
+ */
+export const useProductColorisByModel = (
+    modelId: ProductModelId | null
+): {
+    data: ProductColoris[] | undefined;
+    isLoading: boolean;
+    error: Error | null;
+} => {
+    return useQuery<ProductColoris[], Error>({
+        queryKey: modelId
+            ? queryKeys.products.colorisByModel(modelId)
+            : ["products", "coloris", "disabled"],
+        queryFn: () => listProductColorisByModel(productRepositorySupabase, modelId!),
+        staleTime: REFERENCE_STALE_TIME,
+        enabled: modelId !== null, // Only fetch if modelId is provided
     });
 };
 

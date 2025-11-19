@@ -21,5 +21,9 @@ export {
     isValidQuantityForSource,
     isValidActivityType,
     isValidStockMovementSource,
+    isValidProductModel,
+    isValidProductColoris,
+    isValidProductModelForType,
+    isValidProductColorisForModel,
 } from "@/core/domain/validation";
 

@@ -18,10 +18,22 @@ import {
     createProduct,
     updateProduct,
     getProductById,
+    listProductModelsByType,
+    listProductColorisByModel,
+    getProductModel,
+    getProductColoris,
 } from "@/core/usecases/product";
-import { createMockProduct } from "../../../__mocks__/core/domain/product";
+import {
+    createMockProduct,
+    createMockProductModel,
+    createMockProductColoris,
+} from "../../../__mocks__/core/domain/product";
 import { createMockProductRepository } from "../../../__mocks__/core/ports/productRepository";
-import type { ProductId } from "@/core/domain/product";
+import type {
+    ProductId,
+    ProductModelId,
+    ProductColorisId,
+} from "@/core/domain/product";
 import { ProductType } from "@/core/domain/product";
 
 describe("Product Usecases", () => {
@@ -539,6 +551,146 @@ describe("Product Usecases", () => {
                     "Product validation failed"
                 );
                 expect(mockRepo.create).not.toHaveBeenCalled();
+            });
+        });
+
+        describe("model/coloris validation (new structure)", () => {
+            const charlieModelId = "660e8400-e29b-41d4-a716-446655440001" as ProductModelId;
+            const assumeeModelId = "770e8400-e29b-41d4-a716-446655440003" as ProductModelId;
+            const roseColorisId = "770e8400-e29b-41d4-a716-446655440002" as ProductColorisId;
+            const pruneColorisId = "880e8400-e29b-41d4-a716-446655440004" as ProductColorisId;
+
+            it("should create product with valid model/coloris combination", async () => {
+                // Arrange
+                const productData = {
+                    modelId: charlieModelId,
+                    colorisId: roseColorisId,
+                    unitCost: 10.5,
+                    salePrice: 19.99,
+                    stock: 100,
+                };
+                const coloris = createMockProductColoris({
+                    id: roseColorisId,
+                    modelId: charlieModelId,
+                    coloris: "Rose Marsala",
+                });
+                const createdProduct = createMockProduct({
+                    ...productData,
+                    id: "created-id" as ProductId,
+                });
+                mockRepo.getColorisById.mockResolvedValue(coloris);
+                mockRepo.create.mockResolvedValue(createdProduct);
+
+                // Act
+                const result = await createProduct(mockRepo, productData);
+
+                // Assert
+                expect(mockRepo.getColorisById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.getColorisById).toHaveBeenCalledWith(roseColorisId);
+                expect(mockRepo.create).toHaveBeenCalledTimes(1);
+                expect(mockRepo.create).toHaveBeenCalledWith(productData);
+                expect(result).toEqual(createdProduct);
+            });
+
+            it("should throw error when coloris does not belong to model", async () => {
+                // Arrange
+                const productData = {
+                    modelId: charlieModelId,
+                    colorisId: pruneColorisId, // This coloris belongs to a different model
+                    unitCost: 10.5,
+                    salePrice: 19.99,
+                    stock: 100,
+                };
+                const coloris = createMockProductColoris({
+                    id: pruneColorisId,
+                    modelId: assumeeModelId, // Different model!
+                    coloris: "Prune",
+                });
+                mockRepo.getColorisById.mockResolvedValue(coloris);
+
+                // Act & Assert
+                await expect(createProduct(mockRepo, productData)).rejects.toThrow(
+                    `Coloris ${pruneColorisId} does not belong to model ${charlieModelId}`
+                );
+                expect(mockRepo.getColorisById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.create).not.toHaveBeenCalled();
+            });
+
+            it("should throw error when coloris is not found", async () => {
+                // Arrange
+                const productData = {
+                    modelId: charlieModelId,
+                    colorisId: roseColorisId,
+                    unitCost: 10.5,
+                    salePrice: 19.99,
+                    stock: 100,
+                };
+                mockRepo.getColorisById.mockResolvedValue(null);
+
+                // Act & Assert
+                await expect(createProduct(mockRepo, productData)).rejects.toThrow(
+                    `Coloris with id ${roseColorisId} not found`
+                );
+                expect(mockRepo.getColorisById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.create).not.toHaveBeenCalled();
+            });
+
+            it("should throw error when modelId is missing", async () => {
+                // Arrange
+                const productData = {
+                    colorisId: roseColorisId, // modelId is missing
+                    unitCost: 10.5,
+                    salePrice: 19.99,
+                    stock: 100,
+                };
+
+                // Act & Assert
+                await expect(createProduct(mockRepo, productData)).rejects.toThrow(
+                    "modelId is required when using new structure"
+                );
+                expect(mockRepo.create).not.toHaveBeenCalled();
+            });
+
+            it("should throw error when colorisId is missing", async () => {
+                // Arrange
+                const productData = {
+                    modelId: charlieModelId, // colorisId is missing
+                    unitCost: 10.5,
+                    salePrice: 19.99,
+                    stock: 100,
+                };
+
+                // Act & Assert
+                await expect(createProduct(mockRepo, productData)).rejects.toThrow(
+                    "colorisId is required when using new structure"
+                );
+                expect(mockRepo.create).not.toHaveBeenCalled();
+            });
+
+            it("should allow old structure (name, type, coloris) for backward compatibility", async () => {
+                // Arrange
+                const productData = {
+                    name: "Sac banane L'Assumée",
+                    type: ProductType.SAC_BANANE,
+                    coloris: "Rose pâle à motifs",
+                    unitCost: 10.5,
+                    salePrice: 19.99,
+                    stock: 100,
+                    // No modelId/colorisId (old structure)
+                };
+                const createdProduct = createMockProduct({
+                    ...productData,
+                    id: "created-id" as ProductId,
+                });
+                mockRepo.create.mockResolvedValue(createdProduct);
+
+                // Act
+                const result = await createProduct(mockRepo, productData);
+
+                // Assert
+                expect(mockRepo.getColorisById).not.toHaveBeenCalled();
+                expect(mockRepo.create).toHaveBeenCalledTimes(1);
+                expect(result).toEqual(createdProduct);
             });
         });
 
@@ -1066,6 +1218,277 @@ describe("Product Usecases", () => {
             });
         });
 
+        describe("model/coloris validation (new structure)", () => {
+            const charlieModelId = "660e8400-e29b-41d4-a716-446655440001" as ProductModelId;
+            const assumeeModelId = "770e8400-e29b-41d4-a716-446655440003" as ProductModelId;
+            const roseColorisId = "770e8400-e29b-41d4-a716-446655440002" as ProductColorisId;
+            const pruneColorisId = "880e8400-e29b-41d4-a716-446655440004" as ProductColorisId;
+
+            it("should update product with valid model/coloris combination", async () => {
+                // Arrange
+                const existingProduct = createMockProduct({
+                    id: productId,
+                    modelId: charlieModelId,
+                    colorisId: roseColorisId,
+                });
+                const updates = {
+                    modelId: assumeeModelId,
+                    colorisId: pruneColorisId,
+                };
+                const model = createMockProductModel({
+                    id: assumeeModelId,
+                    type: ProductType.SAC_BANANE,
+                    name: "Assumée",
+                });
+                const coloris = createMockProductColoris({
+                    id: pruneColorisId,
+                    modelId: assumeeModelId,
+                    coloris: "Prune",
+                });
+                const updatedProduct = createMockProduct({
+                    ...existingProduct,
+                    ...updates,
+                });
+                mockRepo.getById.mockResolvedValue(existingProduct);
+                mockRepo.getModelById.mockResolvedValue(model);
+                mockRepo.getColorisById.mockResolvedValue(coloris);
+                mockRepo.update.mockResolvedValue(updatedProduct);
+
+                // Act
+                const result = await updateProduct(mockRepo, productId, updates);
+
+                // Assert
+                expect(mockRepo.getModelById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.getModelById).toHaveBeenCalledWith(assumeeModelId);
+                expect(mockRepo.getColorisById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.getColorisById).toHaveBeenCalledWith(pruneColorisId);
+                expect(mockRepo.update).toHaveBeenCalledTimes(1);
+                expect(result).toEqual(updatedProduct);
+            });
+
+            it("should validate coloris belongs to existing model on colorisId only update", async () => {
+                // Arrange
+                const existingProduct = createMockProduct({
+                    id: productId,
+                    modelId: charlieModelId,
+                    colorisId: roseColorisId,
+                });
+                const updates = {
+                    colorisId: pruneColorisId,
+                };
+                // pruneColorisId belongs to charlieModelId
+                const coloris = createMockProductColoris({
+                    id: pruneColorisId,
+                    modelId: charlieModelId, // Same model as existing
+                    coloris: "Prune",
+                });
+                const updatedProduct = createMockProduct({
+                    ...existingProduct,
+                    ...updates,
+                });
+                mockRepo.getById.mockResolvedValue(existingProduct);
+                mockRepo.getColorisById.mockResolvedValue(coloris);
+                mockRepo.update.mockResolvedValue(updatedProduct);
+
+                // Act
+                const result = await updateProduct(mockRepo, productId, updates);
+
+                // Assert
+                expect(mockRepo.getModelById).not.toHaveBeenCalled();
+                expect(mockRepo.getColorisById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.getColorisById).toHaveBeenCalledWith(pruneColorisId);
+                expect(mockRepo.update).toHaveBeenCalledTimes(1);
+                expect(result).toEqual(updatedProduct);
+            });
+
+            it("should validate coloris belongs to new model on modelId update", async () => {
+                // Arrange
+                const existingProduct = createMockProduct({
+                    id: productId,
+                    modelId: charlieModelId,
+                    colorisId: roseColorisId,
+                });
+                const updates = {
+                    modelId: assumeeModelId,
+                };
+                const model = createMockProductModel({
+                    id: assumeeModelId,
+                    type: ProductType.SAC_BANANE,
+                    name: "Assumée",
+                });
+                const updatedProduct = createMockProduct({
+                    ...existingProduct,
+                    ...updates,
+                });
+                mockRepo.getById.mockResolvedValue(existingProduct);
+                mockRepo.getModelById.mockResolvedValue(model);
+                mockRepo.update.mockResolvedValue(updatedProduct);
+
+                // Act
+                const result = await updateProduct(mockRepo, productId, updates);
+
+                // Assert
+                expect(mockRepo.getModelById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.getModelById).toHaveBeenCalledWith(assumeeModelId);
+                expect(mockRepo.getColorisById).not.toHaveBeenCalled();
+                expect(mockRepo.update).toHaveBeenCalledTimes(1);
+                expect(result).toEqual(updatedProduct);
+            });
+
+            it("should throw error when coloris does not belong to model", async () => {
+                // Arrange
+                const existingProduct = createMockProduct({
+                    id: productId,
+                    modelId: charlieModelId,
+                    colorisId: roseColorisId,
+                });
+                const updates = {
+                    modelId: assumeeModelId,
+                    colorisId: roseColorisId, // This coloris belongs to charlieModelId, not assumeeModelId
+                };
+                const model = createMockProductModel({
+                    id: assumeeModelId,
+                    type: ProductType.SAC_BANANE,
+                    name: "Assumée",
+                });
+                const coloris = createMockProductColoris({
+                    id: roseColorisId,
+                    modelId: charlieModelId, // Different model!
+                    coloris: "Rose Marsala",
+                });
+                mockRepo.getById.mockResolvedValue(existingProduct);
+                mockRepo.getModelById.mockResolvedValue(model);
+                mockRepo.getColorisById.mockResolvedValue(coloris);
+
+                // Act & Assert
+                await expect(updateProduct(mockRepo, productId, updates)).rejects.toThrow(
+                    `Coloris ${roseColorisId} does not belong to model ${assumeeModelId}`
+                );
+                expect(mockRepo.getColorisById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.update).not.toHaveBeenCalled();
+            });
+
+            it("should throw error when coloris does not belong to existing model", async () => {
+                // Arrange
+                const existingProduct = createMockProduct({
+                    id: productId,
+                    modelId: charlieModelId,
+                    colorisId: roseColorisId,
+                });
+                const updates = {
+                    colorisId: pruneColorisId, // This coloris belongs to assumeeModelId, not charlieModelId
+                };
+                const coloris = createMockProductColoris({
+                    id: pruneColorisId,
+                    modelId: assumeeModelId, // Different model!
+                    coloris: "Prune",
+                });
+                mockRepo.getById.mockResolvedValue(existingProduct);
+                mockRepo.getColorisById.mockResolvedValue(coloris);
+
+                // Act & Assert
+                await expect(updateProduct(mockRepo, productId, updates)).rejects.toThrow(
+                    `Coloris ${pruneColorisId} does not belong to model ${charlieModelId}`
+                );
+                expect(mockRepo.getColorisById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.update).not.toHaveBeenCalled();
+            });
+
+            it("should throw error when model is not found", async () => {
+                // Arrange
+                const existingProduct = createMockProduct({
+                    id: productId,
+                    modelId: charlieModelId,
+                });
+                const updates = {
+                    modelId: assumeeModelId,
+                };
+                mockRepo.getById.mockResolvedValue(existingProduct);
+                mockRepo.getModelById.mockResolvedValue(null);
+
+                // Act & Assert
+                await expect(updateProduct(mockRepo, productId, updates)).rejects.toThrow(
+                    `Model with id ${assumeeModelId} not found`
+                );
+                expect(mockRepo.getModelById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.update).not.toHaveBeenCalled();
+            });
+
+            it("should throw error when coloris is not found", async () => {
+                // Arrange
+                const existingProduct = createMockProduct({
+                    id: productId,
+                    modelId: charlieModelId,
+                });
+                const updates = {
+                    colorisId: roseColorisId,
+                };
+                mockRepo.getById.mockResolvedValue(existingProduct);
+                mockRepo.getColorisById.mockResolvedValue(null);
+
+                // Act & Assert
+                await expect(updateProduct(mockRepo, productId, updates)).rejects.toThrow(
+                    `Coloris with id ${roseColorisId} not found`
+                );
+                expect(mockRepo.getColorisById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.update).not.toHaveBeenCalled();
+            });
+
+            it("should throw error when updating colorisId but product has no modelId", async () => {
+                // Arrange
+                const existingProduct = createMockProduct({
+                    id: productId,
+                    // No modelId (old structure)
+                    name: "Sac banane L'Assumée",
+                    type: ProductType.SAC_BANANE,
+                    coloris: "Rose pâle à motifs",
+                });
+                const updates = {
+                    colorisId: roseColorisId,
+                };
+                mockRepo.getById.mockResolvedValue(existingProduct);
+
+                // Act & Assert
+                await expect(updateProduct(mockRepo, productId, updates)).rejects.toThrow(
+                    "Cannot update colorisId: product has no modelId. Please set modelId first."
+                );
+                expect(mockRepo.update).not.toHaveBeenCalled();
+            });
+
+            it("should allow partial update with only modelId (no colorisId update)", async () => {
+                // Arrange
+                const existingProduct = createMockProduct({
+                    id: productId,
+                    modelId: charlieModelId,
+                    colorisId: roseColorisId,
+                });
+                const updates = {
+                    modelId: assumeeModelId,
+                };
+                const model = createMockProductModel({
+                    id: assumeeModelId,
+                    type: ProductType.SAC_BANANE,
+                    name: "Assumée",
+                });
+                const updatedProduct = createMockProduct({
+                    ...existingProduct,
+                    ...updates,
+                });
+                mockRepo.getById.mockResolvedValue(existingProduct);
+                mockRepo.getModelById.mockResolvedValue(model);
+                mockRepo.update.mockResolvedValue(updatedProduct);
+
+                // Act
+                const result = await updateProduct(mockRepo, productId, updates);
+
+                // Assert
+                expect(mockRepo.getModelById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.getColorisById).not.toHaveBeenCalled();
+                expect(mockRepo.update).toHaveBeenCalledTimes(1);
+                expect(result).toEqual(updatedProduct);
+            });
+        });
+
         describe("repository errors", () => {
             it("should propagate repository errors", async () => {
                 // Arrange
@@ -1118,6 +1541,323 @@ describe("Product Usecases", () => {
                 ).rejects.toThrow("Database connection failed");
                 expect(mockRepo.getById).toHaveBeenCalledTimes(1);
                 expect(mockRepo.update).not.toHaveBeenCalled();
+            });
+        });
+    });
+
+    describe("listProductModelsByType", () => {
+        const charlieModelId = "660e8400-e29b-41d4-a716-446655440001" as ProductModelId;
+        const assumeeModelId = "770e8400-e29b-41d4-a716-446655440002" as ProductModelId;
+
+        describe("successful fetch", () => {
+            it("should return models for the specified type", async () => {
+                // Arrange
+                const models = [
+                    createMockProductModel({
+                        id: charlieModelId,
+                        type: ProductType.POCHETTE_VOLANTS,
+                        name: "Charlie",
+                    }),
+                    createMockProductModel({
+                        id: assumeeModelId,
+                        type: ProductType.POCHETTE_VOLANTS,
+                        name: "Espiègle",
+                    }),
+                ];
+                mockRepo.listModelsByType.mockResolvedValue(models);
+
+                // Act
+                const result = await listProductModelsByType(
+                    mockRepo,
+                    ProductType.POCHETTE_VOLANTS
+                );
+
+                // Assert
+                expect(mockRepo.listModelsByType).toHaveBeenCalledTimes(1);
+                expect(mockRepo.listModelsByType).toHaveBeenCalledWith(
+                    ProductType.POCHETTE_VOLANTS
+                );
+                expect(result).toEqual(models);
+                expect(result).toHaveLength(2);
+            });
+
+            it("should return empty array when no models exist for type", async () => {
+                // Arrange
+                mockRepo.listModelsByType.mockResolvedValue([]);
+
+                // Act
+                const result = await listProductModelsByType(
+                    mockRepo,
+                    ProductType.TROUSSE_TOILETTE
+                );
+
+                // Assert
+                expect(mockRepo.listModelsByType).toHaveBeenCalledTimes(1);
+                expect(mockRepo.listModelsByType).toHaveBeenCalledWith(
+                    ProductType.TROUSSE_TOILETTE
+                );
+                expect(result).toEqual([]);
+                expect(result).toHaveLength(0);
+            });
+
+            it("should return models in repository order", async () => {
+                // Arrange
+                const models = [
+                    createMockProductModel({
+                        id: charlieModelId,
+                        type: ProductType.SAC_BANANE,
+                        name: "Assumée",
+                    }),
+                ];
+                mockRepo.listModelsByType.mockResolvedValue(models);
+
+                // Act
+                const result = await listProductModelsByType(
+                    mockRepo,
+                    ProductType.SAC_BANANE
+                );
+
+                // Assert
+                expect(result).toEqual(models);
+                expect(result[0].name).toBe("Assumée");
+            });
+        });
+
+        describe("repository errors", () => {
+            it("should propagate repository errors", async () => {
+                // Arrange
+                const error = new Error("Database connection failed");
+                mockRepo.listModelsByType.mockRejectedValue(error);
+
+                // Act & Assert
+                await expect(
+                    listProductModelsByType(mockRepo, ProductType.POCHETTE_VOLANTS)
+                ).rejects.toThrow("Database connection failed");
+                expect(mockRepo.listModelsByType).toHaveBeenCalledTimes(1);
+            });
+        });
+    });
+
+    describe("listProductColorisByModel", () => {
+        const charlieModelId = "660e8400-e29b-41d4-a716-446655440001" as ProductModelId;
+        const roseColorisId = "770e8400-e29b-41d4-a716-446655440002" as ProductColorisId;
+        const pruneColorisId = "880e8400-e29b-41d4-a716-446655440003" as ProductColorisId;
+
+        describe("successful fetch", () => {
+            it("should return coloris for the specified model", async () => {
+                // Arrange
+                const coloris = [
+                    createMockProductColoris({
+                        id: roseColorisId,
+                        modelId: charlieModelId,
+                        coloris: "Rose Marsala",
+                    }),
+                    createMockProductColoris({
+                        id: pruneColorisId,
+                        modelId: charlieModelId,
+                        coloris: "Prune",
+                    }),
+                ];
+                mockRepo.listColorisByModel.mockResolvedValue(coloris);
+
+                // Act
+                const result = await listProductColorisByModel(mockRepo, charlieModelId);
+
+                // Assert
+                expect(mockRepo.listColorisByModel).toHaveBeenCalledTimes(1);
+                expect(mockRepo.listColorisByModel).toHaveBeenCalledWith(charlieModelId);
+                expect(result).toEqual(coloris);
+                expect(result).toHaveLength(2);
+            });
+
+            it("should return empty array when no coloris exist for model", async () => {
+                // Arrange
+                mockRepo.listColorisByModel.mockResolvedValue([]);
+
+                // Act
+                const result = await listProductColorisByModel(mockRepo, charlieModelId);
+
+                // Assert
+                expect(mockRepo.listColorisByModel).toHaveBeenCalledTimes(1);
+                expect(mockRepo.listColorisByModel).toHaveBeenCalledWith(charlieModelId);
+                expect(result).toEqual([]);
+                expect(result).toHaveLength(0);
+            });
+
+            it("should return coloris in repository order", async () => {
+                // Arrange
+                const coloris = [
+                    createMockProductColoris({
+                        id: roseColorisId,
+                        modelId: charlieModelId,
+                        coloris: "Rose pâle à motifs",
+                    }),
+                ];
+                mockRepo.listColorisByModel.mockResolvedValue(coloris);
+
+                // Act
+                const result = await listProductColorisByModel(mockRepo, charlieModelId);
+
+                // Assert
+                expect(result).toEqual(coloris);
+                expect(result[0].coloris).toBe("Rose pâle à motifs");
+            });
+        });
+
+        describe("repository errors", () => {
+            it("should propagate repository errors", async () => {
+                // Arrange
+                const error = new Error("Database connection failed");
+                mockRepo.listColorisByModel.mockRejectedValue(error);
+
+                // Act & Assert
+                await expect(
+                    listProductColorisByModel(mockRepo, charlieModelId)
+                ).rejects.toThrow("Database connection failed");
+                expect(mockRepo.listColorisByModel).toHaveBeenCalledTimes(1);
+            });
+        });
+    });
+
+    describe("getProductModel", () => {
+        const charlieModelId = "660e8400-e29b-41d4-a716-446655440001" as ProductModelId;
+
+        describe("found", () => {
+            it("should return model when found", async () => {
+                // Arrange
+                const model = createMockProductModel({
+                    id: charlieModelId,
+                    type: ProductType.POCHETTE_VOLANTS,
+                    name: "Charlie",
+                });
+                mockRepo.getModelById.mockResolvedValue(model);
+
+                // Act
+                const result = await getProductModel(mockRepo, charlieModelId);
+
+                // Assert
+                expect(mockRepo.getModelById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.getModelById).toHaveBeenCalledWith(charlieModelId);
+                expect(result).toEqual(model);
+            });
+
+            it("should return model with all fields", async () => {
+                // Arrange
+                const model = createMockProductModel({
+                    id: charlieModelId,
+                    type: ProductType.SAC_BANANE,
+                    name: "Assumée",
+                });
+                mockRepo.getModelById.mockResolvedValue(model);
+
+                // Act
+                const result = await getProductModel(mockRepo, charlieModelId);
+
+                // Assert
+                expect(result?.id).toBe(charlieModelId);
+                expect(result?.type).toBe(ProductType.SAC_BANANE);
+                expect(result?.name).toBe("Assumée");
+            });
+        });
+
+        describe("not found", () => {
+            it("should return null when model does not exist", async () => {
+                // Arrange
+                mockRepo.getModelById.mockResolvedValue(null);
+
+                // Act
+                const result = await getProductModel(mockRepo, charlieModelId);
+
+                // Assert
+                expect(mockRepo.getModelById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.getModelById).toHaveBeenCalledWith(charlieModelId);
+                expect(result).toBeNull();
+            });
+        });
+
+        describe("repository errors", () => {
+            it("should propagate repository errors", async () => {
+                // Arrange
+                const error = new Error("Database connection failed");
+                mockRepo.getModelById.mockRejectedValue(error);
+
+                // Act & Assert
+                await expect(getProductModel(mockRepo, charlieModelId)).rejects.toThrow(
+                    "Database connection failed"
+                );
+                expect(mockRepo.getModelById).toHaveBeenCalledTimes(1);
+            });
+        });
+    });
+
+    describe("getProductColoris", () => {
+        const roseColorisId = "770e8400-e29b-41d4-a716-446655440002" as ProductColorisId;
+        const charlieModelId = "660e8400-e29b-41d4-a716-446655440001" as ProductModelId;
+
+        describe("found", () => {
+            it("should return coloris when found", async () => {
+                // Arrange
+                const coloris = createMockProductColoris({
+                    id: roseColorisId,
+                    modelId: charlieModelId,
+                    coloris: "Rose Marsala",
+                });
+                mockRepo.getColorisById.mockResolvedValue(coloris);
+
+                // Act
+                const result = await getProductColoris(mockRepo, roseColorisId);
+
+                // Assert
+                expect(mockRepo.getColorisById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.getColorisById).toHaveBeenCalledWith(roseColorisId);
+                expect(result).toEqual(coloris);
+            });
+
+            it("should return coloris with all fields", async () => {
+                // Arrange
+                const coloris = createMockProductColoris({
+                    id: roseColorisId,
+                    modelId: charlieModelId,
+                    coloris: "Prune",
+                });
+                mockRepo.getColorisById.mockResolvedValue(coloris);
+
+                // Act
+                const result = await getProductColoris(mockRepo, roseColorisId);
+
+                // Assert
+                expect(result?.id).toBe(roseColorisId);
+                expect(result?.modelId).toBe(charlieModelId);
+                expect(result?.coloris).toBe("Prune");
+            });
+        });
+
+        describe("not found", () => {
+            it("should return null when coloris does not exist", async () => {
+                // Arrange
+                mockRepo.getColorisById.mockResolvedValue(null);
+
+                // Act
+                const result = await getProductColoris(mockRepo, roseColorisId);
+
+                // Assert
+                expect(mockRepo.getColorisById).toHaveBeenCalledTimes(1);
+                expect(mockRepo.getColorisById).toHaveBeenCalledWith(roseColorisId);
+                expect(result).toBeNull();
+            });
+        });
+
+        describe("repository errors", () => {
+            it("should propagate repository errors", async () => {
+                // Arrange
+                const error = new Error("Database connection failed");
+                mockRepo.getColorisById.mockRejectedValue(error);
+
+                // Act & Assert
+                await expect(getProductColoris(mockRepo, roseColorisId)).rejects.toThrow(
+                    "Database connection failed"
+                );
+                expect(mockRepo.getColorisById).toHaveBeenCalledTimes(1);
             });
         });
     });

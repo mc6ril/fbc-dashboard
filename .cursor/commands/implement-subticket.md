@@ -53,6 +53,7 @@ This command implements a sub-ticket from a planning document using the **Archit
 2. **Implement following Architecture-Aware Dev playbooks**:
    - Follow Clean Architecture principles
    - Implement all Acceptance Criteria
+   - Verify Product Reference Tables compliance (if product-related): reference tables used, cascading filters implemented, validation in place
    - Run TypeScript compilation check
    - Fix linting errors
    - Run tests (if applicable)
@@ -95,6 +96,7 @@ Before marking DoD as complete, verify:
 - [ ] All tests pass (if applicable)
 - [ ] No linting errors
 - [ ] Code follows Clean Architecture principles
+- [ ] Product Reference Tables compliance verified (if product-related): reference tables used, cascading filters implemented, validation in place, product_models.type uses product_type enum, products.coloris removed, products.weight is INT4
 - [ ] JSDoc documentation updated (if applicable)
 - [ ] Migration files created and tested (if applicable)
 
