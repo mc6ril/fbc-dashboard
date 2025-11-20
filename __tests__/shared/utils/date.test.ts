@@ -325,6 +325,68 @@ describe("Date Utilities", () => {
             expect(result1).toBe(result2);
             expect(result2).toBe(result3);
         });
+
+        it("should handle date-only format (YYYY-MM-DD) and parse in local timezone", () => {
+            // Arrange - date-only format used by PeriodStatistics.period for DAILY period
+            const dateOnly = "2025-01-27";
+
+            // Act
+            const result = formatDate(dateOnly);
+
+            // Assert
+            // Should format correctly regardless of timezone
+            // The date should be parsed in local timezone, not UTC
+            expect(result).toMatch(/^27\sjanv\.\s2025$/);
+        });
+
+        it("should parse date-only format correctly to avoid timezone bugs", () => {
+            // This test verifies that date-only strings are parsed in local timezone
+            // If parsed as UTC, "2025-01-27" would be interpreted as UTC midnight,
+            // which could be the previous day in some timezones (e.g., UTC+1)
+            
+            // Arrange
+            const dateOnly = "2025-01-27";
+
+            // Act
+            const result = formatDate(dateOnly);
+
+            // Assert
+            // Should always show January 27, not January 26 (which would happen if parsed as UTC in UTC+ timezones)
+            expect(result).toMatch(/^27\sjanv\.\s2025$/);
+        });
+
+        it("should handle both ISO 8601 and date-only formats correctly", () => {
+            // Arrange
+            const isoDate = "2025-01-27T14:30:00.000Z";
+            const dateOnly = "2025-01-27";
+
+            // Act
+            const isoResult = formatDate(isoDate);
+            const dateOnlyResult = formatDate(dateOnly);
+
+            // Assert
+            // Both should format to the same day/month/year (formatting may differ slightly based on timezone)
+            // But both should contain the same date components
+            expect(isoResult).toMatch(/janv\.\s2025$/);
+            expect(dateOnlyResult).toMatch(/janv\.\s2025$/);
+            // Both should show day 27
+            expect(isoResult).toMatch(/^27\s/);
+            expect(dateOnlyResult).toMatch(/^27\s/);
+        });
+
+        it("should handle date-only format for different dates", () => {
+            // Test various dates to ensure date-only parsing works correctly
+            const testCases = [
+                { input: "2025-01-01", expectedDay: "1" },
+                { input: "2025-01-15", expectedDay: "15" },
+                { input: "2025-12-31", expectedDay: "31" },
+            ];
+
+            testCases.forEach(({ input, expectedDay }) => {
+                const result = formatDate(input);
+                expect(result).toMatch(new RegExp(`^${expectedDay}\\s`));
+            });
+        });
     });
 });
 

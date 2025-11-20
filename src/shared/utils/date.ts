@@ -78,26 +78,99 @@ export const getCurrentMonthEnd = (): string => {
 };
 
 /**
- * Formats an ISO 8601 date string to a readable format.
+ * Formats a date string to a readable format.
  *
+ * Handles both ISO 8601 format (with time) and date-only format (YYYY-MM-DD).
  * Uses French locale formatting with abbreviated month names.
  * Format: "day month year" (e.g., "27 janv. 2025").
  *
- * @param {string} dateString - ISO 8601 date string
+ * For date-only strings (YYYY-MM-DD), the date is parsed in local timezone
+ * to avoid timezone-dependent bugs. For ISO 8601 strings, the date is parsed
+ * as provided (may include timezone information).
+ *
+ * @param {string} dateString - Date string in ISO 8601 format (e.g., "2025-01-27T14:30:00.000Z") or date-only format (e.g., "2025-01-27")
  * @returns {string} Formatted date string (e.g., "27 janv. 2025")
  *
  * @example
  * ```typescript
  * formatDate("2025-01-27T14:30:00.000Z");
  * // Returns: "27 janv. 2025"
+ *
+ * formatDate("2025-01-27");
+ * // Returns: "27 janv. 2025" (parsed in local timezone)
  * ```
  */
 export const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
+    // Check if the string is date-only format (YYYY-MM-DD)
+    // This format is used by PeriodStatistics.period for DAILY period
+    const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/;
+    
+    let date: Date;
+    if (dateOnlyPattern.test(dateString)) {
+        // Parse date-only string in local timezone to avoid UTC interpretation
+        // This prevents timezone-dependent bugs (e.g., "2025-01-27" interpreted as UTC midnight
+        // which could be the previous day in some timezones)
+        const [year, month, day] = dateString.split("-").map(Number);
+        date = new Date(year, month - 1, day);
+    } else {
+        // Parse ISO 8601 format (with time) as provided
+        date = new Date(dateString);
+    }
+    
     return new Intl.DateTimeFormat("fr-FR", {
         day: "numeric",
         month: "short",
         year: "numeric",
     }).format(date);
+};
+
+/**
+ * Formats a month string (YYYY-MM) to a readable format.
+ *
+ * Uses French locale formatting with abbreviated month names.
+ * Format: "month year" (e.g., "janv. 2025").
+ *
+ * @param {string} monthString - Month string in YYYY-MM format (e.g., "2025-01")
+ * @returns {string} Formatted month string (e.g., "janv. 2025")
+ *
+ * @example
+ * ```typescript
+ * formatMonth("2025-01");
+ * // Returns: "janv. 2025"
+ *
+ * formatMonth("2025-12");
+ * // Returns: "déc. 2025"
+ * ```
+ */
+export const formatMonth = (monthString: string): string => {
+    const [year, monthNum] = monthString.split("-");
+    const date = new Date(parseInt(year, 10), parseInt(monthNum, 10) - 1, 1);
+    return new Intl.DateTimeFormat("fr-FR", {
+        month: "short",
+        year: "numeric",
+    }).format(date);
+};
+
+/**
+ * Formats a date string (YYYY-MM-DD) to a short format for chart labels.
+ *
+ * Returns a compact format suitable for X-axis labels in charts.
+ * Format: "DD/MM" (e.g., "27/01").
+ *
+ * @param {string} dateString - Date string in YYYY-MM-DD format (e.g., "2025-01-27")
+ * @returns {string} Formatted date string (e.g., "27/01")
+ *
+ * @example
+ * ```typescript
+ * formatDateShort("2025-01-27");
+ * // Returns: "27/01"
+ *
+ * formatDateShort("2025-12-31");
+ * // Returns: "31/12"
+ * ```
+ */
+export const formatDateShort = (dateString: string): string => {
+    const [, month, day] = dateString.split("-");
+    return `${day}/${month}`;
 };
 
