@@ -2,10 +2,10 @@
 Generated: 2025-01-27 21:30:00
 Report Type: planning
 Command: pm-plan-from-ticket
-Ticket: FBC-30
+Ticket: FBC-26
 ---
 
-# Implementation Plan: Product Reference Tables (FBC-30)
+# Implementation Plan: Product Reference Tables (FBC-26)
 
 ## Summary
 
@@ -115,7 +115,7 @@ Supabase: product_coloris WHERE model_id = ...
 
 ## Sub-Tickets
 
-### Sub-Ticket 30.1
+### Sub-Ticket 26.1
 
 **Title:** Create database migration for product reference tables
 
@@ -181,7 +181,7 @@ Database schema must be created first before any code changes can be implemented
 
 ---
 
-### Sub-Ticket 30.2
+### Sub-Ticket 26.2
 
 **Title:** Add ProductModel and ProductColoris domain types with validation
 
@@ -234,7 +234,7 @@ Domain layer must define the new entity types before other layers can use them. 
 
 ---
 
-### Sub-Ticket 30.3
+### Sub-Ticket 26.3
 
 **Title:** Add repository methods for querying reference tables (Ports)
 
@@ -268,7 +268,7 @@ Ports layer defines the contract for accessing reference data. This interface mu
 
 **Estimated Effort:** 1h
 
-**Dependencies:** Sub-Ticket 30.2 (domain types)
+**Dependencies:** Sub-Ticket 26.2 (domain types)
 
 **Owner:** Ports
 
@@ -279,7 +279,7 @@ Ports layer defines the contract for accessing reference data. This interface mu
 
 ---
 
-### Sub-Ticket 30.4
+### Sub-Ticket 26.4
 
 **Title:** Implement repository methods for reference tables (Infrastructure)
 
@@ -335,7 +335,7 @@ Infrastructure layer implements the port contract with Supabase queries. This en
 
 **Estimated Effort:** 4h
 
-**Dependencies:** Sub-Ticket 30.1 (migration), Sub-Ticket 30.2 (domain types), Sub-Ticket 30.3 (ports)
+**Dependencies:** Sub-Ticket 26.1 (migration), Sub-Ticket 26.2 (domain types), Sub-Ticket 26.3 (ports)
 
 **Owner:** Infrastructure
 
@@ -347,7 +347,7 @@ Infrastructure layer implements the port contract with Supabase queries. This en
 
 ---
 
-### Sub-Ticket 30.5
+### Sub-Ticket 26.5
 
 **Title:** Add usecases for reference tables and update product usecases
 
@@ -389,7 +389,7 @@ Usecases layer orchestrates business logic and validation. This adds usecases fo
 
 **Estimated Effort:** 3h
 
-**Dependencies:** Sub-Ticket 30.2 (domain types), Sub-Ticket 30.3 (ports), Sub-Ticket 30.4 (infrastructure)
+**Dependencies:** Sub-Ticket 26.2 (domain types), Sub-Ticket 26.3 (ports), Sub-Ticket 26.4 (infrastructure)
 
 **Owner:** Usecases
 
@@ -401,7 +401,7 @@ Usecases layer orchestrates business logic and validation. This adds usecases fo
 
 ---
 
-### Sub-Ticket 30.6
+### Sub-Ticket 26.6
 
 **Title:** Create React Query hooks for reference tables
 
@@ -435,7 +435,7 @@ Presentation layer needs hooks to fetch reference data for forms. These hooks en
 
 **Estimated Effort:** 2h
 
-**Dependencies:** Sub-Ticket 30.5 (usecases)
+**Dependencies:** Sub-Ticket 26.5 (usecases)
 
 **Owner:** Presentation
 
@@ -447,7 +447,7 @@ Presentation layer needs hooks to fetch reference data for forms. These hooks en
 
 ---
 
-### Sub-Ticket 30.7
+### Sub-Ticket 26.7
 
 **Title:** Update ProductForm with cascading Select dropdowns
 
@@ -498,7 +498,7 @@ User-facing form must use reference data for model and coloris selection. Cascad
 
 **Estimated Effort:** 4h
 
-**Dependencies:** Sub-Ticket 30.6 (hooks)
+**Dependencies:** Sub-Ticket 26.6 (hooks)
 
 **Owner:** Presentation
 
@@ -510,7 +510,7 @@ User-facing form must use reference data for model and coloris selection. Cascad
 
 ---
 
-### Sub-Ticket 30.8
+### Sub-Ticket 26.8
 
 **Title:** Update ProductsTable to display model name and coloris from joined data
 
@@ -536,7 +536,7 @@ Product table display must show model name and coloris from reference tables. Th
 
 **Estimated Effort:** 1h
 
-**Dependencies:** Sub-Ticket 30.4 (infrastructure - joins must work)
+**Dependencies:** Sub-Ticket 26.4 (infrastructure - joins must work)
 
 **Owner:** Presentation
 
@@ -547,7 +547,7 @@ Product table display must show model name and coloris from reference tables. Th
 
 ---
 
-### Sub-Ticket 30.9
+### Sub-Ticket 26.9
 
 **Title:** Add unit tests for domain validation functions
 
@@ -578,7 +578,7 @@ Domain validation functions must be thoroughly tested to ensure business rules a
 
 **Estimated Effort:** 2h
 
-**Dependencies:** Sub-Ticket 30.2 (domain types)
+**Dependencies:** Sub-Ticket 26.2 (domain types)
 
 **Owner:** Testing
 
@@ -589,7 +589,7 @@ Domain validation functions must be thoroughly tested to ensure business rules a
 
 ---
 
-### Sub-Ticket 30.10
+### Sub-Ticket 26.10
 
 **Title:** Add unit tests for reference table usecases
 
@@ -625,7 +625,7 @@ Usecases must be tested to ensure business logic and validation work correctly. 
 
 **Estimated Effort:** 3h
 
-**Dependencies:** Sub-Ticket 30.5 (usecases), Sub-Ticket 30.9 (domain validation tests)
+**Dependencies:** Sub-Ticket 26.5 (usecases), Sub-Ticket 26.9 (domain validation tests)
 
 **Owner:** Testing
 
@@ -782,7 +782,7 @@ Tests should be written **before** implementation (TDD approach). Test specs are
 ```
 @Unit Test Coach
 
-Generate unit test specs and scaffolds for FBC-30 (Product Reference Tables).
+Generate unit test specs and scaffolds for FBC-26 (Product Reference Tables).
 
 Focus on:
 1. Domain validation tests in `__tests__/core/domain/validation.test.ts`:
@@ -822,7 +822,7 @@ Generate test scaffolds following TDD approach (before implementation).
 ```
 @Architecture-Aware Dev
 
-Implement FBC-30 (Product Reference Tables) following Clean Architecture principles.
+Implement FBC-26 (Product Reference Tables) following Clean Architecture principles.
 
 Sub-ticket to implement: [Specify sub-ticket number: 30.2, 30.3, 30.4, 30.5, 30.6, 30.7, or 30.8]
 
@@ -835,12 +835,12 @@ Critical rules:
 6. **Reference tables rule:** MUST use reference tables pattern from architecture rules
 
 Reference:
-- Planning doc: `report/planning/plan-fbc-30-product-reference-tables.md`
+- Planning doc: `report/planning/plan-fbc-26-product-reference-tables.md`
 - Ticket: `jira/30.md`
 - Architecture rules: `.cursor/rules/architecture/product-reference-tables.mdc`
 - Existing code: Follow patterns in `src/core/`, `src/infrastructure/`, `src/presentation/`
 
-For sub-ticket 30.1 (database migration), follow existing migration patterns in `src/infrastructure/supabase/migrations/`.
+For sub-ticket 26.1 (database migration), follow existing migration patterns in `src/infrastructure/supabase/migrations/`.
 
 For sub-tickets 30.2-30.8, ensure:
 - TypeScript strict mode
@@ -858,7 +858,7 @@ Start with the specified sub-ticket. If dependencies are not met, stop and repor
 ```
 @UI Designer
 
-Update ProductForm component for FBC-30 (Product Reference Tables) with cascading Select dropdowns.
+Update ProductForm component for FBC-26 (Product Reference Tables) with cascading Select dropdowns.
 
 Requirements:
 1. **Replace Input fields with Select dropdowns:**
@@ -905,7 +905,7 @@ Ensure component follows patterns (arrow function, React.memo, useCallback for h
 ```
 @QA & Test Coach
 
-Create test plan for FBC-30 (Product Reference Tables) after implementation.
+Create test plan for FBC-26 (Product Reference Tables) after implementation.
 
 Test plan should cover:
 
@@ -942,7 +942,7 @@ Test plan should cover:
    - Caching works correctly
 
 Reference:
-- Planning doc: `report/planning/plan-fbc-30-product-reference-tables.md`
+- Planning doc: `report/planning/plan-fbc-26-product-reference-tables.md`
 - Ticket: `jira/30.md`
 - Implementation: Review all sub-tickets before creating test plan
 
@@ -954,7 +954,7 @@ Create comprehensive test plan with scenarios and expected results.
 ```
 @Architecture Guardian
 
-Verify FBC-30 (Product Reference Tables) implementation complies with Clean Architecture and reference tables rules.
+Verify FBC-26 (Product Reference Tables) implementation complies with Clean Architecture and reference tables rules.
 
 Check:
 
@@ -993,8 +993,8 @@ Check:
 Reference:
 - Architecture rules: `.cursor/rules/architecture/`
 - Reference tables rule: `.cursor/rules/architecture/product-reference-tables.mdc`
-- Planning doc: `report/planning/plan-fbc-30-product-reference-tables.md`
-- Implementation: Review all code changes for FBC-30
+- Planning doc: `report/planning/plan-fbc-26-product-reference-tables.md`
+- Implementation: Review all code changes for FBC-26
 
 Generate architecture compliance report with violations (if any) and recommendations.
 ```
@@ -1024,7 +1024,7 @@ Generate architecture compliance report with violations (if any) and recommendat
     - **Recommendation:** Defer to future ticket (FBC-31 or similar) after core functionality is stable.
 
 6. **Product Display:** Should ProductsTable show model name and coloris from reference tables, or keep using joined fields?
-    - **Recommendation:** Use joined fields from reference tables (already handled in Sub-Ticket 30.8).
+    - **Recommendation:** Use joined fields from reference tables (already handled in Sub-Ticket 26.8).
 
 ---
 
@@ -1034,19 +1034,19 @@ If time/budget is constrained, prioritize in this order:
 
 ### Must Have (Core Functionality)
 
--   ✅ Sub-Ticket 30.1: Database migration (required for all other work)
--   ✅ Sub-Ticket 30.2: Domain types (required foundation)
--   ✅ Sub-Ticket 30.3: Repository ports (required contract)
--   ✅ Sub-Ticket 30.4: Infrastructure implementation (required for data access)
--   ✅ Sub-Ticket 30.5: Usecases (required business logic)
--   ✅ Sub-Ticket 30.7: ProductForm with cascading selects (core UX)
+-   ✅ Sub-Ticket 26.1: Database migration (required for all other work)
+-   ✅ Sub-Ticket 26.2: Domain types (required foundation)
+-   ✅ Sub-Ticket 26.3: Repository ports (required contract)
+-   ✅ Sub-Ticket 26.4: Infrastructure implementation (required for data access)
+-   ✅ Sub-Ticket 26.5: Usecases (required business logic)
+-   ✅ Sub-Ticket 26.7: ProductForm with cascading selects (core UX)
 
 ### Should Have (Important but Can Defer)
 
--   ⚠️ Sub-Ticket 30.6: React Query hooks (can inline in component temporarily, but not recommended)
--   ⚠️ Sub-Ticket 30.8: ProductsTable update (display may work without changes if repository joins correctly)
--   ⚠️ Sub-Ticket 30.9: Domain validation tests (should have, but can defer)
--   ⚠️ Sub-Ticket 30.10: Usecase tests (should have, but can defer)
+-   ⚠️ Sub-Ticket 26.6: React Query hooks (can inline in component temporarily, but not recommended)
+-   ⚠️ Sub-Ticket 26.8: ProductsTable update (display may work without changes if repository joins correctly)
+-   ⚠️ Sub-Ticket 26.9: Domain validation tests (should have, but can defer)
+-   ⚠️ Sub-Ticket 26.10: Usecase tests (should have, but can defer)
 
 ### Nice to Have (Can Defer)
 
@@ -1095,7 +1095,7 @@ After initial migration (002), the following fixes were applied:
 
 3. **products.weight changed to INT4**: Changed from NUMERIC(6,2) to INT4 (integer grams) since weights in logistics are always integers (120g, 300g, 780g). Conversion to kg can be done in UI if needed
 
-## Future Enhancements (Not in FBC-30)
+## Future Enhancements (Not in FBC-26)
 
 ### Enriched Product Models
 
