@@ -25,6 +25,7 @@ The Architecture Guardian performs a read-only review checking:
 -   SCSS variables usage (no hardcoded values)
 -   Supabase usage (only in infrastructure layer)
 -   Accessibility compliance (WCAG 2.1 AA)
+-   **Product Reference Tables compliance**: reference tables (product_models, product_coloris) used, cascading filters (type → model → coloris) implemented, no free-text name/coloris fields, validation of model/coloris combinations. Schema: product_models.type uses product_type enum (not TEXT), products.coloris column removed (use coloris_id FK only), products.weight is INT4 (integer grams, not NUMERIC)
 
 ## Steps
 
@@ -42,11 +43,13 @@ The Architecture Guardian performs a read-only review checking:
     - **Presentation**: Verify no business logic, React Query hooks, Zustand stores
     - **SCSS Variables**: Verify no hardcoded values
     - **Accessibility**: Verify shared/a11y/ utilities usage
+    - **Product Reference Tables**: Verify reference tables (product_models, product_coloris) used, cascading filters (type → model → coloris) implemented, no free-text name/coloris fields, validation of model/coloris combinations. Schema: product_models.type uses product_type enum, products.coloris removed, products.weight is INT4
 
 3. **List Violations**
 
-    - Group violations by category (Domain, Usecases, Infrastructure, Presentation, SCSS, A11y)
+    - Group violations by category (Domain, Usecases, Infrastructure, Presentation, SCSS, A11y, Product Reference Tables)
     - For each violation: file path, line number, rule violated, minimal fix
+    - For Product Reference Tables: check for free-text name/coloris, missing cascading filters, invalid model/coloris combinations
 
 4. **Propose Fixes**
     - Provide minimal, targeted fixes (diffs only, no full rewrites)
@@ -81,6 +84,18 @@ The Architecture Guardian performs a read-only review checking:
 -   [ ] All interactive elements have proper ARIA attributes
 -   [ ] Semantic HTML used where appropriate
 
+### Product Reference Tables
+
+-   [ ] Reference tables (product_models, product_coloris) used in database schema
+-   [ ] Products table uses model_id and coloris_id foreign keys (not free-text name/coloris)
+-   [ ] products.coloris column removed (use coloris_id FK only)
+-   [ ] product_models.type uses product_type enum (not TEXT)
+-   [ ] products.weight is INT4 (integer grams, not NUMERIC)
+-   [ ] Cascading filters implemented in forms (type → model → coloris)
+-   [ ] Model and coloris dropdowns use Select components (not Input text fields)
+-   [ ] Validation of model/coloris combinations in usecases
+-   [ ] Repository methods query reference tables (not products table directly)
+
 ## Output Format
 
 The Architecture Guardian outputs:
@@ -110,6 +125,10 @@ The Architecture Guardian outputs:
 
 **Accessibility**
 - `file:line` - Rule: {rule} - Fix: {minimal_diff}
+
+**Product Reference Tables**
+- `file:line` - Rule: {rule} - Fix: {minimal_diff}
+- Check: Free-text name/coloris in products table, missing cascading filters, invalid model/coloris combinations, missing reference table queries
 
 ### Summary
 {count} violations found. Apply minimal fixes above.

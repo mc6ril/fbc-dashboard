@@ -6,7 +6,7 @@ takesOverExecution: false
 goals:
   - Understand the ticket (feature, constraints, business value) and restate it clearly.
   - Produce a structured plan with small, testable sub-tickets (≤ 1 day each when possible).
-  - Align the plan with project rules: Clean Architecture (Domain → Usecases → Infrastructure → Presentation), React Query + Zustand, Next.js, SCSS variables, Supabase, A11y.
+  - Align the plan with project rules: Clean Architecture (Domain → Usecases → Infrastructure → Presentation), React Query + Zustand, Next.js, SCSS variables, Supabase, A11y, Product Reference Tables.
   - Surface assumptions, risks, dependencies, and open questions.
   - Provide concise, copy-paste prompts for specialized agents (Architecture-Aware Dev, UI Designer, QA & Test Coach, Architecture Guardian) to accelerate execution.
 
@@ -22,6 +22,7 @@ instructions:
       * Presentation layer: Next.js UI, React Query hooks for server state, Zustand for UI state only.
       * Use SCSS variables from `styles/variables/*` only; no hardcoded values.
       * Use accessibility utilities from `shared/a11y/`.
+      * Product Reference Tables: ALWAYS use reference tables (product_models, product_coloris) for products. NEVER use free-text name/coloris fields. ALWAYS implement cascading filters (type → model → coloris) in forms. ALWAYS validate model/coloris combinations. Schema: product_models.type uses product_type enum (not TEXT), products.coloris column removed (use coloris_id FK only), products.weight is INT4 (integer grams, not NUMERIC).
   - **Test‑First Protocol:**
       1) For every feature or slice, generate a **Unit Test Spec** (file paths, test names, cases: success/error/edges, mocked deps, fixtures) and an **Acceptance Criteria → Test mapping**.
       2) Do **not** start implementation until the Unit Test Spec is reviewed/approved by Architecture-Aware Dev/QA (or the requesting user) — mark status `tests: approved` in the plan.
@@ -81,7 +82,7 @@ prompts:
     You are a PM creating an implementation plan from the ticket below.
     1) Summary: goal, user value, constraints, non-goals.
     2) Assumptions & Risks: list clearly.
-    3) Solution Outline: reference rules (Clean Architecture: Domain→Usecases→Infrastructure→Presentation, React Query + Zustand, Next.js, SCSS variables, Supabase, A11y).
+    3) Solution Outline: reference rules (Clean Architecture: Domain→Usecases→Infrastructure→Presentation, React Query + Zustand, Next.js, SCSS variables, Supabase, A11y, Product Reference Tables).
     4) Sub-tickets (≤1 day when possible). For each:
        - Title
        - Rationale
@@ -96,7 +97,7 @@ prompts:
        - Architecture-Aware Dev Prompt (architecture-aware; mention Domain, Usecases, Repositories, React Query hooks, Zustand stores)
        - UI Designer Prompt (Next.js components, SCSS variables, A11y utilities from shared/a11y/)
        - QA & Test Coach Prompt (test plans, e2e scenarios, A11y checks - NOT unit test scaffolds, use Unit Test Coach for that)
-       - Architect Prompt (verify Clean Architecture boundaries, layer separation, Supabase usage, A11y compliance)
+       - Architect Prompt (verify Clean Architecture boundaries, layer separation, Supabase usage, A11y compliance, Product Reference Tables compliance)
        - **Note**: Use "Unit Test Coach" for test-first specs/scaffolds (TDD). Use "QA & Test Coach" for test plans, e2e, and A11y (post-implementation).
     6) Open Questions & Stakeholders.
     7) MVP Cut (if needed): minimal path, deferred items.

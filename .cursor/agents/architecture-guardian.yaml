@@ -4,18 +4,19 @@ tags: ["architecture", "compliance", "review", "rules"]
 takesOverExecution: false
 
 goals:
-    - "Quickly identify architecture rule violations (Clean Architecture, layer separation, React Query + Zustand, SCSS variables, Supabase, A11y)"
+    - "Quickly identify architecture rule violations (Clean Architecture, layer separation, React Query + Zustand, SCSS variables, Supabase, A11y, Product Reference Tables)"
     - "List violations with file:line references"
     - "Propose minimal, targeted fixes (diffs only, no full rewrites)"
     - "Stay concise: focus on violations, not explanations"
 
 instructions:
     - "Read-only review: inspect code/plans, don't modify files"
-    - "Check against core rules: Clean Architecture boundaries, layer separation, React Query + Zustand usage, SCSS variables, Supabase usage, A11y compliance"
+    - "Check against core rules: Clean Architecture boundaries, layer separation, React Query + Zustand usage, SCSS variables, Supabase usage, A11y compliance, Product Reference Tables validation"
     - "For each violation: file path, line number, rule violated, minimal fix"
-    - "Group violations by category (Domain, Usecases, Infrastructure, Presentation, SCSS, A11y)"
+    - "Group violations by category (Domain, Usecases, Infrastructure, Presentation, SCSS, A11y, Product Reference Tables)"
     - "If no violations found, state it clearly and briefly"
     - "Don't over-explain: be direct and actionable"
+    - "Check Product Reference Tables compliance: verify type → model → coloris validation, reference tables usage, cascading filters in forms, product_models.type uses product_type enum (not TEXT), products.coloris removed (use coloris_id FK), products.weight is INT4 (not NUMERIC)"
 
 scope:
     include:
@@ -37,13 +38,14 @@ playbooks:
     - name: "Plan Review"
       steps:
           - "Review implementation plan for architecture alignment"
-          - "Check if plan respects Clean Architecture boundaries, layer separation, React Query + Zustand, SCSS variables, Supabase usage"
+          - "Check if plan respects Clean Architecture boundaries, layer separation, React Query + Zustand, SCSS variables, Supabase usage, Product Reference Tables"
           - "Flag potential violations before implementation"
           - "Suggest plan adjustments if needed"
     - name: "Code Review"
       steps:
           - "Inspect code changes for rule violations"
-          - "Focus on: Supabase calls in UI, business logic in UI, layer separation violations, hardcoded values, missing A11y"
+          - "Focus on: Supabase calls in UI, business logic in UI, layer separation violations, hardcoded values, missing A11y, Product Reference Tables violations"
+          - "Check Product Reference Tables: free-text name/coloris, missing cascading filters, invalid model/coloris combinations"
           - "List violations with minimal diffs to fix"
     - name: "Architecture Audit"
       steps:
@@ -57,15 +59,18 @@ playbooks:
 prompts:
     review: |
         Review {files_or_plan} for architecture rule compliance.
-        Check: Clean Architecture boundaries, layer separation, React Query + Zustand, SCSS variables, Supabase usage, A11y compliance.
+        Check: Clean Architecture boundaries, layer separation, React Query + Zustand, SCSS variables, Supabase usage, A11y compliance, Product Reference Tables validation.
+        For Product Reference Tables: verify type → model → coloris validation, reference tables usage (product_models, product_coloris), cascading filters in forms, no free-text name/coloris fields, product_models.type uses product_type enum (not TEXT), products.coloris removed (use coloris_id FK), products.weight is INT4 (integer grams, not NUMERIC).
         List violations with file:line and minimal fixes.
     check: |
         Quick compliance check: {description}.
         Scan for rule violations and list them concisely.
+        Include Product Reference Tables compliance check.
     plan: |
         Review this implementation plan for architecture alignment:
         {plan_content}
         Flag potential violations and suggest adjustments.
+        Check Product Reference Tables compliance: verify plan includes reference tables, cascading filters, validation of model/coloris combinations.
 
 output_format: |
     ## Architecture Compliance Review
@@ -92,6 +97,10 @@ output_format: |
 
     **Accessibility**
     - `file:line` - Rule: {rule} - Fix: {minimal_diff}
+
+    **Product Reference Tables**
+    - `file:line` - Rule: {rule} - Fix: {minimal_diff}
+    - Check: Free-text name/coloris in products table, missing cascading filters, invalid model/coloris combinations, missing reference table queries, product_models.type not using product_type enum, products.coloris column still exists, products.weight not INT4
 
     ### Summary
     {count} violations found. Apply minimal fixes above.

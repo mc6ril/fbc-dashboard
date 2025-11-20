@@ -1,0 +1,371 @@
+---
+alwaysApply: true
+name: "Product Reference Tables — Type-Model-Coloris Validation"
+description: "Enforce strict validation of product type → model → coloris combinations using reference tables. Prevent invalid combinations and ensure data integrity through database-level constraints and cascading form filters."
+globs: ["src/**/*.{ts,tsx}", "src/infrastructure/supabase/migrations/*.sql"]
+priority: high
+---
+
+# Intent
+
+Enforce strict validation of product type → model → coloris combinations using reference tables (`product_models` and `product_coloris`). This ensures data integrity, prevents naming errors, and enables fast filtering for cascading dropdowns in forms.
+
+## CRITICAL RULES - REFERENCE TABLES NEVER OPTIONAL
+
+### 1. Database Schema - MANDATORY STRUCTURE
+
+-   **ALWAYS** use `product_models` table for model names (not free-text in `products` table)
+-   **ALWAYS** use `product_coloris` table for coloris (not free-text in `products` table)
+-   **ALWAYS** use foreign keys `model_id` and `coloris_id` in `products` table
+-   **NEVER** store `name` or `coloris` as free-text fields in `products` table (after migration)
+-   **ALWAYS** use `product_type` enum for `product_models.type` (not TEXT) - enforces consistency
+-   **ALWAYS** remove `products.coloris` text column after migration (use `coloris_id` FK only)
+-   **ALWAYS** use INT4 for `products.weight` (integer grams, not NUMERIC) - matches real-world logistics
+-   **ALWAYS** enforce `UNIQUE(type, name)` constraint on `product_models` table
+-   **ALWAYS** enforce `UNIQUE(model_id, coloris)` constraint on `product_coloris` table
+-   **ALWAYS** use `ON DELETE CASCADE` for `product_coloris.model_id` foreign key
+-   **ALWAYS** create indexes on `product_models.type` and `product_coloris.model_id` for fast filtering
+
+**Mandatory schema structure:**
+
+```sql
+-- Ensure product_type enum exists
+CREATE TYPE product_type AS ENUM (
+    'SAC_BANANE',
+    'POCHETTE_ORDINATEUR',
+    'TROUSSE_TOILETTE',
+    'POCHETTE_VOLANTS',
+    'TROUSSE_ZIPPEE',
+    'ACCESSOIRES_DIVERS'
+);
+
+-- Reference table for models per type
+CREATE TABLE product_models (
+    id UUID PRIMARY KEY,
+    type product_type NOT NULL, -- Uses enum, not TEXT
+    name TEXT NOT NULL,
+    UNIQUE(type, name),
+    INDEX(type)
+);
+
+-- Reference table for coloris per model
+CREATE TABLE product_coloris (
+    id UUID PRIMARY KEY,
+    model_id UUID NOT NULL REFERENCES product_models(id) ON DELETE CASCADE,
+    coloris TEXT NOT NULL,
+    UNIQUE(model_id, coloris),
+    INDEX(model_id)
+);
+
+-- Products table with foreign keys
+CREATE TABLE products (
+    id UUID PRIMARY KEY,
+    model_id UUID NOT NULL REFERENCES product_models(id),
+    coloris_id UUID NOT NULL REFERENCES product_coloris(id),
+    weight INT4 CHECK (weight IS NULL OR weight > 0), -- Integer grams, not NUMERIC
+    -- Note: coloris text column removed (use coloris_id FK)
+    -- ... other fields
+);
+```
+
+### 2. Domain Layer (core/domain) - REFERENCE TYPES REQUIRED
+
+-   **ALWAYS** define `ProductModel` type in `src/core/domain/product.ts`
+    -   Fields: `id` (ProductModelId), `type` (ProductType), `name` (string)
+    -   Use branded type `ProductModelId` for type safety
+-   **ALWAYS** define `ProductColoris` type in `src/core/domain/product.ts`
+    -   Fields: `id` (ProductColorisId), `modelId` (ProductModelId), `coloris` (string)
+    -   Use branded type `ProductColorisId` for type safety
+-   **ALWAYS** include `modelId` and `colorisId` in `Product` type (not `name` and `coloris` as free-text)
+-   **NEVER** allow direct `name` and `coloris` string fields in `Product` type (after migration)
+-   **ALWAYS** add validation functions in `src/core/domain/validation.ts`:
+    -   `isValidProductModel(productModel: ProductModel): boolean`
+    -   `isValidProductColoris(productColoris: ProductColoris): boolean`
+    -   `isValidProductModelForType(model: ProductModel, type: ProductType): boolean`
+    -   `isValidProductColorisForModel(coloris: ProductColoris, modelId: ProductModelId): boolean`
+
+**Mandatory domain types:**
+
+```typescript
+export type ProductModelId = string & { readonly brand: unique symbol };
+
+export type ProductModel = {
+    id: ProductModelId;
+    type: ProductType;
+    name: string;
+};
+
+export type ProductColorisId = string & { readonly brand: unique symbol };
+
+export type ProductColoris = {
+    id: ProductColorisId;
+    modelId: ProductModelId;
+    coloris: string;
+};
+
+export type Product = {
+    id: ProductId;
+    modelId: ProductModelId; // NOT name: string
+    colorisId: ProductColorisId; // NOT coloris: string
+    // ... other fields
+};
+```
+
+### 3. Ports Layer (core/ports) - REFERENCE QUERY METHODS REQUIRED
+
+-   **ALWAYS** define repository methods for querying reference tables in `ProductRepository` interface:
+    -   `listModelsByType(type: ProductType): Promise<ProductModel[]>`
+    -   `listColorisByModel(modelId: ProductModelId): Promise<ProductColoris[]>`
+    -   `getModelById(id: ProductModelId): Promise<ProductModel | null>`
+    -   `getColorisById(id: ProductColorisId): Promise<ProductColoris | null>`
+-   **NEVER** query models or coloris directly from `products` table (always use reference tables)
+-   **ALWAYS** update `create` and `update` methods to accept `modelId` and `colorisId` (not `name` and `coloris`)
+
+**Mandatory repository interface:**
+
+```typescript
+export interface ProductRepository {
+    listModelsByType(type: ProductType): Promise<ProductModel[]>;
+    listColorisByModel(modelId: ProductModelId): Promise<ProductColoris[]>;
+    getModelById(id: ProductModelId): Promise<ProductModel | null>;
+    getColorisById(id: ProductColorisId): Promise<ProductColoris | null>;
+    create(product: Omit<Product, "id">): Promise<Product>;
+    update(id: ProductId, product: Partial<Omit<Product, "id">>): Promise<Product>;
+    // ... other methods
+}
+```
+
+### 4. Infrastructure Layer - REFERENCE TABLE QUERIES REQUIRED
+
+-   **ALWAYS** implement `listModelsByType` by querying `product_models` table filtered by `type`
+-   **ALWAYS** implement `listColorisByModel` by querying `product_coloris` table filtered by `model_id`
+-   **ALWAYS** join `product_models` and `product_coloris` when querying products to get `name` and `coloris` values
+-   **NEVER** query `name` or `coloris` directly from `products` table (always join reference tables)
+-   **ALWAYS** validate that `coloris_id` belongs to the `model_id` before creating/updating products
+-   **ALWAYS** use foreign key constraints in Supabase queries (let database enforce relationships)
+
+**Mandatory repository implementation:**
+
+```typescript
+export const productRepositorySupabase: ProductRepository = {
+    listModelsByType: async (type: ProductType) => {
+        const { data, error } = await supabaseClient
+            .from("product_models")
+            .select()
+            .eq("type", type);
+        // ... map to domain types
+    },
+    listColorisByModel: async (modelId: ProductModelId) => {
+        const { data, error } = await supabaseClient
+            .from("product_coloris")
+            .select()
+            .eq("model_id", modelId);
+        // ... map to domain types
+    },
+    create: async (product: Omit<Product, "id">) => {
+        // Validate coloris belongs to model (or let FK constraint handle it)
+        const { data, error } = await supabaseClient
+            .from("products")
+            .insert({
+                model_id: product.modelId,
+                coloris_id: product.colorisId,
+                // ... other fields
+            });
+        // ... map to domain type
+    },
+};
+```
+
+### 5. Usecases Layer (core/usecases) - VALIDATION REQUIRED
+
+-   **ALWAYS** create usecases for querying reference tables:
+    -   `listProductModelsByType(repo: ProductRepository, type: ProductType): Promise<ProductModel[]>`
+    -   `listProductColorisByModel(repo: ProductRepository, modelId: ProductModelId): Promise<ProductColoris[]>`
+-   **ALWAYS** validate model and coloris combination in `createProduct` and `updateProduct` usecases
+-   **NEVER** allow creating products with invalid model/coloris combinations
+-   **ALWAYS** verify that `colorisId` belongs to `modelId` before creating/updating products
+
+**Mandatory usecase validation:**
+
+```typescript
+export async function createProduct(
+    repo: ProductRepository,
+    product: Omit<Product, "id">
+): Promise<Product> {
+    // Validate coloris belongs to model
+    const coloris = await repo.getColorisById(product.colorisId);
+    if (!coloris || coloris.modelId !== product.modelId) {
+        throw new Error("Invalid coloris for selected model");
+    }
+    return repo.create(product);
+}
+```
+
+### 6. Presentation Layer - CASCADING FILTERS REQUIRED
+
+#### 6.1. React Query Hooks
+
+-   **ALWAYS** create hooks for querying reference tables:
+    -   `useProductModelsByType(type: ProductType | null)`: Fetches models for a type
+    -   `useProductColorisByModel(modelId: ProductModelId | null)`: Fetches coloris for a model
+-   **ALWAYS** use `enabled` option to conditionally fetch based on selections (don't fetch if type/model is null)
+-   **ALWAYS** use stable query keys for caching
+
+**Mandatory hook structure:**
+
+```typescript
+export function useProductModelsByType(type: ProductType | null) {
+    return useQuery({
+        queryKey: ["product-models", type],
+        queryFn: () => listProductModelsByType(productRepositorySupabase, type!),
+        enabled: type !== null,
+    });
+}
+
+export function useProductColorisByModel(modelId: ProductModelId | null) {
+    return useQuery({
+        queryKey: ["product-coloris", modelId],
+        queryFn: () => listProductColorisByModel(productRepositorySupabase, modelId!),
+        enabled: modelId !== null,
+    });
+}
+```
+
+#### 6.2. Form Components
+
+-   **ALWAYS** use `Select` dropdowns for model and coloris (not `Input` text fields)
+-   **ALWAYS** implement cascading filters:
+    -   When type changes → clear model and coloris selections, fetch models for new type
+    -   When model changes → clear coloris selection, fetch coloris for new model
+-   **NEVER** allow users to enter free-text for model or coloris
+-   **ALWAYS** disable model dropdown until type is selected
+-   **ALWAYS** disable coloris dropdown until model is selected
+-   **ALWAYS** validate that model and coloris are selected before form submission
+
+**Mandatory form structure:**
+
+```typescript
+const ProductForm = () => {
+    const [type, setType] = useState<ProductType | null>(null);
+    const [modelId, setModelId] = useState<ProductModelId | null>(null);
+    const [colorisId, setColorisId] = useState<ProductColorisId | null>(null);
+
+    const { data: models } = useProductModelsByType(type);
+    const { data: coloris } = useProductColorisByModel(modelId);
+
+    const handleTypeChange = (newType: ProductType) => {
+        setType(newType);
+        setModelId(null); // Clear model when type changes
+        setColorisId(null); // Clear coloris when type changes
+    };
+
+    const handleModelChange = (newModelId: ProductModelId) => {
+        setModelId(newModelId);
+        setColorisId(null); // Clear coloris when model changes
+    };
+
+    return (
+        <form>
+            <Select value={type} onChange={handleTypeChange} />
+            <Select
+                value={modelId}
+                onChange={handleModelChange}
+                options={models}
+                disabled={!type}
+            />
+            <Select
+                value={colorisId}
+                onChange={setColorisId}
+                options={coloris}
+                disabled={!modelId}
+            />
+        </form>
+    );
+};
+```
+
+### 7. Validation Rules - BUSINESS LOGIC ENFORCEMENT
+
+-   **ALWAYS** enforce type → model validation:
+    -   A model can only exist for valid ProductType enum values
+    -   Each (type, name) combination must be unique
+    -   Example: POCHETTE_VOLANTS can have "Charlie", but not "assumée"
+-   **ALWAYS** enforce model → coloris validation:
+    -   A coloris can only exist for a valid model
+    -   Each (model_id, coloris) combination must be unique
+    -   Example: "Charlie" model can have "Rose Marsala", but not "Prune"
+-   **ALWAYS** enforce product creation validation:
+    -   A product must reference a valid `model_id`
+    -   A product must reference a valid `coloris_id`
+    -   The coloris must belong to the model (enforced by foreign key chain)
+    -   Example: Cannot create product with model_id="Charlie" and coloris_id="Prune" (Prune belongs to "assumée")
+
+### 8. Migration Strategy - BACKWARD COMPATIBILITY
+
+-   **ALWAYS** create migration scripts that:
+    1.  Create `product_models` and `product_coloris` tables
+    2.  Populate reference tables from existing products (extract unique combinations)
+    3.  Add `model_id` and `coloris_id` columns to `products` table (nullable initially)
+    4.  Update existing products with correct `model_id` and `coloris_id`
+    5.  Make columns NOT NULL after data migration
+    6.  Optionally remove old `name` and `coloris` columns (or keep for backward compatibility)
+-   **ALWAYS** include verification scripts to check migration success
+-   **NEVER** break existing functionality during migration period
+
+## REFERENCE TABLES VIOLATIONS - AUTO-STOP CONDITIONS
+
+### 9. Critical Violations - ALWAYS STOP
+
+1. **Free-text name/coloris in products table** → STOP and use reference tables with foreign keys
+2. **Form with Input for model/coloris** → STOP and use Select dropdowns with reference data
+3. **No cascading filters in form** → STOP and implement type → model → coloris cascade
+4. **Creating product without validating model/coloris combination** → STOP and add validation
+5. **Querying name/coloris from products table** → STOP and join reference tables
+6. **Missing repository methods for reference tables** → STOP and add `listModelsByType`, `listColorisByModel`
+7. **No validation in usecases** → STOP and validate model/coloris combination before create/update
+8. **Missing domain types for ProductModel/ProductColoris** → STOP and create types in domain layer
+
+## REFERENCE TABLES COMPLIANCE - MANDATORY VERIFICATION
+
+### 10. Code Generation Checklist
+
+Before EVERY code generation involving products:
+
+✅ **Database Schema**
+
+-   Reference tables (`product_models`, `product_coloris`) exist?
+-   Foreign keys (`model_id`, `coloris_id`) in `products` table?
+-   Unique constraints on reference tables?
+-   Indexes for fast filtering?
+
+✅ **Domain Layer**
+
+-   `ProductModel` and `ProductColoris` types defined?
+-   `Product` type uses `modelId` and `colorisId` (not `name` and `coloris`)?
+-   Validation functions for models and coloris?
+
+✅ **Repository Layer**
+
+-   Methods for querying reference tables implemented?
+-   Products queries join reference tables?
+-   Validation of model/coloris combination?
+
+✅ **Usecases Layer**
+
+-   Usecases for listing models and coloris?
+-   Validation in create/update usecases?
+
+✅ **Presentation Layer**
+
+-   Hooks for fetching models and coloris?
+-   Form uses Select dropdowns (not Input)?
+-   Cascading filters implemented?
+-   Model/coloris disabled until parent selected?
+
+✅ **Validation**
+
+-   Type → model validation enforced?
+-   Model → coloris validation enforced?
+-   Product creation validates combination?
+
+This ensures data integrity, prevents naming errors, and enables fast filtering for cascading dropdowns while maintaining Clean Architecture principles.

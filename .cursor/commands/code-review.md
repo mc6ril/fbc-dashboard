@@ -36,6 +36,7 @@ Perform a thorough code review that verifies functionality, maintainability, and
     - Verify SCSS variables usage (no hardcoded values)
     - Check Supabase usage (only in infrastructure layer)
     - Verify accessibility compliance (shared/a11y/ utilities)
+    - **Verify Product Reference Tables compliance**: reference tables (product_models, product_coloris) used, cascading filters (type → model → coloris) implemented, no free-text name/coloris fields, validation of model/coloris combinations. Schema: product_models.type uses product_type enum (not TEXT), products.coloris removed (use coloris_id FK only), products.weight is INT4 (integer grams, not NUMERIC)
 
 3. **Validate functionality**
 
@@ -66,6 +67,7 @@ Perform a thorough code review that verifies functionality, maintainability, and
 -   [ ] SCSS variables usage verified (no hardcoded values)
 -   [ ] Supabase usage verified (only in infrastructure layer)
 -   [ ] Accessibility compliance verified (shared/a11y/ utilities)
+-   [ ] **Product Reference Tables compliance verified**: reference tables (product_models, product_coloris) used, cascading filters implemented, no free-text name/coloris fields, validation of model/coloris combinations, product_models.type uses product_type enum, products.coloris removed, products.weight is INT4
 
 ### Functionality
 

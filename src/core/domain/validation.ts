@@ -12,11 +12,16 @@
  * - Can be used in domain, usecases, and tests
  */
 
-import type { Product, ProductId } from "./product";
+import type {
+    Product,
+    ProductModel,
+    ProductModelId,
+    ProductColoris,
+} from "./product";
 import { ProductType } from "./product";
-import type { Activity, ActivityId } from "./activity";
+import type { Activity } from "./activity";
 import { ActivityType } from "./activity";
-import type { StockMovement, StockMovementId } from "./stockMovement";
+import type { StockMovement } from "./stockMovement";
 import { StockMovementSource } from "./stockMovement";
 
 /**
@@ -198,11 +203,27 @@ export const isValidProduct = (product: Product): boolean => {
     const hasValidWeight =
         product.weight === undefined || product.weight === null || product.weight > 0;
 
+    // During migration period, either (modelId, colorisId) or (name, type, coloris) must be present
+    // Convert to boolean to ensure we return true/false, not the value itself
+    const hasValidModelColoris = !!(
+        (product.modelId && product.colorisId) ||
+        (product.name && product.type && product.coloris)
+    );
+
+    // Validate coloris if present (backward compatibility during migration)
+    // Empty string "" should fail validation (falsy), so !product.coloris is true
+    // But we need to check trim().length > 0 for whitespace-only strings
+    const hasValidColoris =
+        product.coloris === undefined ||
+        product.coloris === null ||
+        product.coloris.trim().length > 0;
+
     return (
         product.unitCost > 0 &&
         product.salePrice > 0 &&
         product.stock >= 0 &&
-        product.coloris.trim().length > 0 &&
+        hasValidModelColoris &&
+        hasValidColoris &&
         hasValidWeight
     );
 };
@@ -406,5 +427,172 @@ export const isValidStockMovementSource = (value: string): boolean => {
     return Object.values(StockMovementSource).includes(
         value as StockMovementSource
     );
+};
+
+/**
+ * Validates a ProductModel entity against business rules.
+ *
+ * Business rules:
+ * - id must be a non-empty string (UUID format)
+ * - type must be a valid ProductType enum value
+ * - name must be a non-empty string (after trimming whitespace)
+ *
+ * @param {ProductModel} productModel - ProductModel entity to validate
+ * @returns {boolean} True if productModel meets all business rules, false otherwise
+ *
+ * @example
+ * ```typescript
+ * const validModel: ProductModel = {
+ *   id: "123e4567-e89b-4d3a-a456-426614174000" as ProductModelId,
+ *   type: ProductType.POCHETTE_VOLANTS,
+ *   name: "Charlie",
+ * };
+ * isValidProductModel(validModel); // true
+ *
+ * const invalidModel: ProductModel = {
+ *   ...validModel,
+ *   name: "   ", // Invalid: whitespace-only name
+ * };
+ * isValidProductModel(invalidModel); // false
+ *
+ * const invalidModelEmptyId: ProductModel = {
+ *   ...validModel,
+ *   id: "" as ProductModelId, // Invalid: empty id
+ * };
+ * isValidProductModel(invalidModelEmptyId); // false
+ * ```
+ */
+export const isValidProductModel = (
+    productModel: ProductModel
+): boolean => {
+    return (
+        productModel.id.trim().length > 0 &&
+        Object.values(ProductType).includes(productModel.type) &&
+        productModel.name.trim().length > 0
+    );
+};
+
+/**
+ * Validates a ProductColoris entity against business rules.
+ *
+ * Business rules:
+ * - id must be a non-empty string (UUID format)
+ * - modelId must be a non-empty string (UUID format)
+ * - coloris must be a non-empty string (after trimming whitespace)
+ *
+ * @param {ProductColoris} productColoris - ProductColoris entity to validate
+ * @returns {boolean} True if productColoris meets all business rules, false otherwise
+ *
+ * @example
+ * ```typescript
+ * const validColoris: ProductColoris = {
+ *   id: "123e4567-e89b-4d3a-a456-426614174000" as ProductColorisId,
+ *   modelId: "550e8400-e29b-41d4-a716-446655440000" as ProductModelId,
+ *   coloris: "Rose Marsala",
+ * };
+ * isValidProductColoris(validColoris); // true
+ *
+ * const invalidColoris: ProductColoris = {
+ *   ...validColoris,
+ *   coloris: "   ", // Invalid: whitespace-only coloris
+ * };
+ * isValidProductColoris(invalidColoris); // false
+ *
+ * const invalidColorisEmptyId: ProductColoris = {
+ *   ...validColoris,
+ *   id: "" as ProductColorisId, // Invalid: empty id
+ * };
+ * isValidProductColoris(invalidColorisEmptyId); // false
+ * ```
+ */
+export const isValidProductColoris = (
+    productColoris: ProductColoris
+): boolean => {
+    return (
+        productColoris.id.trim().length > 0 &&
+        productColoris.modelId.trim().length > 0 &&
+        productColoris.coloris.trim().length > 0
+    );
+};
+
+/**
+ * Validates that a ProductModel belongs to a specific ProductType.
+ *
+ * This function implements the business rule that each product model
+ * must belong to a specific product type. The model's type field must
+ * match the expected type.
+ *
+ * @param {ProductModel} model - ProductModel to validate
+ * @param {ProductType} type - ProductType to check against
+ * @returns {boolean} True if model belongs to the specified type, false otherwise
+ *
+ * @example
+ * ```typescript
+ * const charlieModel: ProductModel = {
+ *   id: "123e4567-e89b-4d3a-a456-426614174000" as ProductModelId,
+ *   type: ProductType.POCHETTE_VOLANTS,
+ *   name: "Charlie",
+ * };
+ * isValidProductModelForType(charlieModel, ProductType.POCHETTE_VOLANTS); // true
+ * isValidProductModelForType(charlieModel, ProductType.SAC_BANANE); // false
+ *
+ * // Invalid model returns false
+ * const invalidModel: ProductModel = {
+ *   ...charlieModel,
+ *   name: "   ", // Invalid: whitespace-only name
+ * };
+ * isValidProductModelForType(invalidModel, ProductType.POCHETTE_VOLANTS); // false
+ * ```
+ */
+export const isValidProductModelForType = (
+    model: ProductModel,
+    type: ProductType
+): boolean => {
+    if (!isValidProductModel(model)) {
+        return false;
+    }
+    return model.type === type;
+};
+
+/**
+ * Validates that a ProductColoris belongs to a specific ProductModel.
+ *
+ * This function implements the business rule that each product coloris
+ * must belong to a specific product model. The coloris's modelId field
+ * must match the expected modelId.
+ *
+ * @param {ProductColoris} coloris - ProductColoris to validate
+ * @param {ProductModelId} modelId - ProductModelId to check against
+ * @returns {boolean} True if coloris belongs to the specified model, false otherwise
+ *
+ * @example
+ * ```typescript
+ * const charlieModelId = "550e8400-e29b-41d4-a716-446655440000" as ProductModelId;
+ * const roseMarsalaColoris: ProductColoris = {
+ *   id: "123e4567-e89b-4d3a-a456-426614174000" as ProductColorisId,
+ *   modelId: charlieModelId,
+ *   coloris: "Rose Marsala",
+ * };
+ * isValidProductColorisForModel(roseMarsalaColoris, charlieModelId); // true
+ *
+ * const otherModelId = "660e8400-e29b-41d4-a716-446655440001" as ProductModelId;
+ * isValidProductColorisForModel(roseMarsalaColoris, otherModelId); // false
+ *
+ * // Invalid coloris returns false
+ * const invalidColoris: ProductColoris = {
+ *   ...roseMarsalaColoris,
+ *   coloris: "   ", // Invalid: whitespace-only coloris
+ * };
+ * isValidProductColorisForModel(invalidColoris, charlieModelId); // false
+ * ```
+ */
+export const isValidProductColorisForModel = (
+    coloris: ProductColoris,
+    modelId: ProductModelId
+): boolean => {
+    if (!isValidProductColoris(coloris)) {
+        return false;
+    }
+    return coloris.modelId === modelId;
 };
 

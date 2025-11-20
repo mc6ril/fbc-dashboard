@@ -2,7 +2,9 @@
  * ProductsTable Component
  *
  * Table component for displaying products with proper formatting.
- * Shows name, type, coloris, unitCost, salePrice, stock, and weight (optional) columns.
+ * Shows name (from model), type, coloris, unitCost, salePrice, stock, and weight (optional) columns.
+ * Handles both old structure (name, type, coloris as direct fields) and new structure
+ * (modelId, colorisId with joined name, type, coloris) gracefully.
  * Handles loading, error, and empty states.
  */
 
@@ -52,6 +54,48 @@ type Props = {
     error: Error | null;
 };
 
+/**
+ * Gets the display name for a product.
+ * Handles both old structure (name field) and new structure (joined from product_models).
+ *
+ * @param {Product} product - Product object
+ * @returns {string} Display name or fallback text
+ */
+const getProductName = (product: Product): string => {
+    // Prioritize joined name from product_models (new structure)
+    // Fall back to deprecated name field (old structure or backward compatibility)
+    return product.name || "N/A";
+};
+
+/**
+ * Gets the display coloris for a product.
+ * Handles both old structure (coloris field) and new structure (joined from product_coloris).
+ *
+ * @param {Product} product - Product object
+ * @returns {string} Display coloris or fallback text
+ */
+const getProductColoris = (product: Product): string => {
+    // Prioritize joined coloris from product_coloris (new structure)
+    // Fall back to deprecated coloris field (old structure or backward compatibility)
+    return product.coloris || "N/A";
+};
+
+/**
+ * Gets the display type for a product.
+ * Handles both old structure (type field) and new structure (joined from product_models).
+ *
+ * @param {Product} product - Product object
+ * @returns {string} Display type or fallback text
+ */
+const getProductType = (product: Product): string => {
+    // Prioritize joined type from product_models (new structure)
+    // Fall back to deprecated type field (old structure or backward compatibility)
+    if (product.type) {
+        return formatProductType(product.type);
+    }
+    return "N/A";
+};
+
 const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
     // Define table columns
     const columns: TableColumn<Product>[] = React.useMemo(
@@ -59,25 +103,22 @@ const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
             {
                 key: "name",
                 header: "Name",
-                render: (value: unknown) => {
-                    const name = value as string;
-                    return name;
+                render: (_value: unknown, row: Product) => {
+                    return getProductName(row);
                 },
             },
             {
                 key: "type",
                 header: "Type",
-                render: (value: unknown) => {
-                    const type = value as ProductType;
-                    return formatProductType(type);
+                render: (_value: unknown, row: Product) => {
+                    return getProductType(row);
                 },
             },
             {
                 key: "coloris",
                 header: "Coloris",
-                render: (value: unknown) => {
-                    const coloris = value as string;
-                    return coloris;
+                render: (_value: unknown, row: Product) => {
+                    return getProductColoris(row);
                 },
             },
             {
@@ -119,10 +160,11 @@ const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
                 key: "actions",
                 header: "Actions",
                 render: (_value: unknown, row: Product) => {
+                    const productName = getProductName(row);
                     return (
                         <Link
                             href={`/dashboard/catalog/${row.id}/edit`}
-                            ariaLabel={`Edit product ${row.name}`}
+                            ariaLabel={`Edit product ${productName}`}
                             className="button button--secondary button--sm"
                         >
                             Edit

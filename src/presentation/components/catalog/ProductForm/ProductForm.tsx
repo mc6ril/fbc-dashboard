@@ -8,13 +8,21 @@
 "use client";
 
 import React from "react";
-import type { Product } from "@/core/domain/product";
+import type {
+    Product,
+    ProductModelId,
+    ProductColorisId,
+} from "@/core/domain/product";
 import { ProductType } from "@/core/domain/product";
 import { getAccessibilityId } from "@/shared/a11y/utils";
 import { A11yIds } from "@/shared/a11y/ids";
 import Input from "@/presentation/components/ui/Input";
 import Select, { type SelectOption } from "@/presentation/components/ui/Select";
 import Button from "@/presentation/components/ui/Button";
+import {
+    useProductModelsByType,
+    useProductColorisByModel,
+} from "@/presentation/hooks/useProducts";
 import styles from "./ProductForm.module.scss";
 
 type ProductFormData = Omit<Product, "id">;
@@ -56,12 +64,16 @@ const formatProductType = (type: ProductType): string => {
 };
 
 const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false }: Props) => {
-    // Form state
-    const [name, setName] = React.useState<string>(initialValues?.name || "");
+    // Form state - using new structure (modelId, colorisId)
     const [type, setType] = React.useState<ProductType>(
         initialValues?.type || ProductType.SAC_BANANE
     );
-    const [coloris, setColoris] = React.useState<string>(initialValues?.coloris || "");
+    const [modelId, setModelId] = React.useState<ProductModelId | null>(
+        initialValues?.modelId || null
+    );
+    const [colorisId, setColorisId] = React.useState<ProductColorisId | null>(
+        initialValues?.colorisId || null
+    );
     const [unitCost, setUnitCost] = React.useState<string>(
         initialValues?.unitCost?.toString() || ""
     );
@@ -76,6 +88,12 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
     // Field-level errors
     const [errors, setErrors] = React.useState<Record<string, string>>({});
     const [generalError, setGeneralError] = React.useState<string>("");
+
+    // Fetch models and coloris using React Query hooks
+    const { data: models, isLoading: isLoadingModels, error: modelsError } =
+        useProductModelsByType(type);
+    const { data: coloris, isLoading: isLoadingColoris, error: colorisError } =
+        useProductColorisByModel(modelId);
 
     // Accessibility IDs
     const formErrorId = React.useMemo(() => getAccessibilityId(A11yIds.formError, "form"), []);
@@ -108,18 +126,8 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
         []
     );
 
-    // Update form state when initialValues change (for edit mode)
-    React.useEffect(() => {
-        if (initialValues) {
-            setName(initialValues.name || "");
-            setType(initialValues.type || ProductType.SAC_BANANE);
-            setColoris(initialValues.coloris || "");
-            setUnitCost(initialValues.unitCost?.toString() || "");
-            setSalePrice(initialValues.salePrice?.toString() || "");
-            setStock(initialValues.stock?.toString() || "");
-            setWeight(initialValues.weight?.toString() || "");
-        }
-    }, [initialValues]);
+    // Track previous type to detect user changes (not initial mount)
+    const prevTypeRef = React.useRef<ProductType>(type);
 
     // Clear errors when fields change
     const clearFieldError = React.useCallback((fieldName: string) => {
@@ -130,27 +138,84 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
         });
     }, []);
 
-    // Event handlers
-    const handleNameChange = React.useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            setName(e.target.value);
-            clearFieldError("name");
-        },
-        [clearFieldError]
-    );
+    // Update form state when initialValues change (for edit mode)
+    // Supports both new structure (modelId, colorisId) and old structure (name, type, coloris) for backward compatibility
+    React.useEffect(() => {
+        if (initialValues) {
+            const newType = initialValues.type || ProductType.SAC_BANANE;
+            setType(newType);
+            prevTypeRef.current = newType;
+            // Prioritize new structure (modelId, colorisId) over old structure (name, coloris)
+            if (initialValues.modelId) {
+                setModelId(initialValues.modelId);
+            } else {
+                setModelId(null);
+            }
+            if (initialValues.colorisId) {
+                setColorisId(initialValues.colorisId);
+            } else {
+                setColorisId(null);
+            }
+            // Note: During migration period, if initialValues only has name/coloris but not modelId/colorisId,
+            // we would need to look them up. For now, we prioritize new structure.
+            // Old structure will be handled by the repository joins.
+            setUnitCost(initialValues.unitCost?.toString() || "");
+            setSalePrice(initialValues.salePrice?.toString() || "");
+            setStock(initialValues.stock?.toString() || "");
+            setWeight(initialValues.weight?.toString() || "");
+        }
+    }, [initialValues]);
 
+    // Clear dependent fields when type changes (cascading filter)
+    // Only clear when type actually changes (not on initial mount)
+    React.useEffect(() => {
+        if (prevTypeRef.current !== type) {
+            setModelId(null);
+            setColorisId(null);
+            clearFieldError("modelId");
+            clearFieldError("colorisId");
+            prevTypeRef.current = type;
+        }
+    }, [type, clearFieldError]);
+
+    // Clear coloris when model changes (cascading filter)
+    // Use a ref to track previous modelId to avoid clearing on initial mount
+    const prevModelIdRef = React.useRef<ProductModelId | null>(modelId);
+    React.useEffect(() => {
+        if (prevModelIdRef.current !== modelId && modelId !== null) {
+            setColorisId(null);
+            clearFieldError("colorisId");
+            prevModelIdRef.current = modelId;
+        } else if (modelId === null) {
+            prevModelIdRef.current = null;
+        }
+    }, [modelId, clearFieldError]);
+
+    // Event handlers
     const handleTypeChange = React.useCallback(
         (e: React.ChangeEvent<HTMLSelectElement>) => {
             setType(e.target.value as ProductType);
             clearFieldError("type");
+            // Model and coloris will be cleared by useEffect when type changes
+        },
+        [clearFieldError]
+    );
+
+    const handleModelChange = React.useCallback(
+        (e: React.ChangeEvent<HTMLSelectElement>) => {
+            const selectedModelId = e.target.value;
+            setModelId(selectedModelId ? (selectedModelId as ProductModelId) : null);
+            clearFieldError("modelId");
+            // Coloris will be cleared by useEffect when model changes
         },
         [clearFieldError]
     );
 
     const handleColorisChange = React.useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            setColoris(e.target.value);
-            clearFieldError("coloris");
+        (e: React.ChangeEvent<HTMLSelectElement>) => {
+            const selectedColorisId = e.target.value;
+            setColorisId(selectedColorisId ? (selectedColorisId as ProductColorisId) : null);
+            clearFieldError("colorisId");
         },
         [clearFieldError]
     );
@@ -187,23 +252,45 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
         [clearFieldError]
     );
 
+    // Convert models to Select options
+    const modelOptions: SelectOption[] = React.useMemo(() => {
+        if (!models || models.length === 0) {
+            return [];
+        }
+        return models.map((model) => ({
+            value: model.id,
+            label: model.name,
+        }));
+    }, [models]);
+
+    // Convert coloris to Select options
+    const colorisOptions: SelectOption[] = React.useMemo(() => {
+        if (!coloris || coloris.length === 0) {
+            return [];
+        }
+        return coloris.map((c) => ({
+            value: c.id,
+            label: c.coloris,
+        }));
+    }, [coloris]);
+
     // Validate form
     const validateForm = React.useCallback((): boolean => {
         const newErrors: Record<string, string> = {};
-
-        // Validate name
-        if (!name || name.trim() === "") {
-            newErrors.name = "Le nom est requis";
-        }
 
         // Validate type
         if (!type) {
             newErrors.type = "Le type est requis";
         }
 
-        // Validate coloris
-        if (!coloris || coloris.trim() === "") {
-            newErrors.coloris = "Le coloris est requis";
+        // Validate modelId
+        if (!modelId) {
+            newErrors.modelId = "Le modèle est requis";
+        }
+
+        // Validate colorisId
+        if (!colorisId) {
+            newErrors.colorisId = "Le coloris est requis";
         }
 
         // Validate unitCost
@@ -242,11 +329,11 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
             }
         }
 
-        // Validate weight (optional, but if provided must be > 0)
+        // Validate weight (optional, but if provided must be > 0 and integer)
         if (weight && weight.trim() !== "") {
-            const weightNum = Number.parseFloat(weight);
+            const weightNum = Number.parseInt(weight, 10);
             if (Number.isNaN(weightNum) || !Number.isFinite(weightNum)) {
-                newErrors.weight = "Le poids doit être un nombre valide";
+                newErrors.weight = "Le poids doit être un nombre entier valide (en grammes)";
             } else if (weightNum <= 0) {
                 newErrors.weight = "Le poids doit être supérieur à 0";
             }
@@ -254,7 +341,7 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    }, [name, type, coloris, unitCost, salePrice, stock, weight]);
+    }, [type, modelId, colorisId, unitCost, salePrice, stock, weight]);
 
     // Handle form submission
     const handleSubmit = React.useCallback(
@@ -267,22 +354,26 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
                 return;
             }
 
+            if (!modelId || !colorisId) {
+                setGeneralError("Veuillez sélectionner un modèle et un coloris");
+                return;
+            }
+
             const formData: ProductFormData = {
-                name: name.trim(),
-                type,
-                coloris: coloris.trim(),
+                modelId,
+                colorisId,
                 unitCost: Number.parseFloat(unitCost),
                 salePrice: Number.parseFloat(salePrice),
                 stock: Number.parseFloat(stock),
-                weight: weight && weight.trim() !== "" ? Number.parseFloat(weight) : undefined,
+                weight: weight && weight.trim() !== "" ? Number.parseInt(weight, 10) : undefined,
             };
 
             onSubmit(formData);
         },
-        [name, type, coloris, unitCost, salePrice, stock, weight, validateForm, onSubmit]
+        [modelId, colorisId, unitCost, salePrice, stock, weight, validateForm, onSubmit]
     );
 
-    const isDisabled = isLoading;
+    const isDisabled = isLoading || isLoadingModels || isLoadingColoris;
 
     return (
         <form onSubmit={handleSubmit} className={styles.form} noValidate>
@@ -292,19 +383,6 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
                     {generalError}
                 </div>
             )}
-
-            {/* Name */}
-            <Input
-                id="product-name"
-                label="Nom"
-                type="text"
-                value={name}
-                onChange={handleNameChange}
-                placeholder="Ex: Sac banane L'Assumée"
-                required
-                disabled={isDisabled}
-                error={errors.name}
-            />
 
             {/* Type */}
             <Select
@@ -316,19 +394,45 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
                 required
                 disabled={isDisabled}
                 error={errors.type}
+                placeholder="Sélectionnez un type"
+            />
+
+            {/* Model */}
+            <Select
+                id="product-model"
+                label="Modèle"
+                options={modelOptions}
+                value={modelId || ""}
+                onChange={handleModelChange}
+                required
+                disabled={isDisabled || !type || isLoadingModels}
+                error={errors.modelId || (modelsError ? "Erreur lors du chargement des modèles" : undefined)}
+                placeholder={
+                    isLoadingModels
+                        ? "Chargement des modèles..."
+                        : !type
+                          ? "Sélectionnez d'abord un type"
+                          : "Sélectionnez un modèle"
+                }
             />
 
             {/* Coloris */}
-            <Input
+            <Select
                 id="product-coloris"
                 label="Coloris"
-                type="text"
-                value={coloris}
+                options={colorisOptions}
+                value={colorisId || ""}
                 onChange={handleColorisChange}
-                placeholder="Ex: Rose pâle à motifs"
                 required
-                disabled={isDisabled}
-                error={errors.coloris}
+                disabled={isDisabled || !modelId || isLoadingColoris}
+                error={errors.colorisId || (colorisError ? "Erreur lors du chargement des coloris" : undefined)}
+                placeholder={
+                    isLoadingColoris
+                        ? "Chargement des coloris..."
+                        : !modelId
+                          ? "Sélectionnez d'abord un modèle"
+                          : "Sélectionnez un coloris"
+                }
             />
 
             {/* Unit Cost */}

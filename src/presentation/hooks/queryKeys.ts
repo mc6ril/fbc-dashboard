@@ -37,7 +37,7 @@ export const queryKeys = {
     /**
      * Products-related query keys.
      *
-     * Used for caching products list and individual products.
+     * Used for caching products list, individual products, models, and coloris.
      */
     products: {
         /** Query key for all products list. */
@@ -50,6 +50,30 @@ export const queryKeys = {
          * @returns Query key tuple for product detail
          */
         detail: (id: string) => ["products", "detail", id] as const,
+
+        /**
+         * Query key for product models by type.
+         *
+         * Used for caching models filtered by product type.
+         * Enables conditional fetching based on type selection in cascading dropdowns.
+         *
+         * @param {string} type - Product type (e.g., "POCHETTE_VOLANTS", "SAC_BANANE")
+         * @returns Query key tuple for models by type
+         */
+        modelsByType: (type: string) =>
+            ["products", "models", "byType", type] as const,
+
+        /**
+         * Query key for product coloris by model.
+         *
+         * Used for caching coloris filtered by product model.
+         * Enables conditional fetching based on model selection in cascading dropdowns.
+         *
+         * @param {string} modelId - Product model ID
+         * @returns Query key tuple for coloris by model
+         */
+        colorisByModel: (modelId: string) =>
+            ["products", "coloris", "byModel", modelId] as const,
     },
 
     /**
