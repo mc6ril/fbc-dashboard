@@ -1,0 +1,25 @@
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+@use "@/styles/variables/typography" as *;
+
+.salesPerMonthChart {
+  &__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: $spacing-xl;
+    color: $color-text-secondary;
+    font-size: $font-size-sm;
+  }
+}
+
+@media (max-width: $breakpoint-mobile) {
+  .salesPerMonthChart {
+    &__empty {
+      min-height: 200px;
+      padding: $spacing-lg;
+    }
+  }
+}
+

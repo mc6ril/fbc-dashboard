@@ -3,11 +3,7 @@ import Heading from "@/presentation/components/ui/Heading";
 import { getAccessibilityId } from "@/shared/a11y/utils";
 import styles from "./DashboardHeader.module.scss";
 
-type Props = {
-  className?: string;
-};
-
-const DashboardHeader = ({ className }: Props) => {
+const DashboardHeader = () => {
   const headerId = getAccessibilityId("header", "dashboard");
   
   return (

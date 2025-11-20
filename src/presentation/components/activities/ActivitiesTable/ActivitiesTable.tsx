@@ -28,34 +28,16 @@ import styles from "./ActivitiesTable.module.scss";
 const formatActivityType = (type: ActivityType): string => {
     switch (type) {
         case ActivityType.SALE:
-            return "Sale";
+            return "Vente";
         case ActivityType.CREATION:
-            return "Creation";
+            return "Création";
         case ActivityType.STOCK_CORRECTION:
-            return "Stock Correction";
+            return "Correction de stock";
         case ActivityType.OTHER:
-            return "Other";
+            return "Autre";
         default:
             return type;
     }
-};
-
-/**
- * Formats quantity with sign (+/-) and returns formatted string with CSS class.
- *
- * @param {number} quantity - Quantity value
- * @returns {object} Object with formatted string and CSS class name
- */
-const formatQuantity = (quantity: number): { text: string; className: string } => {
-    const sign = quantity >= 0 ? "+" : "";
-    const text = `${sign}${quantity}`;
-    const className =
-        quantity > 0
-            ? styles.activitiesTable__quantityPositive
-            : quantity < 0
-              ? styles.activitiesTable__quantityNegative
-              : styles.activitiesTable__quantityZero;
-    return { text, className };
 };
 
 type Props = {
@@ -117,27 +99,22 @@ const ActivitiesTableComponent = ({ activities, isLoading, error }: Props) => {
             },
             {
                 key: "productId",
-                header: "Product",
+                header: "Produit",
                 render: (value: unknown, row: Activity) => {
                     return getProductName(row.productId);
                 },
             },
             {
                 key: "quantity",
-                header: "Quantity",
+                header: "Quantité",
                 render: (value: unknown) => {
                     const quantity = value as number;
-                    const { text, className } = formatQuantity(quantity);
-                    return (
-                        <span className={className}>
-                            {text}
-                        </span>
-                    );
+                    return `${Math.abs(quantity)}`;
                 },
             },
             {
                 key: "amount",
-                header: "Amount",
+                header: "Montant",
                 render: (value: unknown) => {
                     const amount = value as number;
                     return formatCurrency(amount);
@@ -145,7 +122,7 @@ const ActivitiesTableComponent = ({ activities, isLoading, error }: Props) => {
             },
             {
                 key: "note",
-                header: "Note",
+                header: "Remarque",
                 render: (value: unknown) => {
                     const note = value as string | undefined;
                     return note || "-";

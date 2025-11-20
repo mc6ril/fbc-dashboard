@@ -1,0 +1,81 @@
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+@use "@/styles/variables/typography" as *;
+
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 400px;
+  padding: $spacing-lg;
+  background-color: $color-background;
+  border: $border-width-standard solid $color-border;
+  border-radius: $radius-md;
+  box-shadow: $shadow-md $color-shadow;
+
+  &__header {
+    margin-bottom: $spacing-md;
+  }
+
+  &__title {
+    margin: 0 0 $spacing-sm 0;
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+    line-height: $line-height-normal;
+  }
+
+  &__description {
+    margin: 0;
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+    line-height: $line-height-relaxed;
+  }
+
+  &__content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+  }
+
+  &__loading {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: $spacing-xl;
+    background-color: $color-background-light;
+    border-radius: $radius-sm;
+  }
+
+  &__error {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    padding: $spacing-xl;
+    background-color: $color-error-background;
+    border: $border-width-standard solid $color-error-border;
+    border-radius: $radius-sm;
+    color: $color-error-text;
+  }
+}
+
+@media (max-width: $breakpoint-mobile) {
+  .chart-container {
+    padding: $spacing-md;
+    min-height: 300px;
+
+    &__content,
+    &__loading,
+    &__error {
+      min-height: 200px;
+    }
+  }
+}
+

@@ -137,7 +137,7 @@ const ActivityPaginationComponent = ({
                     disabled={isFirstPage}
                     ariaLabel={`Go to previous page (page ${currentPage - 1})`}
                 >
-                    Previous
+                    Précédent
                 </Button>
 
                 <div className={styles.activityPagination__pages} role="list">
@@ -158,7 +158,7 @@ const ActivityPaginationComponent = ({
                     disabled={isLastPage}
                     ariaLabel={`Go to next page (page ${currentPage + 1})`}
                 >
-                    Next
+                    Suivant
                 </Button>
             </div>
         </nav>
