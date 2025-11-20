@@ -8,6 +8,12 @@
  * Uses cascading product selection (Type → Model → Coloris) for improved UX and
  * consistency with ProductForm. Product identification is done by finding the product
  * that matches the selected modelId and colorisId combination.
+ *
+ * Type-specific behaviors (FBC-28):
+ * - CREATION: Amount field hidden, quantity > 0 required, amount sent as 0
+ * - SALE: Amount field shown, quantity > 0 (converted to negative on submission), amount > 0 required
+ * - STOCK_CORRECTION: Amount field hidden, two separate fields "Add to stock" and "Reduce from stock" with exclusive input logic, amount sent as 0
+ * - OTHER: Both fields shown, standard validation (no conversion)
  */
 
 "use client";
@@ -82,6 +88,10 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
     const [quantity, setQuantity] = React.useState<string>("");
     const [amount, setAmount] = React.useState<string>("");
     const [note, setNote] = React.useState<string>("");
+    
+    // STOCK_CORRECTION specific fields (FBC-28 Sub-Ticket 28.4)
+    const [addToStock, setAddToStock] = React.useState<string>("");
+    const [reduceFromStock, setReduceFromStock] = React.useState<string>("");
 
     // Field-level errors
     const [errors, setErrors] = React.useState<Record<string, string>>({});
@@ -209,6 +219,26 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
     const handleActivityTypeChange = React.useCallback(
         (e: React.ChangeEvent<HTMLSelectElement>) => {
             const newType = e.target.value as ActivityType;
+            
+            // Reset amount when switching to/from types that don't need it (FBC-28)
+            const previousShowAmount = 
+                activityType === ActivityType.SALE || 
+                activityType === ActivityType.OTHER;
+            const newShowAmount = 
+                newType === ActivityType.SALE || 
+                newType === ActivityType.OTHER;
+            
+            if (previousShowAmount && !newShowAmount) {
+                // Switching from type that shows amount to type that hides it
+                setAmount("");
+            }
+            
+            // Reset STOCK_CORRECTION fields when switching away from STOCK_CORRECTION (FBC-28 Sub-Ticket 28.4)
+            if (activityType === ActivityType.STOCK_CORRECTION && newType !== ActivityType.STOCK_CORRECTION) {
+                setAddToStock("");
+                setReduceFromStock("");
+            }
+            
             setActivityType(newType);
             // Clear product selections when switching to types that don't require it
             // Only OTHER doesn't require a product (CREATION, SALE, STOCK_CORRECTION all require it)
@@ -221,7 +251,7 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
             setErrors({});
             setGeneralError("");
         },
-        []
+        [activityType]
     );
 
     // Handle date change
@@ -285,6 +315,38 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
         },
         [clearFieldError]
     );
+    
+    // Handle STOCK_CORRECTION "Add to stock" change (FBC-28 Sub-Ticket 28.4)
+    // Exclusive logic: if user fills this field, clear "Reduce from stock"
+    const handleAddToStockChange = React.useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const newValue = e.target.value;
+            setAddToStock(newValue);
+            // Clear the other field if this one is being filled
+            if (newValue && newValue.trim() !== "") {
+                setReduceFromStock("");
+            }
+            clearFieldError("addToStock");
+            clearFieldError("reduceFromStock");
+        },
+        [clearFieldError]
+    );
+    
+    // Handle STOCK_CORRECTION "Reduce from stock" change (FBC-28 Sub-Ticket 28.4)
+    // Exclusive logic: if user fills this field, clear "Add to stock"
+    const handleReduceFromStockChange = React.useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const newValue = e.target.value;
+            setReduceFromStock(newValue);
+            // Clear the other field if this one is being filled
+            if (newValue && newValue.trim() !== "") {
+                setAddToStock("");
+            }
+            clearFieldError("addToStock");
+            clearFieldError("reduceFromStock");
+        },
+        [clearFieldError]
+    );
 
     // Handle note change
     const handleNoteChange = React.useCallback(
@@ -294,7 +356,7 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
         []
     );
 
-    // Validate form
+    // Validate form (type-specific validation - FBC-28)
     const validateForm = React.useCallback((): boolean => {
         const newErrors: Record<string, string> = {};
 
@@ -303,25 +365,67 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
             newErrors.date = "La date est requise";
         }
 
-        // Validate quantity
-        if (!quantity || quantity.trim() === "") {
-            newErrors.quantity = "La quantité est requise";
+        // Validate quantity (type-specific - FBC-28)
+        if (activityType === ActivityType.STOCK_CORRECTION) {
+            // STOCK_CORRECTION: Validate two separate fields (FBC-28 Sub-Ticket 28.4)
+            const addNum = addToStock && addToStock.trim() !== "" ? Number.parseFloat(addToStock) : null;
+            const reduceNum = reduceFromStock && reduceFromStock.trim() !== "" ? Number.parseFloat(reduceFromStock) : null;
+            
+            // At least one field must be filled
+            if (addNum === null && reduceNum === null) {
+                newErrors.addToStock = "Au moins un des deux champs doit être rempli";
+                newErrors.reduceFromStock = "Au moins un des deux champs doit être rempli";
+            } else {
+                // Validate add to stock if filled
+                if (addNum !== null) {
+                    if (Number.isNaN(addNum) || !Number.isFinite(addNum)) {
+                        newErrors.addToStock = "La valeur doit être un nombre valide";
+                    } else if (addNum <= 0) {
+                        newErrors.addToStock = "La valeur doit être supérieure à 0";
+                    }
+                }
+                // Validate reduce from stock if filled
+                if (reduceNum !== null) {
+                    if (Number.isNaN(reduceNum) || !Number.isFinite(reduceNum)) {
+                        newErrors.reduceFromStock = "La valeur doit être un nombre valide";
+                    } else if (reduceNum <= 0) {
+                        newErrors.reduceFromStock = "La valeur doit être supérieure à 0";
+                    }
+                }
+            }
         } else {
-            const quantityNum = Number.parseFloat(quantity);
-            if (Number.isNaN(quantityNum) || !Number.isFinite(quantityNum)) {
-                newErrors.quantity = "La quantité doit être un nombre valide";
+            // Other types: validate standard quantity field
+            if (!quantity || quantity.trim() === "") {
+                newErrors.quantity = "La quantité est requise";
+            } else {
+                const quantityNum = Number.parseFloat(quantity);
+                if (Number.isNaN(quantityNum) || !Number.isFinite(quantityNum)) {
+                    newErrors.quantity = "La quantité doit être un nombre valide";
+                } else {
+                    // Type-specific quantity validation
+                    if (activityType === ActivityType.CREATION || activityType === ActivityType.SALE) {
+                        // CREATION and SALE require positive quantity (user enters positive, SALE converts to negative on submit)
+                        if (quantityNum <= 0) {
+                            newErrors.quantity = "La quantité doit être supérieure à 0";
+                        }
+                    }
+                    // OTHER: allow any non-zero number
+                }
             }
         }
 
-        // Validate amount
-        if (!amount || amount.trim() === "") {
-            newErrors.amount = "Le montant est requis";
-        } else {
-            const amountNum = Number.parseFloat(amount);
-            if (Number.isNaN(amountNum) || !Number.isFinite(amountNum)) {
-                newErrors.amount = "Le montant doit être un nombre valide";
-            } else if (amountNum <= 0) {
-                newErrors.amount = "Le montant doit être supérieur à 0";
+        // Validate amount (only for types that show the field - FBC-28)
+        const requiresAmount = activityType === ActivityType.SALE || activityType === ActivityType.OTHER;
+        if (requiresAmount) {
+            if (!amount || amount.trim() === "") {
+                newErrors.amount = "Le montant est requis";
+            } else {
+                const amountNum = Number.parseFloat(amount);
+                if (Number.isNaN(amountNum) || !Number.isFinite(amountNum)) {
+                    newErrors.amount = "Le montant doit être un nombre valide";
+                } else if (amountNum <= 0) {
+                    newErrors.amount = "Le montant doit être supérieur à 0";
+                }
             }
         }
 
@@ -357,9 +461,11 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
         selectedModelId,
         selectedColorisId,
         productId,
+        addToStock,
+        reduceFromStock,
     ]);
 
-    // Handle form submission
+    // Handle form submission (with type-specific quantity conversion and amount handling - FBC-28)
     const handleSubmit = React.useCallback(
         (e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
@@ -370,12 +476,40 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
                 return;
             }
 
+            // Parse quantity and apply type-specific conversions (FBC-28)
+            let finalQuantity: number;
+            
+            if (activityType === ActivityType.STOCK_CORRECTION) {
+                // STOCK_CORRECTION: Calculate quantity from two separate fields (FBC-28 Sub-Ticket 28.4)
+                const addNum = addToStock && addToStock.trim() !== "" ? Number.parseFloat(addToStock) : 0;
+                const reduceNum = reduceFromStock && reduceFromStock.trim() !== "" ? Number.parseFloat(reduceFromStock) : 0;
+                finalQuantity = addNum - reduceNum;
+            } else {
+                // Other types: use standard quantity field
+                finalQuantity = Number.parseFloat(quantity);
+                
+                // SALE: Convert positive quantity to negative (user enters positive, system stores negative)
+                if (activityType === ActivityType.SALE) {
+                    finalQuantity = -Math.abs(finalQuantity);
+                }
+            }
+            
+            // Calculate amount based on type (FBC-28)
+            let finalAmount: number;
+            if (activityType === ActivityType.CREATION || activityType === ActivityType.STOCK_CORRECTION) {
+                // CREATION and STOCK_CORRECTION: amount is 0
+                finalAmount = 0;
+            } else {
+                // SALE and OTHER: use entered amount
+                finalAmount = Number.parseFloat(amount);
+            }
+
             const activityData = {
                 date,
                 type: activityType,
                 productId: productId as ProductId | undefined,
-                quantity: Number.parseFloat(quantity),
-                amount: Number.parseFloat(amount),
+                quantity: finalQuantity,
+                amount: finalAmount,
                 note: note.trim() || undefined,
             };
 
@@ -390,6 +524,8 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
                     setQuantity("");
                     setAmount("");
                     setNote("");
+                    setAddToStock("");
+                    setReduceFromStock("");
                     setErrors({});
                     setGeneralError("");
 
@@ -413,6 +549,8 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
             quantity,
             amount,
             note,
+            addToStock,
+            reduceFromStock,
             validateForm,
             addActivityMutation,
             onSuccess,
@@ -423,7 +561,7 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
     const isDisabled =
         isSubmitting || productsLoading || isLoadingModels || isLoadingColoris;
 
-    // Determine which fields to show based on activity type
+    // Determine which fields to show based on activity type (FBC-28)
     const showProductField =
         activityType === ActivityType.CREATION ||
         activityType === ActivityType.SALE ||
@@ -433,6 +571,24 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
         activityType === ActivityType.CREATION ||
         activityType === ActivityType.SALE ||
         activityType === ActivityType.STOCK_CORRECTION;
+    
+    // Amount field only shown for SALE and OTHER (FBC-28)
+    const showAmountField = 
+        activityType === ActivityType.SALE || 
+        activityType === ActivityType.OTHER;
+    
+    // Dynamic labels and helper texts based on activity type (FBC-28)
+    const quantityLabel = activityType === ActivityType.SALE ? "Quantité vendue" : "Quantité";
+    const quantityHelperText = React.useMemo(() => {
+        if (activityType === ActivityType.CREATION) {
+            return "Quantité ajoutée au stock";
+        } else if (activityType === ActivityType.SALE) {
+            return "Saisissez le nombre d'unités vendues (sera déduit du stock)";
+        } else if (activityType === ActivityType.STOCK_CORRECTION) {
+            return "Peut être positive ou négative";
+        }
+        return undefined;
+    }, [activityType]);
 
     return (
         <form onSubmit={handleSubmit} className={styles.form} noValidate>
@@ -536,38 +692,63 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
                 </>
             )}
 
-            {/* Quantity */}
-            <Input
-                id="activity-quantity"
-                label="Quantité"
-                type="number"
-                value={quantity}
-                onChange={handleQuantityChange}
-                placeholder="Ex: 5 ou -5"
-                required
-                disabled={isDisabled}
-                error={errors.quantity}
-                helperText={
-                    activityType === ActivityType.SALE
-                        ? "Généralement négative pour une vente"
-                        : activityType === ActivityType.STOCK_CORRECTION
-                          ? "Peut être positive ou négative"
-                          : undefined
-                }
-            />
+            {/* Quantity fields - conditional rendering based on type (FBC-28 Sub-Ticket 28.4) */}
+            {activityType === ActivityType.STOCK_CORRECTION ? (
+                <>
+                    {/* STOCK_CORRECTION: Two separate fields with exclusive logic */}
+                    <Input
+                        id="activity-add-to-stock"
+                        label="Ajout au stock"
+                        type="number"
+                        value={addToStock}
+                        onChange={handleAddToStockChange}
+                        placeholder="Ex: 5"
+                        disabled={isDisabled}
+                        error={errors.addToStock}
+                        helperText="Quantité à ajouter au stock (laissez vide si vous réduisez)"
+                    />
+                    <Input
+                        id="activity-reduce-from-stock"
+                        label="Réduction du stock"
+                        type="number"
+                        value={reduceFromStock}
+                        onChange={handleReduceFromStockChange}
+                        placeholder="Ex: 3"
+                        disabled={isDisabled}
+                        error={errors.reduceFromStock}
+                        helperText="Quantité à retirer du stock (laissez vide si vous ajoutez)"
+                    />
+                </>
+            ) : (
+                /* Other types: Standard quantity field */
+                <Input
+                    id="activity-quantity"
+                    label={quantityLabel}
+                    type="number"
+                    value={quantity}
+                    onChange={handleQuantityChange}
+                    placeholder={activityType === ActivityType.SALE ? "Ex: 2" : "Ex: 5 ou -5"}
+                    required
+                    disabled={isDisabled}
+                    error={errors.quantity}
+                    helperText={quantityHelperText}
+                />
+            )}
 
-            {/* Amount */}
-            <Input
-                id="activity-amount"
-                label="Montant"
-                type="number"
-                value={amount}
-                onChange={handleAmountChange}
-                placeholder="Ex: 99.95"
-                required
-                disabled={isDisabled}
-                error={errors.amount}
-            />
+            {/* Amount (conditional rendering - FBC-28) */}
+            {showAmountField && (
+                <Input
+                    id="activity-amount"
+                    label="Montant"
+                    type="number"
+                    value={amount}
+                    onChange={handleAmountChange}
+                    placeholder="Ex: 99.95"
+                    required
+                    disabled={isDisabled}
+                    error={errors.amount}
+                />
+            )}
 
             {/* Note (optional) */}
             <Textarea

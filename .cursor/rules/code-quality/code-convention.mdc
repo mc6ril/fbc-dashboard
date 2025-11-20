@@ -12,7 +12,28 @@ Maintain strict and consistent code conventions for style, naming, TypeScript pa
 
 ## CRITICAL RULES - CODE CONVENTIONS NEVER OPTIONAL
 
-### 1. TypeScript Style - STRICT ENFORCEMENT
+### 1. Language - ENGLISH ONLY - STRICT ENFORCEMENT
+
+-   **ALWAYS** write all code, comments, documentation, JSDoc, and documentation files in **English**
+-   **ALWAYS** write all Jira tickets, planning documents, and reports in **English**
+-   **ALWAYS** use English for variable names, function names, type names, and all identifiers
+-   **ALWAYS** use English for error messages, console logs, and user-facing strings (unless explicitly required otherwise)
+-   **NEVER** use French or any other language in code, comments, or documentation
+-   **NEVER** create tickets, plans, or reports in French or other languages
+-   **ALWAYS** translate any non-English content to English before committing
+
+**This rule applies to:**
+-   Source code (`src/**/*.{ts,tsx}`)
+-   Documentation files (`*.md`, `*.mdx`)
+-   Jira tickets (`jira/*.md`)
+-   Planning documents (`report/planning/*.md`)
+-   Reports and audits (`report/**/*.md`)
+-   Comments and JSDoc in code
+-   Test files (`__tests__/**/*.{ts,tsx}`)
+
+**Exception:** User-facing UI text (labels, buttons, etc.) may be in French if required by business needs, but all code, comments, and technical documentation must be in English.
+
+### 2. TypeScript Style - STRICT ENFORCEMENT
 
 -   **ALWAYS** use TypeScript strict at all times
 -   **NEVER** use `any` - always type explicitly
@@ -257,25 +278,32 @@ import { signInUser } from "../../core/usecases/auth";
 
 ### 11. Critical Violations - ALWAYS STOP
 
-1. **Use of `any`** → STOP and type explicitly
-2. **Inline CSS in component** → STOP and use SCSS
-3. **Hardcoded value in SCSS** → STOP and create/use a variable in `styles/variables/*`
-4. **`export function` for component** → STOP and use `const ComponentName = () => {}`
-5. **`interface` for props** → STOP and use `type`
-6. **`if` in JSX** → STOP and use `&&` or ternary
-7. **Business logic in JSX** → STOP and move to a hook or usecase
-8. **Network call in component** → STOP and use a React Query hook
-9. **Side effect in Zustand store** → STOP and move the logic
-10. **Unused imports** → STOP and remove
-11. **Function without return type** → STOP and type explicitly
-12. **Relative imports from `src/`** → STOP and use absolute imports with `@/`
-13. **Relative SCSS imports from `styles/`** → STOP and use `@/styles/` instead
+1. **Non-English content in code/documentation** → STOP and translate to English
+2. **Use of `any`** → STOP and type explicitly
+3. **Inline CSS in component** → STOP and use SCSS
+4. **Hardcoded value in SCSS** → STOP and create/use a variable in `styles/variables/*`
+5. **`export function` for component** → STOP and use `const ComponentName = () => {}`
+6. **`interface` for props** → STOP and use `type`
+7. **`if` in JSX** → STOP and use `&&` or ternary
+8. **Business logic in JSX** → STOP and move to a hook or usecase
+9. **Network call in component** → STOP and use a React Query hook
+10. **Side effect in Zustand store** → STOP and move the logic
+11. **Unused imports** → STOP and remove
+12. **Function without return type** → STOP and type explicitly
+13. **Relative imports from `src/`** → STOP and use absolute imports with `@/`
+14. **Relative SCSS imports from `styles/`** → STOP and use `@/styles/` instead
 
 ## CODE CONVENTION COMPLIANCE - MANDATORY VERIFICATION
 
 ### 12. Code Generation Checklist
 
 Before EVERY code generation:
+
+✅ **Language**
+
+-   All code, comments, and documentation in English?
+-   All tickets, plans, and reports in English?
+-   All variable/function/type names in English?
 
 ✅ **TypeScript**
 

@@ -50,10 +50,12 @@ const ActivityFiltersComponent = () => {
         const options: SelectOption[] = [{ value: "", label: "All" }];
         if (products) {
             products.forEach((product) => {
-                options.push({
-                    value: product.id,
-                    label: product.name,
-                });
+                if (product.name) {
+                    options.push({
+                        value: product.id,
+                        label: product.name,
+                    });
+                }
             });
         }
         return options;

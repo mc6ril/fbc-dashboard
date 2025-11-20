@@ -19,8 +19,10 @@ Ensure all generated files (Jira tickets, reports, audits) are automatically sav
 -   **ALWAYS** read existing files in `jira/` directory to determine next number
 -   **ALWAYS** create `jira/` directory if it doesn't exist
 -   **ALWAYS** use English for file and directory names
+-   **ALWAYS** write ticket content in **English only** (see code-convention.mdc language rule)
 -   **NEVER** overwrite existing ticket files
 -   **NEVER** use timestamps or random names for tickets
+-   **NEVER** write tickets in French or other languages
 -   **ALWAYS** save the ticket content as markdown format
 
 **File naming pattern**:
@@ -46,8 +48,10 @@ jira/3.md
 -   **ALWAYS** save reports and audits in `report/` directory at project root
 -   **ALWAYS** create subdirectory based on report type (e.g., `report/security/`, `report/architecture/`, `report/performance/`)
 -   **ALWAYS** use English for directory and file names
+-   **ALWAYS** write report content in **English only** (see code-convention.mdc language rule)
 -   **ALWAYS** use descriptive filenames with timestamps: `report/{type}/{name}-{timestamp}.md`
 -   **NEVER** save reports in `.cursor/reports/` (use `report/` at root instead)
+-   **NEVER** write reports in French or other languages
 -   **ALWAYS** create parent directories if they don't exist
 -   **ALWAYS** use ISO 8601 format for timestamps: `YYYY-MM-DD-HHMMSS`
 
@@ -204,9 +208,10 @@ Command: security-audit
 1. **Saving Jira ticket without number** → STOP and determine next number from existing files
 2. **Saving report without subdirectory** → STOP and create appropriate subdirectory
 3. **Using non-English names** → STOP and use English names
-4. **Saving in wrong directory** → STOP and use correct directory (`jira/` or `report/{type}/`)
-5. **Overwriting existing files** → STOP and use next available number/timestamp
-6. **Missing directory creation** → STOP and create directory before saving
+4. **Non-English content in tickets/reports** → STOP and translate to English (see code-convention.mdc)
+5. **Saving in wrong directory** → STOP and use correct directory (`jira/` or `report/{type}/`)
+6. **Overwriting existing files** → STOP and use next available number/timestamp
+7. **Missing directory creation** → STOP and create directory before saving
 
 ## FILE MANAGEMENT COMPLIANCE - MANDATORY VERIFICATION
 
