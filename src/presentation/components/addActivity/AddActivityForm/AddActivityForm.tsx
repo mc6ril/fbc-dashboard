@@ -4,15 +4,30 @@
  * Form component for creating new activities with dynamic fields based on activity type.
  * Supports CREATION, SALE, STOCK_CORRECTION, and OTHER activity types with type-specific
  * field requirements and validation.
+ *
+ * Uses cascading product selection (Type → Model → Coloris) for improved UX and
+ * consistency with ProductForm. Product identification is done by finding the product
+ * that matches the selected modelId and colorisId combination.
  */
 
 "use client";
 
 import React from "react";
 import { useAddActivity } from "@/presentation/hooks/useActivities";
-import { useProducts } from "@/presentation/hooks/useProducts";
+import {
+    useProducts,
+    useProductModelsByType,
+    useProductColorisByModel,
+} from "@/presentation/hooks/useProducts";
 import { ActivityType } from "@/core/domain/activity";
-import type { ProductId } from "@/core/domain/product";
+import type {
+    ProductId,
+    ProductType,
+    ProductModelId,
+    ProductColorisId,
+} from "@/core/domain/product";
+import { ProductType as ProductTypeEnum } from "@/core/domain/product";
+import { formatProductType } from "@/shared/utils/product";
 import { getAccessibilityId } from "@/shared/a11y/utils";
 import { A11yIds } from "@/shared/a11y/ids";
 import Input from "@/presentation/components/ui/Input";
@@ -61,7 +76,9 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
     // Form state
     const [activityType, setActivityType] = React.useState<ActivityType>(ActivityType.CREATION);
     const [date, setDate] = React.useState<string>(getCurrentDateTimeIso());
-    const [productId, setProductId] = React.useState<string>("");
+    const [selectedProductType, setSelectedProductType] = React.useState<ProductType | null>(null);
+    const [selectedModelId, setSelectedModelId] = React.useState<ProductModelId | null>(null);
+    const [selectedColorisId, setSelectedColorisId] = React.useState<ProductColorisId | null>(null);
     const [quantity, setQuantity] = React.useState<string>("");
     const [amount, setAmount] = React.useState<string>("");
     const [note, setNote] = React.useState<string>("");
@@ -70,19 +87,67 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
     const [errors, setErrors] = React.useState<Record<string, string>>({});
     const [generalError, setGeneralError] = React.useState<string>("");
 
+    // Fetch models and coloris using React Query hooks
+    const {
+        data: models,
+        isLoading: isLoadingModels,
+        error: modelsError,
+    } = useProductModelsByType(selectedProductType);
+    const {
+        data: coloris,
+        isLoading: isLoadingColoris,
+        error: colorisError,
+    } = useProductColorisByModel(selectedModelId);
+
     // Accessibility IDs
     const formErrorId = React.useMemo(() => getAccessibilityId(A11yIds.formError, "form"), []);
 
-    // Product options for select
-    const productOptions: SelectOption[] = React.useMemo(() => {
-        if (!products) {
+    // Track previous type and modelId to detect user changes (not initial mount)
+    const prevTypeRef = React.useRef<ProductType | null>(selectedProductType);
+    const prevModelIdRef = React.useRef<ProductModelId | null>(selectedModelId);
+
+    // Product type options
+    const productTypeOptions: SelectOption[] = React.useMemo(
+        () =>
+            Object.values(ProductTypeEnum).map((type) => ({
+                value: type,
+                label: formatProductType(type),
+            })),
+        []
+    );
+
+    // Convert models to Select options
+    const modelOptions: SelectOption[] = React.useMemo(() => {
+        if (!models || models.length === 0) {
             return [];
         }
-        return products.map((product) => ({
-            value: product.id,
-            label: `${product.name} (${product.type})`,
+        return models.map((model) => ({
+            value: model.id,
+            label: model.name,
         }));
-    }, [products]);
+    }, [models]);
+
+    // Convert coloris to Select options
+    const colorisOptions: SelectOption[] = React.useMemo(() => {
+        if (!coloris || coloris.length === 0) {
+            return [];
+        }
+        return coloris.map((c) => ({
+            value: c.id,
+            label: c.coloris,
+        }));
+    }, [coloris]);
+
+    // Find productId from modelId + colorisId combination
+    const productId: ProductId | undefined = React.useMemo(() => {
+        if (!products || !selectedModelId || !selectedColorisId) {
+            return undefined;
+        }
+        const matchingProduct = products.find(
+            (p) => p.modelId === selectedModelId && p.colorisId === selectedColorisId
+        );
+        return matchingProduct?.id;
+    }, [products, selectedModelId, selectedColorisId]);
 
     // Activity type options
     const activityTypeOptions: SelectOption[] = React.useMemo(
@@ -104,15 +169,53 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
         });
     }, []);
 
+    // Clear dependent fields when type changes (cascading filter)
+    // Only clear when type actually changes (not on initial mount)
+    React.useEffect(() => {
+        if (prevTypeRef.current !== selectedProductType) {
+            setSelectedModelId(null);
+            setSelectedColorisId(null);
+            clearFieldError("selectedModelId");
+            clearFieldError("selectedColorisId");
+            prevTypeRef.current = selectedProductType;
+        }
+    }, [selectedProductType, clearFieldError]);
+
+    // Clear coloris when model changes (cascading filter)
+    // Use a ref to track previous modelId to avoid clearing on initial mount
+    React.useEffect(() => {
+        if (prevModelIdRef.current !== selectedModelId && selectedModelId !== null) {
+            setSelectedColorisId(null);
+            clearFieldError("selectedColorisId");
+            prevModelIdRef.current = selectedModelId;
+        } else if (selectedModelId === null) {
+            prevModelIdRef.current = null;
+        }
+    }, [selectedModelId, clearFieldError]);
+
+    // Auto-select coloris if only one is available
+    React.useEffect(() => {
+        if (
+            coloris &&
+            coloris.length === 1 &&
+            selectedColorisId === null &&
+            selectedModelId !== null
+        ) {
+            setSelectedColorisId(coloris[0].id);
+        }
+    }, [coloris, selectedModelId, selectedColorisId]);
+
     // Handle activity type change
     const handleActivityTypeChange = React.useCallback(
         (e: React.ChangeEvent<HTMLSelectElement>) => {
             const newType = e.target.value as ActivityType;
             setActivityType(newType);
-            // Clear productId when switching to types that don't require it
+            // Clear product selections when switching to types that don't require it
             // Only OTHER doesn't require a product (CREATION, SALE, STOCK_CORRECTION all require it)
             if (newType === ActivityType.OTHER) {
-                setProductId("");
+                setSelectedProductType(null);
+                setSelectedModelId(null);
+                setSelectedColorisId(null);
             }
             // Clear errors
             setErrors({});
@@ -131,11 +234,36 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
         clearFieldError("date");
     }, [clearFieldError]);
 
-    // Handle product change
-    const handleProductChange = React.useCallback(
+    // Handle product type change
+    const handleProductTypeChange = React.useCallback(
         (e: React.ChangeEvent<HTMLSelectElement>) => {
-            setProductId(e.target.value);
-            clearFieldError("productId");
+            const newType = e.target.value as ProductType;
+            setSelectedProductType(newType || null);
+            clearFieldError("selectedProductType");
+            // Model and coloris will be cleared by useEffect when type changes
+        },
+        [clearFieldError]
+    );
+
+    // Handle model change
+    const handleModelChange = React.useCallback(
+        (e: React.ChangeEvent<HTMLSelectElement>) => {
+            const selectedModelIdValue = e.target.value;
+            setSelectedModelId(selectedModelIdValue ? (selectedModelIdValue as ProductModelId) : null);
+            clearFieldError("selectedModelId");
+            // Coloris will be cleared by useEffect when model changes
+        },
+        [clearFieldError]
+    );
+
+    // Handle coloris change
+    const handleColorisChange = React.useCallback(
+        (e: React.ChangeEvent<HTMLSelectElement>) => {
+            const selectedColorisIdValue = e.target.value;
+            setSelectedColorisId(
+                selectedColorisIdValue ? (selectedColorisIdValue as ProductColorisId) : null
+            );
+            clearFieldError("selectedColorisId");
         },
         [clearFieldError]
     );
@@ -197,21 +325,39 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
             }
         }
 
-        // Validate productId based on activity type
-        const requiresProductId =
-            activityType === ActivityType.SALE || activityType === ActivityType.STOCK_CORRECTION;
-        if (requiresProductId && !productId) {
-            newErrors.productId = "Le produit est requis pour ce type d'activité";
-        }
+        // Validate product selection based on activity type
+        const requiresProduct =
+            activityType === ActivityType.CREATION ||
+            activityType === ActivityType.SALE ||
+            activityType === ActivityType.STOCK_CORRECTION;
 
-        // For CREATION, product is also required
-        if (activityType === ActivityType.CREATION && !productId) {
-            newErrors.productId = "Le produit est requis";
+        if (requiresProduct) {
+            if (!selectedProductType) {
+                newErrors.selectedProductType = "Le type de produit est requis";
+            }
+            if (!selectedModelId) {
+                newErrors.selectedModelId = "Le modèle est requis";
+            }
+            if (!selectedColorisId) {
+                newErrors.selectedColorisId = "Le coloris est requis";
+            }
+            if (!productId) {
+                newErrors.productId = "Le produit sélectionné n'existe pas";
+            }
         }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    }, [date, quantity, amount, productId, activityType]);
+    }, [
+        date,
+        quantity,
+        amount,
+        activityType,
+        selectedProductType,
+        selectedModelId,
+        selectedColorisId,
+        productId,
+    ]);
 
     // Handle form submission
     const handleSubmit = React.useCallback(
@@ -227,7 +373,7 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
             const activityData = {
                 date,
                 type: activityType,
-                productId: (productId || undefined) as ProductId | undefined,
+                productId: productId as ProductId | undefined,
                 quantity: Number.parseFloat(quantity),
                 amount: Number.parseFloat(amount),
                 note: note.trim() || undefined,
@@ -238,7 +384,9 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
                     // Reset form
                     setActivityType(ActivityType.CREATION);
                     setDate(getCurrentDateTimeIso());
-                    setProductId("");
+                    setSelectedProductType(null);
+                    setSelectedModelId(null);
+                    setSelectedColorisId(null);
                     setQuantity("");
                     setAmount("");
                     setNote("");
@@ -258,11 +406,22 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
                 },
             });
         },
-        [date, activityType, productId, quantity, amount, note, validateForm, addActivityMutation, onSuccess]
+        [
+            date,
+            activityType,
+            productId,
+            quantity,
+            amount,
+            note,
+            validateForm,
+            addActivityMutation,
+            onSuccess,
+        ]
     );
 
     const isSubmitting = addActivityMutation.isPending;
-    const isDisabled = isSubmitting || productsLoading;
+    const isDisabled =
+        isSubmitting || productsLoading || isLoadingModels || isLoadingColoris;
 
     // Determine which fields to show based on activity type
     const showProductField =
@@ -308,19 +467,73 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
                 error={errors.date}
             />
 
-            {/* Product (conditional) */}
+            {/* Product Selection (conditional) - Cascading dropdowns */}
             {showProductField && (
-                <Select
-                    id="activity-product"
-                    label="Produit"
-                    options={productOptions}
-                    value={productId}
-                    onChange={handleProductChange}
-                    placeholder="Sélectionner un produit"
-                    required={isProductRequired}
-                    disabled={isDisabled || productsLoading}
-                    error={errors.productId}
-                />
+                <>
+                    {/* Product Type */}
+                    <Select
+                        id="activity-product-type"
+                        label="Type de produit"
+                        options={productTypeOptions}
+                        value={selectedProductType || ""}
+                        onChange={handleProductTypeChange}
+                        placeholder="Sélectionnez un type"
+                        required={isProductRequired}
+                        disabled={isDisabled}
+                        error={errors.selectedProductType}
+                    />
+
+                    {/* Product Model */}
+                    <Select
+                        id="activity-product-model"
+                        label="Modèle"
+                        options={modelOptions}
+                        value={selectedModelId || ""}
+                        onChange={handleModelChange}
+                        required={isProductRequired}
+                        disabled={isDisabled || !selectedProductType || isLoadingModels}
+                        error={
+                            errors.selectedModelId ||
+                            (modelsError ? "Erreur lors du chargement des modèles" : undefined)
+                        }
+                        placeholder={
+                            isLoadingModels
+                                ? "Chargement des modèles..."
+                                : !selectedProductType
+                                  ? "Sélectionnez d'abord un type"
+                                  : "Sélectionnez un modèle"
+                        }
+                    />
+
+                    {/* Coloris */}
+                    <Select
+                        id="activity-product-coloris"
+                        label="Coloris"
+                        options={colorisOptions}
+                        value={selectedColorisId || ""}
+                        onChange={handleColorisChange}
+                        required={isProductRequired}
+                        disabled={isDisabled || !selectedModelId || isLoadingColoris}
+                        error={
+                            errors.selectedColorisId ||
+                            (colorisError ? "Erreur lors du chargement des coloris" : undefined)
+                        }
+                        placeholder={
+                            isLoadingColoris
+                                ? "Chargement des coloris..."
+                                : !selectedModelId
+                                  ? "Sélectionnez d'abord un modèle"
+                                  : "Sélectionnez un coloris"
+                        }
+                    />
+
+                    {/* Product ID validation error */}
+                    {errors.productId && (
+                        <div className={styles.form__error} role="alert" aria-live="assertive">
+                            {errors.productId}
+                        </div>
+                    )}
+                </>
             )}
 
             {/* Quantity */}
