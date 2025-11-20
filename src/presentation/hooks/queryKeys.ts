@@ -117,5 +117,90 @@ export const queryKeys = {
                 },
             ] as const,
     },
+
+    /**
+     * Statistics-related query keys.
+     *
+     * Used for caching business statistics and analytics data.
+     */
+    statistics: {
+        /**
+         * Query key for profits grouped by period.
+         *
+         * Includes period type and date range for proper cache invalidation.
+         *
+         * @param {string} period - Period type (DAILY, MONTHLY, YEARLY)
+         * @param {string} [startDate] - Optional start date filter
+         * @param {string} [endDate] - Optional end date filter
+         * @returns Query key tuple for profits by period
+         */
+        profitsByPeriod: (period: string, startDate?: string, endDate?: string) =>
+            [
+                "statistics",
+                "profitsByPeriod",
+                {
+                    period,
+                    startDate: startDate ?? null,
+                    endDate: endDate ?? null,
+                },
+            ] as const,
+
+        /**
+         * Query key for total creations count.
+         *
+         * Includes date range for proper cache invalidation.
+         *
+         * @param {string} [startDate] - Optional start date filter
+         * @param {string} [endDate] - Optional end date filter
+         * @returns Query key tuple for total creations
+         */
+        totalCreations: (startDate?: string, endDate?: string) =>
+            [
+                "statistics",
+                "totalCreations",
+                {
+                    startDate: startDate ?? null,
+                    endDate: endDate ?? null,
+                },
+            ] as const,
+
+        /**
+         * Query key for product margins.
+         *
+         * Includes date range for proper cache invalidation.
+         *
+         * @param {string} [startDate] - Optional start date filter
+         * @param {string} [endDate] - Optional end date filter
+         * @returns Query key tuple for product margins
+         */
+        productMargins: (startDate?: string, endDate?: string) =>
+            [
+                "statistics",
+                "productMargins",
+                {
+                    startDate: startDate ?? null,
+                    endDate: endDate ?? null,
+                },
+            ] as const,
+
+        /**
+         * Query key for comprehensive business statistics.
+         *
+         * Includes date range for proper cache invalidation.
+         *
+         * @param {string} [startDate] - Optional start date filter
+         * @param {string} [endDate] - Optional end date filter
+         * @returns Query key tuple for business statistics
+         */
+        businessStatistics: (startDate?: string, endDate?: string) =>
+            [
+                "statistics",
+                "businessStatistics",
+                {
+                    startDate: startDate ?? null,
+                    endDate: endDate ?? null,
+                },
+            ] as const,
+    },
 } as const;
 
