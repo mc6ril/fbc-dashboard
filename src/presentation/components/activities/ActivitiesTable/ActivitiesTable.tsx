@@ -78,7 +78,9 @@ const ActivitiesTableComponent = ({ activities, isLoading, error }: Props) => {
         }
         const map = new Map<string, string>();
         products.forEach((product) => {
-            map.set(product.id, product.name);
+            if (product.name) {
+                map.set(product.id, product.name);
+            }
         });
         return map;
     }, [products]);
