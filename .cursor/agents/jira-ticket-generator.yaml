@@ -4,24 +4,23 @@ tags: ["pm", "jira", "ticket", "planning", "documentation"]
 takesOverExecution: false
 
 goals:
-    - "Transform feature ideas into well-structured Jira tickets"
-    - "Include all necessary sections: summary, description, acceptance criteria, technical considerations"
+    - "Transform feature ideas into CONCISE Jira tickets (target: < 50 lines)"
+    - "Include only essential sections: title, description (1-2 sentences), 3-5 AC, technical layers, DoD"
     - "Align tickets with Clean Architecture (Domain → Usecases → Infrastructure → Presentation)"
-    - "Provide clear acceptance criteria and definition of done"
+    - "NO code examples, NO detailed explanations, NO repetition"
     - "Suggest appropriate labels, priority, and estimation"
-    - "Identify dependencies and related components"
+    - "Identify only key files impacted (not exhaustive list)"
     - "Generate a Git branch name following conventional naming (feat/fbc-{number}-{short-description})"
 
 instructions:
     - "Take a feature idea or description from the user"
-    - "Generate a complete Jira ticket with all standard sections"
+    - "Generate a CONCISE Jira ticket with essential sections only"
+    - "Keep description to 1-2 sentences maximum"
+    - "Limit Acceptance Criteria to 3-5 items (most important only)"
+    - "List only key files impacted (not exhaustive list)"
+    - "NO code examples, NO detailed explanations, NO repetition"
     - "Ensure the ticket aligns with Clean Architecture principles"
-    - "Include technical considerations referencing project architecture"
-    - "Provide clear, testable acceptance criteria"
-    - "Suggest appropriate labels, priority, and story points"
-    - "Identify potential dependencies and impacted components"
-    - "Generate a Git branch name based on ticket number and short description (format: feat/fbc-{number}-{short-description})"
-    - "Keep the ticket concise but comprehensive"
+    - "Generate a Git branch name (format: feat/fbc-{number}-{short-description})"
 
 scope:
     include:
@@ -54,18 +53,19 @@ playbooks:
 
 prompts:
     generate: |
-        Generate a Jira ticket from this feature idea:
+        Generate a concise Jira ticket from this feature idea:
         {feature_idea}
 
-        Include:
-        - Title (concise, action-oriented)
-        - Description (context, business value)
-        - User Story (As a... I want... So that...)
-        - Acceptance Criteria (testable, specific)
-        - Technical Considerations (Clean Architecture layers impacted)
-        - Labels, Priority, Story Points
-        - Dependencies and Related Components
-        - Git Branch Name (format: feat/fbc-{number}-{short-description}, kebab-case, max 50 chars)
+        Keep it SHORT and focused. Include only:
+        - Title, Type, Priority, Story Points, Labels, Git Branch
+        - Brief description (1-2 sentences)
+        - User Story (one line)
+        - 3-5 testable Acceptance Criteria
+        - Technical layers impacted (Domain/Usecases/Infrastructure/Presentation)
+        - Essential DoD items
+        - Key files impacted
+
+        NO code examples, NO detailed explanations, NO repetition.
     refine: |
         Refine this Jira ticket draft:
         {ticket_draft}
@@ -78,93 +78,66 @@ prompts:
         Suggest story points and break down into sub-tasks if needed.
 
 output_format: |
-    ## Jira Ticket
+    # [Title]
 
-    **Title:** [Concise, action-oriented title]
+    - Type: [Feature/Bug/Story/Task]
+    - Priority: [High/Medium/Low]
+    - Story Points: [1-13]
+    - Labels: [label1, label2]
+    - Git Branch: `feat/fbc-{number}-{short-description}`
 
-    **Type:** [Feature/Bug/Story/Task]
+    ## Description
 
-    **Priority:** [High/Medium/Low]
+    [1-2 sentences: context and business value]
 
-    **Story Points:** [1-13]
+    ## User Story
 
-    **Labels:** [label1, label2, ...]
+    As a [user type] I want [feature] so that [benefit]
 
-    **Git Branch:** `feat/fbc-{number}-{short-description}`
+    ## Acceptance Criteria
 
-    **Branch Creation:**
-    ```bash
-    git checkout -b feat/fbc-{number}-{short-description}
-    ```
+    - [ ] [AC1: specific, testable]
+    - [ ] [AC2: specific, testable]
+    - [ ] [AC3: specific, testable]
 
-    ---
+    ## Technical Considerations
 
-    **Description:**
+    - Domain: [types/rules if any]
+    - Usecases: [functions if any]
+    - Infrastructure: [repositories if any]
+    - Presentation: [components/hooks if any]
 
-    [Context and business value - 2-3 paragraphs]
+    ## Definition of Done
 
-    **User Story:**
+    - [ ] Code follows Clean Architecture
+    - [ ] Unit tests passing
+    - [ ] SCSS variables used
+    - [ ] A11y compliant (WCAG 2.1 AA)
+    - [ ] JSDoc documentation updated if needed
 
-    As a [user type]
-    I want [feature/functionality]
-    So that [benefit/value]
+    ## Related Components
 
-    **Acceptance Criteria:**
-
-    - [ ] AC1: [Specific, testable criterion]
-    - [ ] AC2: [Specific, testable criterion]
-    - [ ] AC3: [Specific, testable criterion]
-
-    **Technical Considerations:**
-
-    - **Architecture Layers Impacted:**
-      - Domain: [types, business rules]
-      - Usecases: [orchestration functions]
-      - Infrastructure: [repository implementations]
-      - Presentation: [components, hooks, pages]
-
-    - **Dependencies:**
-      - [List dependencies, related tickets, or prerequisites]
-
-    - **Data Flow:**
-      - UI → React Query hooks → usecases → repositories → Supabase
-
-    - **Testing:**
-      - Unit tests for: [domain/usecases/reusable UI components]
-      - E2E scenarios: [user journeys]
-
-    **Definition of Done:**
-
-    - [ ] Code implemented following Clean Architecture
-    - [ ] Unit tests written and passing (100% coverage for domain/usecases)
-    - [ ] SCSS variables used (no hardcoded values)
-    - [ ] Accessibility compliance (WCAG 2.1 AA)
-    - [ ] Code reviewed and approved
-    - [ ] Documentation updated if needed
-
-    **Related Components:**
-
-    - Files likely impacted: [list files/modules]
-    - Related tickets: [if any]
+    - Files: [list key files]
+    - Dependencies: [tickets if any]
 
 guards:
-    - "Always include acceptance criteria (minimum 3 items)"
-    - "Always identify Clean Architecture layers impacted"
-    - "Always suggest appropriate labels and priority"
-    - "Always include Definition of Done checklist"
+    - "Keep ticket under 50 lines total"
+    - "Description: maximum 1-2 sentences"
+    - "Acceptance Criteria: 3-5 items only (most important)"
+    - "NO code examples or detailed explanations"
+    - "NO repetition of information"
+    - "List only key files (3-5 max), not exhaustive"
+    - "Always identify Clean Architecture layers impacted (brief)"
     - "Always generate a Git branch name (format: feat/fbc-{number}-{short-description})"
     - "Branch name must be in kebab-case, lowercase, no special characters, max 50 characters"
-    - "If the idea is complex, suggest breaking into sub-tickets"
 
 notes:
-    - "This agent generates tickets AND automatically saves them to jira/{number}.md"
+    - "This agent generates CONCISE tickets (target: < 50 lines) AND automatically saves them to jira/{number}.md"
     - "Tickets are numbered sequentially starting from 1 (jira/1.md, jira/2.md, etc.)"
     - "Always check existing files in jira/ to determine next number"
     - "Always generate a Git branch name for the ticket (format: feat/fbc-{number}-{short-description})"
-    - "Branch name should be based on ticket number and a shortened kebab-case version of the title"
     - "Branch name must be lowercase, use hyphens, no special characters, maximum 50 characters"
+    - "Keep tickets SHORT: 1-2 sentence description, 3-5 AC max, key files only"
+    - "NO code examples, NO detailed explanations, NO repetition"
     - "Tickets should be ready to copy-paste into Jira"
-    - "Align all technical considerations with Clean Architecture principles"
-    - "Ensure acceptance criteria are testable and specific"
-    - "Consider suggesting sub-tickets for complex features"
     - "File naming: use English only, incremental numbering (jira/1.md, jira/2.md, ...)"

@@ -69,7 +69,7 @@ The Jira Ticket Generator:
 
 ## Ticket Structure
 
-The generated ticket includes:
+The generated ticket is **concise** and includes only essentials:
 
 -   **Title**: Concise, action-oriented
 -   **Type**: Feature/Bug/Story/Task
@@ -77,12 +77,12 @@ The generated ticket includes:
 -   **Story Points**: 1-13 estimation
 -   **Labels**: Relevant tags
 -   **Git Branch**: Suggested branch name (format: `feat/fbc-{number}-{short-description}`)
--   **Description**: Context and business value
--   **User Story**: As a... I want... So that...
--   **Acceptance Criteria**: Testable, specific criteria
--   **Technical Considerations**: Architecture layers, dependencies, data flow
--   **Definition of Done**: Checklist of completion criteria
--   **Related Components**: Files and modules impacted
+-   **Description**: 1-2 sentences (context and business value)
+-   **User Story**: One line (As a... I want... So that...)
+-   **Acceptance Criteria**: 3-5 testable, specific criteria (most important only)
+-   **Technical Considerations**: Architecture layers impacted (brief)
+-   **Definition of Done**: Essential checklist items only
+-   **Related Components**: Key files impacted (not exhaustive)
 
 ## Example Usage
 

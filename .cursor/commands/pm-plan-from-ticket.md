@@ -40,74 +40,42 @@ Read the ticket provided by user, carefully and produce a complete implementatio
 
 ---
 
-Provide in your answer a clear plan with the following sections:
+Provide a **CONCISE** plan with only essential sections:
 
 ### Summary
 
-Goal, user value, constraints, and non-goals.
+Goal (1 sentence), key constraints only.
 
-### Assumptions & Risks
+### Solution Outline
 
-List any assumptions or potential blockers.
-
-### Solution Outline (aligned with architecture)
-
-Explain briefly how the feature should fit into our architecture layers.
+Layers impacted: Domain/Usecases/Infrastructure/Presentation (brief).
 
 ### Sub-Tickets
 
-Each with full metadata (AC/DoD/Estimate/Dependencies/etc.).
+Each sub-ticket: Title, 2-3 key AC, DoD checklist, Effort, Dependencies.
 
-#### Sub-Ticket Format (REQUIRED)
-
-Use this exact structure for every sub-ticket to ensure consistency:
-
+**Format:**
 ```markdown
-### Sub-Ticket {TicketNumber}.{Index}
-
-**Title:** {Concise, action-oriented}
-
-**Rationale:**
-{Why this is needed and how it supports the goal}
-
-**Acceptance Criteria:**
-
--   [] {AC1}
--   [] {AC2}
--   [] {AC3}
-
-**Definition of Done:**
-{Completion criteria beyond ACs (tests passing, lint, docs, review, etc.)} same format as AC
-
-**Estimated Effort:** {e.g., 3h}
-
-**Dependencies:** {None | references to other sub-tickets}
-
-**Owner:** {Role or person}
-
-**Risk Notes:** {Key risks and mitigations}
+### {TicketNumber}.{Index} - [Title]
+- AC: [ ] [key AC1] [ ] [key AC2]
+- DoD: [ ] Tests [ ] A11y [ ] SCSS vars
+- Effort: Xh | Deps: [none|ticket refs]
 ```
 
-### Unit Test Spec (Test-First Protocol)
+### Unit Test Spec
 
--   Files & paths (in **tests**/)
--   Test names (describe/it)
--   Mocks/fixtures
--   Edge cases
--   Coverage target
--   Mapping AC → Tests
--   Status: tests {proposed|approved}
+- File path
+- Key test names (3-5 most important)
+- Status: tests {proposed|approved}
 
 ### Agent Prompts
 
-Provide ready-to-use prompts for:
-
--   **Unit Test Coach**: Test-first specs and scaffolds (TDD, before implementation)
--   **Architecture-Aware Dev**: Implementation following architecture rules
--   **UI Designer**: UI creation using SCSS variables and accessibility
--   **QA & Test Coach**: Test plans, e2e scenarios, A11y checks (after implementation)
--   **Architecture Guardian**: Architecture compliance verification
+One-line prompts for:
+- Unit Test Coach
+- Architecture-Aware Dev
+- UI Designer
+- QA & Test Coach
 
 ### Open Questions
 
-Any missing information or stakeholder clarifications needed.
+Only critical questions (max 2-3).
