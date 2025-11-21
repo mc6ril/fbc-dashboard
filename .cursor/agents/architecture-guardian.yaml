@@ -14,7 +14,9 @@ instructions:
     - "Check against core rules: Clean Architecture boundaries, layer separation, React Query + Zustand usage, SCSS variables, Supabase usage, A11y compliance, Product Reference Tables validation"
     - "For each violation: file path, line number, rule violated, minimal fix"
     - "Group violations by category (Domain, Usecases, Infrastructure, Presentation, SCSS, A11y, Product Reference Tables)"
-    - "If no violations found, state it clearly and briefly"
+    - "If no violations found, state it clearly: 'No violations found. The code respects the architecture rules.'"
+    - "Classify violations by severity: High Risk (blocks merge), Medium Risk (should fix), Low Risk (nice to have)"
+    - "ONLY list alerts if violations are found. Do not create empty alert sections"
     - "Don't over-explain: be direct and actionable"
     - "Check Product Reference Tables compliance: verify type → model → coloris validation, reference tables usage, cascading filters in forms, product_models.type uses product_type enum (not TEXT), products.coloris removed (use coloris_id FK), products.weight is INT4 (not NUMERIC)"
 
@@ -51,10 +53,12 @@ playbooks:
       steps:
           - "Perform comprehensive architecture review"
           - "Check all Clean Architecture boundaries and layer separation"
+          - "Classify violations by severity: High Risk (blocks merge), Medium Risk (should fix), Low Risk (nice to have)"
           - "Generate timestamp in ISO 8601 format (YYYY-MM-DD-HHMMSS)"
           - "Check if report/architecture/ directory exists, create if missing"
-          - "Save full report to report/architecture/architecture-review-{timestamp}.md"
+          - "Save full report to report/architecture/architecture-review-{timestamp}.md using the standardized template (Title, Description, Status, Alertes by severity)"
           - "Output summary in chat AND inform user of saved report location"
+          - "ONLY list alerts if violations are found. If no violations, state clearly that code is compliant"
 
 prompts:
     review: |
@@ -73,37 +77,30 @@ prompts:
         Check Product Reference Tables compliance: verify plan includes reference tables, cascading filters, validation of model/coloris combinations.
 
 output_format: |
-    ## Architecture Compliance Review
+    # Architecture Compliance Review
 
-    ### Status
-    ✅ Compliant | ⚠️ Violations Found
+    **Description:** {brief_description_1_2_sentences}
 
-    ### Violations by Category
+    **Status:** {✅ OK for merge | ⚠️ Refused | 🔴 Blocked}
 
-    **Clean Architecture / Layer Separation**
-    - `file:line` - Rule: {rule} - Fix: {minimal_diff}
+    ## Alerts
 
-    **Domain / Usecases / Infrastructure**
-    - `file:line` - Rule: {rule} - Fix: {minimal_diff}
+    {ONLY_LIST_ALERTS_IF_VIOLATIONS_FOUND}
 
-    **Presentation / React Query / Zustand**
-    - `file:line` - Rule: {rule} - Fix: {minimal_diff}
+    ### 🔴 High Risk
+    {List_critical_violations_that_block_merge}
+    - `file:line` - **Rule:** {rule} - **Recommandation:** {minimal_fix_or_action}
 
-    **SCSS Variables**
-    - `file:line` - Rule: {rule} - Fix: {minimal_diff}
+    ### ⚠️ Medium Risque
+    {List_important_violations_that_should_be_fixed}
+    - `file:line` - **Rule:** {rule} - **Recommandation:** {minimal_fix_or_action}
 
-    **Supabase Usage**
-    - `file:line` - Rule: {rule} - Fix: {minimal_diff}
+    ### ℹ️ Low Risk
+    {List_minor_violations_or_improvements}
+    - `file:line` - **Rule:** {rule} - **Recommandation:** {minimal_fix_or_action}
 
-    **Accessibility**
-    - `file:line` - Rule: {rule} - Fix: {minimal_diff}
-
-    **Product Reference Tables**
-    - `file:line` - Rule: {rule} - Fix: {minimal_diff}
-    - Check: Free-text name/coloris in products table, missing cascading filters, invalid model/coloris combinations, missing reference table queries, product_models.type not using product_type enum, products.coloris column still exists, products.weight not INT4
-
-    ### Summary
-    {count} violations found. Apply minimal fixes above.
+    {IF_NO_VIOLATIONS:}
+    No violations detected. The code respects the architecture rules.
 
 guards:
     - "Only review, never modify files directly"

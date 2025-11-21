@@ -23,14 +23,14 @@ const CatalogPage = () => {
         <main className={styles.catalog}>
             <div className={styles.catalog__header}>
                 <Heading level={1} className={styles.catalog__title}>
-                    Catalog
+                    Catalogue
                 </Heading>
                 <Link
                     href="/dashboard/catalog/new"
                     className={styles.catalog__addButton}
                 >
                     <Button variant="primary" ariaLabel="Add new product">
-                        Add Product
+                        Ajouter un produit
                     </Button>
                 </Link>
             </div>

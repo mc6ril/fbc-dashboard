@@ -63,9 +63,9 @@ const SignInPage = () => {
   
   return (
     <main id={mainId} className={styles.main} role="main">
-      <Heading level={1}>Sign In</Heading>
+      <Heading level={1}>Se connecter</Heading>
       <Text className={styles.description}>
-        Sign in to access your dashboard.
+        Connectez-vous pour accéder à votre tableau de bord.
       </Text>
       
       <form onSubmit={handleSubmit} className={styles.form}>
@@ -87,7 +87,7 @@ const SignInPage = () => {
           <Input
             id="password"
             type="password"
-            label="Password"
+            label="Mot de passe"
             value={password}
             onChange={onPasswordChange}
             placeholder="Azerty123"
@@ -105,14 +105,14 @@ const SignInPage = () => {
             loading={isLoading}
             fullWidth
           >
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? "Connexion en cours..." : "Se connecter"}
           </Button>
         </div>
       </form>
       
       <div className={styles.links}>
         <Text>
-          Don&apos;t have an account? <Link href="/signup">Sign up</Link>
+          Vous n&apos;avez pas de compte ? <Link href="/signup">{`S'inscrire`}</Link>
         </Text>
       </div>
     </main>

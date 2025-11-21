@@ -5,6 +5,7 @@
  * These functions are pure and have no dependencies on external libraries.
  */
 
+import { ActivityType } from "@/core/domain/activity";
 import type { Product } from "@/core/domain/product";
 import { ProductType } from "@/core/domain/product";
 
@@ -77,3 +78,23 @@ export const getProductDisplayName = (product: Product | undefined): string => {
     return modelName;
 };
 
+/**
+ * Formats an activity type to a french human-readable label.
+ *
+ * @param {ActivityType} type - Activity type
+ * @returns {string} Human-readable label
+ */
+export const formatActivityType = (type: ActivityType): string => {
+    switch (type) {
+        case ActivityType.SALE:
+            return "Vente";
+        case ActivityType.CREATION:
+            return "Création";
+        case ActivityType.STOCK_CORRECTION:
+            return "Correction de stock";
+        case ActivityType.OTHER:
+            return "Autre";
+        default:
+            return type;
+    }
+};

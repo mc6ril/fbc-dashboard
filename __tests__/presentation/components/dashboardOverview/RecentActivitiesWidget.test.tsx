@@ -92,8 +92,8 @@ describe("RecentActivitiesWidget", () => {
         } as ReturnType<typeof useRecentActivities>);
 
         render(<RecentActivitiesWidget />);
-        expect(screen.getByText("Sale")).toBeInTheDocument();
-        expect(screen.getByText("Creation")).toBeInTheDocument();
+        expect(screen.getByText("Vente")).toBeInTheDocument();
+        expect(screen.getByText("Création")).toBeInTheDocument();
         // Check for formatted currency (French locale)
         expect(screen.getByText(/100[,.]50[\s]€/)).toBeInTheDocument();
         expect(screen.getByText(/50[,.]25[\s]€/)).toBeInTheDocument();
@@ -110,7 +110,7 @@ describe("RecentActivitiesWidget", () => {
         } as unknown as ReturnType<typeof useRecentActivities>);
 
         render(<RecentActivitiesWidget />);
-        expect(screen.getByRole("heading", { name: "Recent Activities", level: 2 })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Activités récentes", level: 2 })).toBeInTheDocument();
     });
 
     it("should use semantic HTML structure with list", () => {
@@ -172,9 +172,9 @@ describe("RecentActivitiesWidget", () => {
         } as ReturnType<typeof useRecentActivities>);
 
         render(<RecentActivitiesWidget />);
-        expect(screen.getByText("Sale")).toBeInTheDocument();
-        expect(screen.getByText("Stock Correction")).toBeInTheDocument();
-        expect(screen.getByText("Other")).toBeInTheDocument();
+        expect(screen.getByText("Vente")).toBeInTheDocument();
+        expect(screen.getByText("Correction de stock")).toBeInTheDocument();
+        expect(screen.getByText("Autre")).toBeInTheDocument();
     });
 });
 

@@ -727,7 +727,7 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
                     type="number"
                     value={quantity}
                     onChange={handleQuantityChange}
-                    placeholder={activityType === ActivityType.SALE ? "Ex: 2" : "Ex: 5 ou -5"}
+                    placeholder={activityType === ActivityType.SALE || activityType === ActivityType.CREATION ? "Ex: 2" : "Ex: 5 ou -5"}
                     required
                     disabled={isDisabled}
                     error={errors.quantity}

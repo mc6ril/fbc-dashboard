@@ -11,20 +11,20 @@
 /**
  * Loading state message displayed while data is being fetched.
  */
-export const LOADING_MESSAGE = "Loading...";
+export const LOADING_MESSAGE = "Chargement en cours...";
 
 /**
  * Error messages for dashboard widgets.
  */
 export const ERROR_MESSAGES = {
     /** Error message when sales data fails to load */
-    SALES_DATA: "Error loading sales data. Please try again later.",
+    SALES_DATA: "Erreur lors du chargement des données de ventes. Veuillez réessayer plus tard.",
     /** Error message when profit data fails to load */
-    PROFIT_DATA: "Error loading profit data. Please try again later.",
+    PROFIT_DATA: "Erreur lors du chargement des données de profit. Veuillez réessayer plus tard.",
     /** Error message when products data fails to load */
-    PRODUCTS: "Error loading products. Please try again later.",
+    PRODUCTS: "Erreur lors du chargement des produits. Veuillez réessayer plus tard.",
     /** Error message when activities data fails to load */
-    ACTIVITIES: "Error loading activities. Please try again later.",
+    ACTIVITIES: "Erreur lors du chargement des activités. Veuillez réessayer plus tard.",
 } as const;
 
 /**
@@ -32,8 +32,8 @@ export const ERROR_MESSAGES = {
  */
 export const EMPTY_STATE_MESSAGES = {
     /** Message when no products with low stock are found */
-    LOW_STOCK_PRODUCTS: "No products with low stock.",
+    LOW_STOCK_PRODUCTS: "Aucun produit en stock faible trouvé.",
     /** Message when no recent activities are found */
-    RECENT_ACTIVITIES: "No recent activities.",
+    RECENT_ACTIVITIES: "Aucune activité récente trouvée.",
 } as const;
 

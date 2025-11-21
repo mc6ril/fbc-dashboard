@@ -12,7 +12,7 @@ const SalesWidgetComponent = () => {
     const { data, isLoading, error } = useMonthlySales();
 
     return (
-        <Card title="Total Sales (This Month)" className={styles.salesWidget}>
+        <Card title="Total Ventes (Du mois)" className={styles.salesWidget}>
             {isLoading && (
                 <Text size="md" muted>
                     {LOADING_MESSAGE}

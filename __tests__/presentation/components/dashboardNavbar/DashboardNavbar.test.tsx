@@ -34,9 +34,9 @@ describe("DashboardNavbar", () => {
 
     expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Dashboard" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Statistics" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Activities" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Catalog" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Statistiques" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Activités" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Catalogue" })).toBeInTheDocument();
   });
 
   it("sets aria-current='page' for active dashboard link", () => {
@@ -53,7 +53,7 @@ describe("DashboardNavbar", () => {
 
     render(<DashboardNavbar />);
 
-    const statsLink = screen.getByRole("link", { name: "Statistics" });
+    const statsLink = screen.getByRole("link", { name: "Statistiques" });
     expect(statsLink).toHaveAttribute("aria-current", "page");
   });
 
@@ -62,7 +62,7 @@ describe("DashboardNavbar", () => {
 
     render(<DashboardNavbar />);
 
-    const activitiesLink = screen.getByRole("link", { name: "Activities" });
+    const activitiesLink = screen.getByRole("link", { name: "Activités" });
     expect(activitiesLink).toHaveAttribute("aria-current", "page");
   });
 
@@ -71,7 +71,7 @@ describe("DashboardNavbar", () => {
 
     render(<DashboardNavbar />);
 
-    const catalogLink = screen.getByRole("link", { name: "Catalog" });
+    const catalogLink = screen.getByRole("link", { name: "Catalogue" });
     expect(catalogLink).toHaveAttribute("aria-current", "page");
   });
 
@@ -81,8 +81,8 @@ describe("DashboardNavbar", () => {
     render(<DashboardNavbar />);
 
     const dashboardLink = screen.getByRole("link", { name: "Dashboard" });
-    const activitiesLink = screen.getByRole("link", { name: "Activities" });
-    const catalogLink = screen.getByRole("link", { name: "Catalog" });
+    const activitiesLink = screen.getByRole("link", { name: "Activités" });
+    const catalogLink = screen.getByRole("link", { name: "Catalogue" });
 
     expect(dashboardLink).not.toHaveAttribute("aria-current");
     expect(activitiesLink).not.toHaveAttribute("aria-current");
@@ -103,7 +103,7 @@ describe("DashboardNavbar", () => {
 
     render(<DashboardNavbar />);
 
-    const statsLink = screen.getByRole("link", { name: "Statistics" });
+    const statsLink = screen.getByRole("link", { name: "Statistiques" });
     expect(statsLink).toHaveAttribute("aria-current", "page");
   });
 
@@ -132,9 +132,9 @@ describe("DashboardNavbar", () => {
     render(<DashboardNavbar />);
 
     expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute("href", "/dashboard");
-    expect(screen.getByRole("link", { name: "Statistics" })).toHaveAttribute("href", "/dashboard/stats");
-    expect(screen.getByRole("link", { name: "Activities" })).toHaveAttribute("href", "/dashboard/activities");
-    expect(screen.getByRole("link", { name: "Catalog" })).toHaveAttribute("href", "/dashboard/catalog");
+    expect(screen.getByRole("link", { name: "Statistiques" })).toHaveAttribute("href", "/dashboard/stats");
+    expect(screen.getByRole("link", { name: "Activités" })).toHaveAttribute("href", "/dashboard/activities");
+    expect(screen.getByRole("link", { name: "Catalogue" })).toHaveAttribute("href", "/dashboard/catalog");
   });
 
   it("applies active styling to active link (via aria-current)", () => {
@@ -142,7 +142,7 @@ describe("DashboardNavbar", () => {
 
     render(<DashboardNavbar />);
 
-    const statsLink = screen.getByRole("link", { name: "Statistics" });
+    const statsLink = screen.getByRole("link", { name: "Statistiques" });
     // Active link should have aria-current="page" which indicates active state
     expect(statsLink).toHaveAttribute("aria-current", "page");
     // The className will be hashed by CSS modules, so we verify via aria-current instead

@@ -5,39 +5,18 @@ import Card from "@/presentation/components/ui/Card";
 import Text from "@/presentation/components/ui/Text";
 import { useRecentActivities } from "@/presentation/hooks/useDashboard";
 import type { Activity } from "@/core/domain/activity";
-import { ActivityType } from "@/core/domain/activity";
 import { formatCurrency } from "@/shared/utils/currency";
 import { formatDate } from "@/shared/utils/date";
 import { LOADING_MESSAGE, ERROR_MESSAGES, EMPTY_STATE_MESSAGES } from "@/shared/constants/messages";
 import styles from "./RecentActivitiesWidget.module.scss";
-
-/**
- * Formats an activity type to a human-readable label.
- *
- * @param {ActivityType} type - Activity type
- * @returns {string} Human-readable label
- */
-const formatActivityType = (type: ActivityType): string => {
-    switch (type) {
-        case ActivityType.SALE:
-            return "Sale";
-        case ActivityType.CREATION:
-            return "Creation";
-        case ActivityType.STOCK_CORRECTION:
-            return "Stock Correction";
-        case ActivityType.OTHER:
-            return "Other";
-        default:
-            return type;
-    }
-};
+import { formatActivityType } from "@/shared/utils/product";
 
 
 const RecentActivitiesWidgetComponent = () => {
     const { data, isLoading, error } = useRecentActivities();
 
     return (
-        <Card title="Recent Activities" className={styles.recentActivitiesWidget}>
+        <Card title="Activités récentes" className={styles.recentActivitiesWidget}>
             {isLoading && (
                 <Text size="md" muted>
                     {LOADING_MESSAGE}
