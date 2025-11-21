@@ -17,33 +17,8 @@ import Table, { type TableColumn } from "@/presentation/components/ui/Table";
 import Text from "@/presentation/components/ui/Text";
 import Link from "@/presentation/components/ui/Link";
 import { formatCurrency } from "@/shared/utils/currency";
-import { LOADING_MESSAGE, ERROR_MESSAGES } from "@/shared/constants/messages";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import styles from "./ProductsTable.module.scss";
-
-/**
- * Formats a product type to a human-readable label.
- *
- * @param {ProductType} type - Product type
- * @returns {string} Human-readable label
- */
-const formatProductType = (type: ProductType): string => {
-    switch (type) {
-        case ProductType.SAC_BANANE:
-            return "Sac banane";
-        case ProductType.POCHETTE_ORDINATEUR:
-            return "Pochette ordinateur";
-        case ProductType.TROUSSE_TOILETTE:
-            return "Trousse de toilette";
-        case ProductType.POCHETTE_VOLANTS:
-            return "Pochette à volants";
-        case ProductType.TROUSSE_ZIPPEE:
-            return "Trousse zippée";
-        case ProductType.ACCESSOIRES_DIVERS:
-            return "Accessoires divers";
-        default:
-            return type;
-    }
-};
 
 type Props = {
     /** Array of products to display */
@@ -59,12 +34,13 @@ type Props = {
  * Handles both old structure (name field) and new structure (joined from product_models).
  *
  * @param {Product} product - Product object
+ * @param {string} notAvailable - Translation for "N/A"
  * @returns {string} Display name or fallback text
  */
-const getProductName = (product: Product): string => {
+const getProductName = (product: Product, notAvailable: string): string => {
     // Prioritize joined name from product_models (new structure)
     // Fall back to deprecated name field (old structure or backward compatibility)
-    return product.name || "N/A";
+    return product.name || notAvailable;
 };
 
 /**
@@ -72,12 +48,13 @@ const getProductName = (product: Product): string => {
  * Handles both old structure (coloris field) and new structure (joined from product_coloris).
  *
  * @param {Product} product - Product object
+ * @param {string} notAvailable - Translation for "N/A"
  * @returns {string} Display coloris or fallback text
  */
-const getProductColoris = (product: Product): string => {
+const getProductColoris = (product: Product, notAvailable: string): string => {
     // Prioritize joined coloris from product_coloris (new structure)
     // Fall back to deprecated coloris field (old structure or backward compatibility)
-    return product.coloris || "N/A";
+    return product.coloris || notAvailable;
 };
 
 /**
@@ -85,45 +62,79 @@ const getProductColoris = (product: Product): string => {
  * Handles both old structure (type field) and new structure (joined from product_models).
  *
  * @param {Product} product - Product object
+ * @param {string} notAvailable - Translation for "N/A"
+ * @param {(type: ProductType) => string} formatProductType - Function to format product type
  * @returns {string} Display type or fallback text
  */
-const getProductType = (product: Product): string => {
+const getProductType = (
+    product: Product,
+    notAvailable: string,
+    formatProductType: (type: ProductType) => string
+): string => {
     // Prioritize joined type from product_models (new structure)
     // Fall back to deprecated type field (old structure or backward compatibility)
     if (product.type) {
         return formatProductType(product.type);
     }
-    return "N/A";
+    return notAvailable;
 };
 
 const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
+    const tCommon = useTranslation("common");
+    const tErrors = useTranslation("errors");
+    const tDashboard = useTranslation("dashboard.tables.products");
+    const tForms = useTranslation("forms.product.fields.type.options");
+
+    // Format product type using i18n
+    const formatProductType = React.useCallback(
+        (type: ProductType): string => {
+            switch (type) {
+                case ProductType.SAC_BANANE:
+                    return tForms("SAC_BANANE");
+                case ProductType.POCHETTE_ORDINATEUR:
+                    return tForms("POCHETTE_ORDINATEUR");
+                case ProductType.TROUSSE_TOILETTE:
+                    return tForms("TROUSSE_TOILETTE");
+                case ProductType.POCHETTE_VOLANTS:
+                    return tForms("POCHETTE_VOLANTS");
+                case ProductType.TROUSSE_ZIPPEE:
+                    return tForms("TROUSSE_ZIPPEE");
+                case ProductType.ACCESSOIRES_DIVERS:
+                    return tForms("ACCESSOIRES_DIVERS");
+                default:
+                    return type;
+            }
+        },
+        [tForms]
+    );
+
     // Define table columns
     const columns: TableColumn<Product>[] = React.useMemo(
         () => [
             {
                 key: "name",
-                header: "Nom",
+                header: tDashboard("columns.name"),
                 render: (_value: unknown, row: Product) => {
-                    return getProductName(row);
+                    return getProductName(row, tDashboard("notAvailable"));
                 },
             },
             {
                 key: "type",
-                header: "Type",
+                header: tDashboard("columns.type"),
                 render: (_value: unknown, row: Product) => {
-                    return getProductType(row);
+                    return getProductType(row, tDashboard("notAvailable"), formatProductType);
                 },
             },
             {
                 key: "coloris",
-                header: "Couleur",
+                header: tDashboard("columns.coloris"),
                 render: (_value: unknown, row: Product) => {
-                    return getProductColoris(row);
+                    return getProductColoris(row, tDashboard("notAvailable"));
                 },
             },
             {
                 key: "unitCost",
-                header: "Coût unitaire",
+                header: tDashboard("columns.unitCost"),
                 render: (value: unknown) => {
                     const unitCost = value as number;
                     return formatCurrency(unitCost);
@@ -131,7 +142,7 @@ const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
             },
             {
                 key: "salePrice",
-                header: "Prix de vente",
+                header: tDashboard("columns.salePrice"),
                 render: (value: unknown) => {
                     const salePrice = value as number;
                     return formatCurrency(salePrice);
@@ -139,7 +150,7 @@ const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
             },
             {
                 key: "stock",
-                header: "Stock restant",
+                header: tDashboard("columns.stock"),
                 render: (value: unknown) => {
                     const stock = value as number;
                     return stock.toString();
@@ -147,33 +158,33 @@ const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
             },
             {
                 key: "weight",
-                header: "Poids du produit",
+                header: tDashboard("columns.weight"),
                 render: (value: unknown) => {
                     const weight = value as number | undefined;
                     if (weight === undefined) {
-                        return "-";
+                        return tDashboard("noWeight");
                     }
-                    return `${weight} g`;
+                    return `${weight} ${tDashboard("weightUnit")}`;
                 },
             },
             {
                 key: "actions",
-                header: "Actions disponibles",
+                header: tDashboard("columns.actions"),
                 render: (_value: unknown, row: Product) => {
-                    const productName = getProductName(row);
+                    const productName = getProductName(row, tDashboard("notAvailable"));
                     return (
                         <Link
                             href={`/dashboard/catalog/${row.id}/edit`}
-                            ariaLabel={`Edit product ${productName}`}
+                            ariaLabel={tDashboard("editAria", { name: productName })}
                             className="button button--secondary button--sm"
                         >
-                            Modifier
+                            {tDashboard("edit")}
                         </Link>
                     );
                 },
             },
         ],
-        []
+        [tDashboard, formatProductType]
     );
 
     // Loading state
@@ -181,7 +192,7 @@ const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
         return (
             <div className={styles.productsTable}>
                 <Text size="md" muted>
-                    {LOADING_MESSAGE}
+                    {tCommon("loading")}
                 </Text>
             </div>
         );
@@ -192,7 +203,7 @@ const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
         return (
             <div className={styles.productsTable}>
                 <Text size="md" role="alert">
-                    {ERROR_MESSAGES.PRODUCTS}
+                    {tErrors("dashboard.products")}
                 </Text>
             </div>
         );

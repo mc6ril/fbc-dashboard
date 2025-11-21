@@ -18,11 +18,15 @@ import AddActivityForm from "@/presentation/components/addActivity/AddActivityFo
 import { getAccessibilityId } from "@/shared/a11y/utils";
 import { A11yIds } from "@/shared/a11y/ids";
 import { ACCESSIBILITY_ANNOUNCEMENT_DELAY_MS } from "@/shared/constants/timing";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import styles from "./page.module.scss";
 
 const AddActivityPage = () => {
     const router = useRouter();
     const [showSuccess, setShowSuccess] = React.useState(false);
+
+    // Translation hooks
+    const tActivities = useTranslation("pages.activities");
 
     // Accessibility IDs
     const mainId = useMemo(() => getAccessibilityId(A11yIds.main, "add-activity"), []);
@@ -55,8 +59,8 @@ const AddActivityPage = () => {
 
     // Set page title
     React.useEffect(() => {
-        document.title = "Ajouter une activité - Atelier FBC";
-    }, []);
+        document.title = tActivities("addActivityPageTitle");
+    }, [tActivities]);
 
     // Clear success message when component unmounts or when navigating away
     React.useEffect(() => {
@@ -69,11 +73,11 @@ const AddActivityPage = () => {
         <main id={mainId} className={styles.page} role="main">
             <div className={styles.page__header}>
                 <Heading level={1} className={styles.page__title}>
-                    Ajouter une activité
+                    {tActivities("addActivity")}
                 </Heading>
                 <Link href="/dashboard/activities" className={styles.page__cancelLink}>
-                    <Button variant="secondary" ariaLabel="Annuler et retourner à la liste des activités">
-                        Annuler
+                    <Button variant="secondary" ariaLabel={tActivities("cancelAria")}>
+                        {tActivities("cancel")}
                     </Button>
                 </Link>
             </div>
@@ -88,7 +92,7 @@ const AddActivityPage = () => {
                     aria-atomic="true"
                 >
                     <p className={styles.page__successText}>
-                        Activité créée avec succès. Redirection en cours...
+                        {tActivities("success.create")}
                     </p>
                 </div>
             )}

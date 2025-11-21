@@ -19,6 +19,7 @@ import type { Product } from "@/core/domain/product";
 import { getAccessibilityId } from "@/shared/a11y/utils";
 import { A11yIds } from "@/shared/a11y/ids";
 import { ACCESSIBILITY_ANNOUNCEMENT_DELAY_MS } from "@/shared/constants/timing";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import Text from "@/presentation/components/ui/Text";
 import styles from "./page.module.scss";
 
@@ -27,6 +28,9 @@ const NewProductPage = () => {
     const createProductMutation = useCreateProduct();
     const [showSuccess, setShowSuccess] = React.useState(false);
     const [errorMessage, setErrorMessage] = React.useState<string>("");
+
+    // Translation hooks
+    const tCatalog = useTranslation("pages.catalog");
 
     // Accessibility IDs
     const mainId = React.useMemo(() => getAccessibilityId(A11yIds.main, "new-product"), []);
@@ -53,12 +57,12 @@ const NewProductPage = () => {
                     if (error && typeof error === "object" && "message" in error) {
                         setErrorMessage(error.message as string);
                     } else {
-                        setErrorMessage("Une erreur est survenue lors de la création du produit");
+                        setErrorMessage(tCatalog("errors.create"));
                     }
                 },
             });
         },
-        [createProductMutation]
+        [createProductMutation, tCatalog]
     );
 
     // Redirect after success message is shown and mutation is settled
@@ -79,8 +83,8 @@ const NewProductPage = () => {
 
     // Set page title
     React.useEffect(() => {
-        document.title = "Ajouter un produit - Atelier FBC";
-    }, []);
+        document.title = tCatalog("addProductPageTitle");
+    }, [tCatalog]);
 
     // Clear success message when component unmounts or when navigating away
     React.useEffect(() => {
@@ -93,11 +97,11 @@ const NewProductPage = () => {
         <main id={mainId} className={styles.page} role="main">
             <div className={styles.page__header}>
                 <Heading level={1} className={styles.page__title}>
-                    Ajouter un produit
+                    {tCatalog("addProduct")}
                 </Heading>
                 <Link href="/dashboard/catalog" className={styles.page__cancelLink}>
-                    <Button variant="secondary" ariaLabel="Annuler et retourner au catalogue">
-                        Annuler
+                    <Button variant="secondary" ariaLabel={tCatalog("cancelAria")}>
+                        {tCatalog("cancel")}
                     </Button>
                 </Link>
             </div>
@@ -124,7 +128,7 @@ const NewProductPage = () => {
                     aria-atomic="true"
                 >
                     <p className={styles.page__successText}>
-                        Produit créé avec succès. Redirection en cours...
+                        {tCatalog("success.create")}
                     </p>
                 </div>
             )}

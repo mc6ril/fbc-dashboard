@@ -7,31 +7,35 @@ import { useRecentActivities } from "@/presentation/hooks/useDashboard";
 import type { Activity } from "@/core/domain/activity";
 import { formatCurrency } from "@/shared/utils/currency";
 import { formatDate } from "@/shared/utils/date";
-import { LOADING_MESSAGE, ERROR_MESSAGES, EMPTY_STATE_MESSAGES } from "@/shared/constants/messages";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import styles from "./RecentActivitiesWidget.module.scss";
 import { formatActivityType } from "@/shared/utils/product";
 
 
 const RecentActivitiesWidgetComponent = () => {
     const { data, isLoading, error } = useRecentActivities();
+    const tCommon = useTranslation("common");
+    const tWidgets = useTranslation("ui.widgets");
+    const tErrors = useTranslation("errors");
+    const tEmpty = useTranslation("empty");
 
     return (
-        <Card title="Activités récentes" className={styles.recentActivitiesWidget}>
+        <Card title={tWidgets("recentActivities.title")} className={styles.recentActivitiesWidget}>
             {isLoading && (
                 <Text size="md" muted>
-                    {LOADING_MESSAGE}
+                    {tCommon("loading")}
                 </Text>
             )}
             {error && (
                 <Text size="md" role="alert">
-                    {ERROR_MESSAGES.ACTIVITIES}
+                    {tErrors("dashboard.activities")}
                 </Text>
             )}
             {!isLoading && !error && data !== undefined && (
                 <>
                     {data.length === 0 ? (
                         <Text size="md" muted>
-                            {EMPTY_STATE_MESSAGES.RECENT_ACTIVITIES}
+                            {tEmpty("dashboard.recentActivities")}
                         </Text>
                     ) : (
                         <ul className={styles.recentActivitiesWidget__list} role="list">

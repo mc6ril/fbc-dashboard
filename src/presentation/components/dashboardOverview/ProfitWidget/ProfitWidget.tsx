@@ -5,22 +5,25 @@ import Card from "@/presentation/components/ui/Card";
 import Text from "@/presentation/components/ui/Text";
 import { useMonthlyProfit } from "@/presentation/hooks/useDashboard";
 import { formatCurrency } from "@/shared/utils/currency";
-import { LOADING_MESSAGE, ERROR_MESSAGES } from "@/shared/constants/messages";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import styles from "./ProfitWidget.module.scss";
 
 const ProfitWidgetComponent = () => {
     const { data, isLoading, error } = useMonthlyProfit();
+    const tCommon = useTranslation("common");
+    const tWidgets = useTranslation("ui.widgets");
+    const tErrors = useTranslation("errors");
 
     return (
-        <Card title="Marge Brute (Du mois)" className={styles.profitWidget}>
+        <Card title={tWidgets("profit.title")} className={styles.profitWidget}>
             {isLoading && (
                 <Text size="md" muted>
-                    {LOADING_MESSAGE}
+                    {tCommon("loading")}
                 </Text>
             )}
             {error && (
                 <Text size="md" role="alert">
-                    {ERROR_MESSAGES.PROFIT_DATA}
+                    {tErrors("dashboard.profit")}
                 </Text>
             )}
             {!isLoading && !error && data !== undefined && (

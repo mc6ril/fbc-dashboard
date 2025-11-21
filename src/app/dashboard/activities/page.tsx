@@ -13,12 +13,16 @@ import Link from "@/presentation/components/ui/Link";
 import Button from "@/presentation/components/ui/Button";
 import { useActivities } from "@/presentation/hooks/useActivities";
 import { useActivityFiltersStore } from "@/presentation/stores/useActivityFiltersStore";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import ActivityFilters from "@/presentation/components/activities/ActivityFilters/ActivityFilters";
 import ActivitiesTable from "@/presentation/components/activities/ActivitiesTable/ActivitiesTable";
 import ActivityPagination from "@/presentation/components/activities/ActivityPagination/ActivityPagination";
 import styles from "./page.module.scss";
 
 const ActivitiesPage = () => {
+    // Translation hooks
+    const tActivities = useTranslation("pages.activities");
+
     // Fetch activities using React Query hook (reads filters from Zustand store)
     const { data, isLoading, error } = useActivities();
 
@@ -42,14 +46,14 @@ const ActivitiesPage = () => {
         <main className={styles.activities}>
             <div className={styles.activities__header}>
                 <Heading level={1} className={styles.activities__title}>
-                    Activités
+                    {tActivities("title")}
                 </Heading>
                 <Link
                     href="/dashboard/activities/new"
                     className={styles.activities__addButton}
                 >
-                    <Button variant="primary" ariaLabel="Add new activity">
-                        Ajouter une activité
+                    <Button variant="primary" ariaLabel={tActivities("addActivity")}>
+                        {tActivities("addActivity")}
                     </Button>
                 </Link>
             </div>

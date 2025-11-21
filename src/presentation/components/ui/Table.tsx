@@ -14,6 +14,7 @@
  */
 
 import React from "react";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import "@/styles/components/_table.scss";
 
 /**
@@ -50,6 +51,8 @@ const TableComponent = <T extends Record<string, unknown>>({
     ariaLabel,
     className,
 }: Props<T>) => {
+    const t = useTranslation("ui.table");
+
     const tableClassName = React.useMemo(() => {
         const base = ["table"];
         if (className && className.trim().length > 0) {
@@ -111,7 +114,7 @@ const TableComponent = <T extends Record<string, unknown>>({
                             className="table__cell table__cell--empty"
                             colSpan={columns.length}
                         >
-                            No data available
+                            {t("empty")}
                         </td>
                     </tr>
                 ) : (

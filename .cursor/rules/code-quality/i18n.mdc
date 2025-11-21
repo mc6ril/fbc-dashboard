@@ -1,0 +1,269 @@
+---
+alwaysApply: true
+name: "i18n Translation System"
+description: "Centralized i18n key management for all user-visible texts. All user-facing strings must use translation keys from the i18n system. No hardcoded French strings allowed."
+globs: ["src/**/*.{ts,tsx}", "src/shared/i18n/**/*"]
+priority: high
+---
+
+# Intent
+
+Maintain centralized i18n key management for all user-visible texts, replacing hardcoded French strings with translation keys and enabling future multi-language support. All user-facing strings must use the i18n translation system.
+
+## CRITICAL RULES - I18N NEVER OPTIONAL
+
+### 1. No Hardcoded User-Facing Strings - STRICT ENFORCEMENT
+
+-   **ALWAYS** use i18n translation keys for all user-facing strings
+-   **NEVER** hardcode French (or any language) strings directly in components, pages, or UI code
+-   **ALWAYS** use `useTranslation()` hook from `@/shared/i18n` to access translations
+-   **NEVER** import from `@/shared/constants/messages` (deprecated - use i18n directly)
+-   **ALWAYS** add new translation keys to `src/shared/i18n/messages/fr.json` following naming conventions
+
+**This rule applies to:**
+-   All component labels, buttons, placeholders
+-   Error messages and success messages
+-   Loading states and empty states
+-   Page titles and ARIA labels
+-   Navigation links and menu items
+-   Form field labels and helper texts
+-   Table column headers and captions
+
+**Exception:** Translation files themselves (`src/shared/i18n/messages/*.json`) contain the actual French strings - this is expected and correct.
+
+### 2. Translation Key Structure - MANDATORY NAMING
+
+-   **ALWAYS** use hierarchical dot notation: `namespace.subnamespace.key`
+-   **ALWAYS** organize keys by domain (common, forms, errors, pages, empty, ui, dashboard)
+-   **ALWAYS** use camelCase for all keys (e.g., `helperText`, `addProduct`)
+-   **ALWAYS** use descriptive names (e.g., `quantity` not `qty`, `product` not `prod`)
+-   **ALWAYS** use consistent suffixes for variations (`_sale`, `_creation`, `_error`)
+-   **NEVER** exceed 3-4 levels of namespace depth for readability
+
+**Mandatory structure:**
+
+```typescript
+// ✅ Correct - Organized by domain
+"common.loading"
+"forms.activity.fields.quantity.label"
+"errors.dashboard.sales"
+"pages.catalog.title"
+
+// ❌ Wrong - Flat or inconsistent
+"loading_message"
+"activityQuantityLabel"
+"dashboard_sales_error"
+```
+
+### 3. useTranslation Hook Usage - MANDATORY PATTERN
+
+-   **ALWAYS** use `useTranslation()` hook with appropriate namespace
+-   **ALWAYS** use the most specific namespace possible (e.g., `"forms.activity.fields.quantity"` not `"common"`)
+-   **ALWAYS** call the hook at component level, not inside render functions
+-   **NEVER** concatenate strings to build translation keys
+-   **ALWAYS** use type-safe translation keys (TypeScript will autocomplete)
+
+**Mandatory structure:**
+
+```typescript
+// ✅ Correct
+import { useTranslation } from "@/shared/i18n";
+
+const MyComponent = () => {
+    const t = useTranslation("forms.activity.fields.quantity");
+    
+    return <Input label={t("label")} helperText={t("helper_creation")} />;
+};
+
+// ❌ Wrong - Hardcoded string
+const MyComponent = () => {
+    return <Input label="Quantité" helperText="Quantité ajoutée au stock" />;
+};
+
+// ❌ Wrong - String concatenation
+const t = useTranslation("forms");
+const key = `activity.${field}.label`; // Don't do this
+```
+
+### 4. Dynamic Translations - USE UTILITIES
+
+-   **ALWAYS** use helper functions from `@/shared/i18n/dynamic` for conditional translations
+-   **ALWAYS** use `getActivityQuantityLabelKey()` for activity type-specific labels
+-   **ALWAYS** use `getActivityHelperTextKey()` for activity type-specific helper texts
+-   **ALWAYS** use `getConditionalTranslation()` for simple boolean-based conditionals
+-   **ALWAYS** use `createInterpolatedTranslation()` for translations with variables
+-   **NEVER** create conditional logic that selects hardcoded strings
+
+**Mandatory structure:**
+
+```typescript
+// ✅ Correct - Use dynamic utilities
+import { getActivityQuantityLabelKey } from "@/shared/i18n/dynamic";
+
+const ActivityForm = ({ activityType }: { activityType: ActivityType }) => {
+    const t = useTranslation("forms.activity.fields.quantity");
+    const labelKey = getActivityQuantityLabelKey(activityType);
+    const label = t(labelKey);
+    
+    return <Input label={label} />;
+};
+
+// ❌ Wrong - Conditional hardcoded strings
+const label = activityType === ActivityType.SALE ? "Quantité vendue" : "Quantité";
+```
+
+### 5. Translation File Organization - MANDATORY STRUCTURE
+
+-   **ALWAYS** add translation keys to `src/shared/i18n/messages/fr.json`
+-   **ALWAYS** follow the existing namespace structure
+-   **ALWAYS** group related keys together in the same namespace
+-   **ALWAYS** use consistent key naming within the same namespace
+-   **NEVER** create duplicate keys or conflicting namespaces
+-   **ALWAYS** maintain alphabetical order within namespaces when possible
+
+**Mandatory structure:**
+
+```json
+{
+  "common": {
+    "loading": "Chargement en cours...",
+    "cancel": "Annuler"
+  },
+  "forms": {
+    "activity": {
+      "fields": {
+        "quantity": {
+          "label": "Quantité",
+          "label_sale": "Quantité vendue",
+          "helper_creation": "Quantité ajoutée au stock"
+        }
+      }
+    }
+  }
+}
+```
+
+### 6. Deprecated Constants - NEVER USE
+
+-   **NEVER** import from `@/shared/constants/messages` (deprecated)
+-   **NEVER** use `LOADING_MESSAGE`, `ERROR_MESSAGES`, or `EMPTY_STATE_MESSAGES` constants
+-   **ALWAYS** use `useTranslation()` hook directly instead
+-   **ALWAYS** migrate any remaining usage of deprecated constants
+
+**Mandatory migration:**
+
+```typescript
+// ❌ Deprecated - Don't use
+import { LOADING_MESSAGE } from "@/shared/constants/messages";
+const message = LOADING_MESSAGE; // This is just a key string
+
+// ✅ Correct - Use i18n hook
+import { useTranslation } from "@/shared/i18n";
+const t = useTranslation("common");
+const message = t("loading"); // This is the actual translated string
+```
+
+### 7. Type Safety - MANDATORY ENFORCEMENT
+
+-   **ALWAYS** leverage TypeScript type safety for translation keys
+-   **ALWAYS** use autocomplete to select translation keys (prevents typos)
+-   **NEVER** use string literals that aren't type-checked
+-   **ALWAYS** fix TypeScript errors related to invalid translation keys
+
+**Type safety example:**
+
+```typescript
+const t = useTranslation("common");
+t("loading"); // ✅ Valid - TypeScript autocompletes
+t("invalid_key"); // ❌ TypeScript error - key doesn't exist
+```
+
+### 8. Interpolation and Pluralization - USE HELPERS
+
+-   **ALWAYS** use `createInterpolatedTranslation()` for type-safe interpolation
+-   **ALWAYS** use `createPluralKey()` for pluralization
+-   **ALWAYS** pass interpolation values as objects: `t("key", { name: "John" })`
+-   **NEVER** concatenate translated strings with variables
+
+**Mandatory structure:**
+
+```typescript
+// ✅ Correct - Interpolation
+const t = useTranslation("pages.catalog");
+const title = t("editProductPageTitleWithName", { name: product.name });
+
+// ✅ Correct - Pluralization
+import { createPluralKey } from "@/shared/i18n/dynamic";
+const key = createPluralKey("items", count);
+const message = t(key, { count });
+
+// ❌ Wrong - String concatenation
+const message = t("welcome") + " " + name; // Don't do this
+```
+
+## I18N VIOLATIONS - AUTO-STOP CONDITIONS
+
+### 9. Critical Violations - ALWAYS STOP
+
+1. **Hardcoded French string in component** → STOP and use `useTranslation()` hook
+2. **Import from `@/shared/constants/messages`** → STOP and use `useTranslation()` hook directly
+3. **String concatenation for translation keys** → STOP and use proper namespace or dynamic utilities
+4. **Conditional hardcoded strings** → STOP and use dynamic translation utilities
+5. **Missing translation key in `fr.json`** → STOP and add key following naming conventions
+6. **Invalid translation key (TypeScript error)** → STOP and fix the key
+7. **Translation key not following naming conventions** → STOP and rename to follow conventions
+
+## I18N COMPLIANCE - MANDATORY VERIFICATION
+
+### 10. Code Generation Checklist
+
+Before EVERY code generation involving user-facing strings:
+
+✅ **Translation Keys**
+
+-   All user-facing strings use i18n keys?
+-   Translation keys added to `fr.json`?
+-   Keys follow naming conventions (dot notation, camelCase)?
+-   Keys organized by domain (common, forms, errors, etc.)?
+
+✅ **Hook Usage**
+
+-   `useTranslation()` hook used with appropriate namespace?
+-   Most specific namespace used (not overly generic)?
+-   Hook called at component level?
+
+✅ **Dynamic Translations**
+
+-   Dynamic utilities used for conditional strings?
+-   Interpolation used correctly for variables?
+-   Pluralization handled properly?
+
+✅ **Type Safety**
+
+-   Translation keys type-checked by TypeScript?
+-   No TypeScript errors for invalid keys?
+-   Autocomplete working for translation keys?
+
+✅ **Deprecated Code**
+
+-   No imports from `@/shared/constants/messages`?
+-   No usage of deprecated constants?
+-   All code migrated to i18n?
+
+## Best Practices
+
+1. **Use namespaces**: Always use the appropriate namespace when calling `useTranslation()` to improve performance and organization
+2. **Type safety**: Leverage TypeScript types for translation keys - avoid string concatenation for keys
+3. **Dynamic translations**: Use helper functions from `dynamic.ts` for conditional and dynamic translations
+4. **Consistent naming**: Follow the existing naming conventions (dot notation, camelCase)
+5. **Documentation**: Document complex translation patterns in code comments
+6. **Migration**: When migrating existing code, follow the migration guide in `.cursor/docs/i8n.md`
+
+## Migration Guide Reference
+
+For detailed migration steps and examples, see `.cursor/docs/i8n.md`:
+- Step-by-step migration process
+- Before/after code examples
+- Dynamic translation patterns
+- Test migration examples
+- Translation key naming conventions

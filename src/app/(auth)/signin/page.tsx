@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSignIn } from "@/presentation/hooks/useAuth";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import Heading from "@/presentation/components/ui/Heading";
 import Text from "@/presentation/components/ui/Text";
 import Link from "@/presentation/components/ui/Link";
@@ -18,6 +19,9 @@ const SignInPage = () => {
   const [email, setEmail] = useState("cyril.lesot@yahoo.fr");
   const [password, setPassword] = useState("Azerty123");
   const userId = useAuthStore((state) => state.user?.id);
+
+  // Translation hooks
+  const tAuth = useTranslation("pages.auth.signin");
   
   const mainId = getAccessibilityId("main", "signin");
   
@@ -63,9 +67,9 @@ const SignInPage = () => {
   
   return (
     <main id={mainId} className={styles.main} role="main">
-      <Heading level={1}>Se connecter</Heading>
+      <Heading level={1}>{tAuth("title")}</Heading>
       <Text className={styles.description}>
-        Connectez-vous pour accéder à votre tableau de bord.
+        {tAuth("description")}
       </Text>
       
       <form onSubmit={handleSubmit} className={styles.form}>
@@ -73,7 +77,7 @@ const SignInPage = () => {
           <Input
             id="email"
             type="email"
-            label="Email"
+            label={tAuth("fields.email.label")}
             value={email}
             onChange={onEmailChange}
             placeholder="cyril.lesot@yahoo.fr"
@@ -87,7 +91,7 @@ const SignInPage = () => {
           <Input
             id="password"
             type="password"
-            label="Mot de passe"
+            label={tAuth("fields.password.label")}
             value={password}
             onChange={onPasswordChange}
             placeholder="Azerty123"
@@ -105,14 +109,14 @@ const SignInPage = () => {
             loading={isLoading}
             fullWidth
           >
-            {isLoading ? "Connexion en cours..." : "Se connecter"}
+            {isLoading ? tAuth("loading") : tAuth("title")}
           </Button>
         </div>
       </form>
       
       <div className={styles.links}>
         <Text>
-          Vous n&apos;avez pas de compte ? <Link href="/signup">{`S'inscrire`}</Link>
+          {tAuth("noAccount")} <Link href="/signup">{tAuth("signupLink")}</Link>
         </Text>
       </div>
     </main>

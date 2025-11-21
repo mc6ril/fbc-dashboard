@@ -36,6 +36,7 @@ import { ProductType as ProductTypeEnum } from "@/core/domain/product";
 import { formatProductType } from "@/shared/utils/product";
 import { getAccessibilityId } from "@/shared/a11y/utils";
 import { A11yIds } from "@/shared/a11y/ids";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import Input from "@/presentation/components/ui/Input";
 import Select from "@/presentation/components/ui/Select";
 import type { SelectOption } from "@/presentation/components/ui/Select";
@@ -78,6 +79,14 @@ const getCurrentDateTimeIso = (): string => {
 const AddActivityFormComponent = ({ onSuccess }: Props) => {
     const { data: products, isLoading: productsLoading } = useProducts();
     const addActivityMutation = useAddActivity();
+
+    // Translation hooks
+    const tActivity = useTranslation("forms.activity");
+    const tActivityFields = useTranslation("forms.activity.fields");
+    const tActivityProduct = useTranslation("forms.activity.fields.product");
+    const tActivityModels = useTranslation("forms.activity.models");
+    const tActivityColoris = useTranslation("forms.activity.coloris");
+    const tActivityButton = useTranslation("forms.activity.button");
 
     // Form state
     const [activityType, setActivityType] = React.useState<ActivityType>(ActivityType.CREATION);
@@ -162,12 +171,12 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
     // Activity type options
     const activityTypeOptions: SelectOption[] = React.useMemo(
         () => [
-            { value: ActivityType.CREATION, label: "Création" },
-            { value: ActivityType.SALE, label: "Vente" },
-            { value: ActivityType.STOCK_CORRECTION, label: "Correction de stock" },
-            { value: ActivityType.OTHER, label: "Autre" },
+            { value: ActivityType.CREATION, label: tActivityFields("type.options.CREATION") },
+            { value: ActivityType.SALE, label: tActivityFields("type.options.SALE") },
+            { value: ActivityType.STOCK_CORRECTION, label: tActivityFields("type.options.STOCK_CORRECTION") },
+            { value: ActivityType.OTHER, label: tActivityFields("type.options.OTHER") },
         ],
-        []
+        [tActivityFields]
     );
 
     // Clear errors when fields change
@@ -362,7 +371,7 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
 
         // Validate date
         if (!date) {
-            newErrors.date = "La date est requise";
+            newErrors.date = tActivityFields("date.required");
         }
 
         // Validate quantity (type-specific - FBC-28)
@@ -373,40 +382,40 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
             
             // At least one field must be filled
             if (addNum === null && reduceNum === null) {
-                newErrors.addToStock = "Au moins un des deux champs doit être rempli";
-                newErrors.reduceFromStock = "Au moins un des deux champs doit être rempli";
+                newErrors.addToStock = tActivityFields("addToStock.required");
+                newErrors.reduceFromStock = tActivityFields("reduceFromStock.required");
             } else {
                 // Validate add to stock if filled
                 if (addNum !== null) {
                     if (Number.isNaN(addNum) || !Number.isFinite(addNum)) {
-                        newErrors.addToStock = "La valeur doit être un nombre valide";
+                        newErrors.addToStock = tActivityFields("addToStock.invalid");
                     } else if (addNum <= 0) {
-                        newErrors.addToStock = "La valeur doit être supérieure à 0";
+                        newErrors.addToStock = tActivityFields("addToStock.must_be_positive");
                     }
                 }
                 // Validate reduce from stock if filled
                 if (reduceNum !== null) {
                     if (Number.isNaN(reduceNum) || !Number.isFinite(reduceNum)) {
-                        newErrors.reduceFromStock = "La valeur doit être un nombre valide";
+                        newErrors.reduceFromStock = tActivityFields("reduceFromStock.invalid");
                     } else if (reduceNum <= 0) {
-                        newErrors.reduceFromStock = "La valeur doit être supérieure à 0";
+                        newErrors.reduceFromStock = tActivityFields("reduceFromStock.must_be_positive");
                     }
                 }
             }
         } else {
             // Other types: validate standard quantity field
             if (!quantity || quantity.trim() === "") {
-                newErrors.quantity = "La quantité est requise";
+                newErrors.quantity = tActivityFields("quantity.required");
             } else {
                 const quantityNum = Number.parseFloat(quantity);
                 if (Number.isNaN(quantityNum) || !Number.isFinite(quantityNum)) {
-                    newErrors.quantity = "La quantité doit être un nombre valide";
+                    newErrors.quantity = tActivityFields("quantity.invalid");
                 } else {
                     // Type-specific quantity validation
                     if (activityType === ActivityType.CREATION || activityType === ActivityType.SALE) {
                         // CREATION and SALE require positive quantity (user enters positive, SALE converts to negative on submit)
                         if (quantityNum <= 0) {
-                            newErrors.quantity = "La quantité doit être supérieure à 0";
+                            newErrors.quantity = tActivityFields("quantity.must_be_positive");
                         }
                     }
                     // OTHER: allow any non-zero number
@@ -418,13 +427,13 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
         const requiresAmount = activityType === ActivityType.SALE || activityType === ActivityType.OTHER;
         if (requiresAmount) {
             if (!amount || amount.trim() === "") {
-                newErrors.amount = "Le montant est requis";
+                newErrors.amount = tActivityFields("amount.required");
             } else {
                 const amountNum = Number.parseFloat(amount);
                 if (Number.isNaN(amountNum) || !Number.isFinite(amountNum)) {
-                    newErrors.amount = "Le montant doit être un nombre valide";
+                    newErrors.amount = tActivityFields("amount.invalid");
                 } else if (amountNum <= 0) {
-                    newErrors.amount = "Le montant doit être supérieur à 0";
+                    newErrors.amount = tActivityFields("amount.must_be_positive");
                 }
             }
         }
@@ -437,16 +446,16 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
 
         if (requiresProduct) {
             if (!selectedProductType) {
-                newErrors.selectedProductType = "Le type de produit est requis";
+                newErrors.selectedProductType = tActivityProduct("type.required");
             }
             if (!selectedModelId) {
-                newErrors.selectedModelId = "Le modèle est requis";
+                newErrors.selectedModelId = tActivityProduct("model.required");
             }
             if (!selectedColorisId) {
-                newErrors.selectedColorisId = "Le coloris est requis";
+                newErrors.selectedColorisId = tActivityProduct("coloris.required");
             }
             if (!productId) {
-                newErrors.productId = "Le produit sélectionné n'existe pas";
+                newErrors.productId = tActivityProduct("not_found");
             }
         }
 
@@ -463,6 +472,8 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
         productId,
         addToStock,
         reduceFromStock,
+        tActivityFields,
+        tActivityProduct,
     ]);
 
     // Handle form submission (with type-specific quantity conversion and amount handling - FBC-28)
@@ -537,7 +548,7 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
                     if (error && typeof error === "object" && "message" in error) {
                         setGeneralError(error.message as string);
                     } else {
-                        setGeneralError("Une erreur est survenue lors de la création de l'activité");
+                        setGeneralError(tActivity("errors.create"));
                     }
                 },
             });
@@ -554,6 +565,7 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
             validateForm,
             addActivityMutation,
             onSuccess,
+            tActivity,
         ]
     );
 
@@ -578,17 +590,37 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
         activityType === ActivityType.OTHER;
     
     // Dynamic labels and helper texts based on activity type (FBC-28)
-    const quantityLabel = activityType === ActivityType.SALE ? "Quantité vendue" : "Quantité";
+    const quantityLabelKey = React.useMemo(() => {
+        if (activityType === ActivityType.SALE) {
+            return "label_sale";
+        }
+        return "label";
+    }, [activityType]);
+    
+    const quantityLabel = React.useMemo(
+        () => tActivityFields(`quantity.${quantityLabelKey}`),
+        [quantityLabelKey, tActivityFields]
+    );
+    
+    const quantityHelperTextKey = React.useMemo(() => {
+        switch (activityType) {
+            case ActivityType.CREATION:
+                return "helper_creation";
+            case ActivityType.SALE:
+                return "helper_sale";
+            case ActivityType.STOCK_CORRECTION:
+                return "helper_correction";
+            default:
+                return undefined;
+        }
+    }, [activityType]);
+    
     const quantityHelperText = React.useMemo(() => {
-        if (activityType === ActivityType.CREATION) {
-            return "Quantité ajoutée au stock";
-        } else if (activityType === ActivityType.SALE) {
-            return "Saisissez le nombre d'unités vendues (sera déduit du stock)";
-        } else if (activityType === ActivityType.STOCK_CORRECTION) {
-            return "Peut être positive ou négative";
+        if (quantityHelperTextKey) {
+            return tActivityFields(`quantity.${quantityHelperTextKey}`);
         }
         return undefined;
-    }, [activityType]);
+    }, [quantityHelperTextKey, tActivityFields]);
 
     return (
         <form onSubmit={handleSubmit} className={styles.form} noValidate>
@@ -602,7 +634,7 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
             {/* Activity Type */}
             <Select
                 id="activity-type"
-                label="Type d'activité"
+                label={tActivityFields("type.label")}
                 options={activityTypeOptions}
                 value={activityType}
                 onChange={handleActivityTypeChange}
@@ -614,7 +646,7 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
             {/* Date */}
             <Input
                 id="activity-date"
-                label="Date"
+                label={tActivityFields("date.label")}
                 type="datetime-local"
                 value={isoToDatetimeLocal(date)}
                 onChange={handleDateChange}
@@ -629,11 +661,11 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
                     {/* Product Type */}
                     <Select
                         id="activity-product-type"
-                        label="Type de produit"
+                        label={tActivityProduct("type.label")}
                         options={productTypeOptions}
                         value={selectedProductType || ""}
                         onChange={handleProductTypeChange}
-                        placeholder="Sélectionnez un type"
+                        placeholder={tActivityProduct("type.placeholder")}
                         required={isProductRequired}
                         disabled={isDisabled}
                         error={errors.selectedProductType}
@@ -642,7 +674,7 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
                     {/* Product Model */}
                     <Select
                         id="activity-product-model"
-                        label="Modèle"
+                        label={tActivityProduct("model.label")}
                         options={modelOptions}
                         value={selectedModelId || ""}
                         onChange={handleModelChange}
@@ -650,21 +682,21 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
                         disabled={isDisabled || !selectedProductType || isLoadingModels}
                         error={
                             errors.selectedModelId ||
-                            (modelsError ? "Erreur lors du chargement des modèles" : undefined)
+                            (modelsError ? tActivityModels("error") : undefined)
                         }
                         placeholder={
                             isLoadingModels
-                                ? "Chargement des modèles..."
+                                ? tActivityModels("loading")
                                 : !selectedProductType
-                                  ? "Sélectionnez d'abord un type"
-                                  : "Sélectionnez un modèle"
+                                  ? tActivityProduct("model.placeholder_no_type")
+                                  : tActivityProduct("model.placeholder")
                         }
                     />
 
                     {/* Coloris */}
                     <Select
                         id="activity-product-coloris"
-                        label="Coloris"
+                        label={tActivityProduct("coloris.label")}
                         options={colorisOptions}
                         value={selectedColorisId || ""}
                         onChange={handleColorisChange}
@@ -672,14 +704,14 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
                         disabled={isDisabled || !selectedModelId || isLoadingColoris}
                         error={
                             errors.selectedColorisId ||
-                            (colorisError ? "Erreur lors du chargement des coloris" : undefined)
+                            (colorisError ? tActivityColoris("error") : undefined)
                         }
                         placeholder={
                             isLoadingColoris
-                                ? "Chargement des coloris..."
+                                ? tActivityColoris("loading")
                                 : !selectedModelId
-                                  ? "Sélectionnez d'abord un modèle"
-                                  : "Sélectionnez un coloris"
+                                  ? tActivityProduct("coloris.placeholder_no_model")
+                                  : tActivityProduct("coloris.placeholder")
                         }
                     />
 
@@ -698,25 +730,25 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
                     {/* STOCK_CORRECTION: Two separate fields with exclusive logic */}
                     <Input
                         id="activity-add-to-stock"
-                        label="Ajout au stock"
+                        label={tActivityFields("addToStock.label")}
                         type="number"
                         value={addToStock}
                         onChange={handleAddToStockChange}
-                        placeholder="Ex: 5"
+                        placeholder={tActivityFields("addToStock.placeholder")}
                         disabled={isDisabled}
                         error={errors.addToStock}
-                        helperText="Quantité à ajouter au stock (laissez vide si vous réduisez)"
+                        helperText={tActivityFields("addToStock.helper")}
                     />
                     <Input
                         id="activity-reduce-from-stock"
-                        label="Réduction du stock"
+                        label={tActivityFields("reduceFromStock.label")}
                         type="number"
                         value={reduceFromStock}
                         onChange={handleReduceFromStockChange}
-                        placeholder="Ex: 3"
+                        placeholder={tActivityFields("reduceFromStock.placeholder")}
                         disabled={isDisabled}
                         error={errors.reduceFromStock}
-                        helperText="Quantité à retirer du stock (laissez vide si vous ajoutez)"
+                        helperText={tActivityFields("reduceFromStock.helper")}
                     />
                 </>
             ) : (
@@ -727,7 +759,11 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
                     type="number"
                     value={quantity}
                     onChange={handleQuantityChange}
-                    placeholder={activityType === ActivityType.SALE || activityType === ActivityType.CREATION ? "Ex: 2" : "Ex: 5 ou -5"}
+                    placeholder={
+                        activityType === ActivityType.SALE || activityType === ActivityType.CREATION
+                            ? tActivityFields("quantity.placeholder_sale")
+                            : tActivityFields("quantity.placeholder_other")
+                    }
                     required
                     disabled={isDisabled}
                     error={errors.quantity}
@@ -739,11 +775,11 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
             {showAmountField && (
                 <Input
                     id="activity-amount"
-                    label="Montant"
+                    label={tActivityFields("amount.label")}
                     type="number"
                     value={amount}
                     onChange={handleAmountChange}
-                    placeholder="Ex: 99.95"
+                    placeholder={tActivityFields("amount.placeholder")}
                     required
                     disabled={isDisabled}
                     error={errors.amount}
@@ -753,18 +789,24 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
             {/* Note (optional) */}
             <Textarea
                 id="activity-note"
-                label="Note"
+                label={tActivityFields("note.label")}
                 value={note}
                 onChange={handleNoteChange}
-                placeholder="Informations supplémentaires (optionnel)"
+                placeholder={tActivityFields("note.placeholder")}
                 disabled={isDisabled}
                 rows={3}
             />
 
             {/* Submit button */}
             <div className={styles.form__actions}>
-                <Button type="submit" variant="primary" disabled={isDisabled} loading={isSubmitting} ariaLabel="Créer l'activité">
-                    {isSubmitting ? "Création en cours..." : "Créer l'activité"}
+                <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={isDisabled}
+                    loading={isSubmitting}
+                    ariaLabel={tActivityButton("aria_create")}
+                >
+                    {isSubmitting ? tActivityButton("create_loading") : tActivityButton("create")}
                 </Button>
             </div>
         </form>

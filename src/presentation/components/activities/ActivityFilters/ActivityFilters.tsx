@@ -12,6 +12,7 @@ import React from "react";
 import { ActivityType } from "@/core/domain/activity";
 import type { ProductId } from "@/core/domain/product";
 import { useActivityFiltersStore } from "@/presentation/stores/useActivityFiltersStore";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import DateInput from "@/presentation/components/ui/DateInput";
 import Select, { type SelectOption } from "@/presentation/components/ui/Select";
 import Button from "@/presentation/components/ui/Button";
@@ -19,6 +20,9 @@ import { useProducts } from "@/presentation/hooks/useProducts";
 import styles from "./ActivityFilters.module.scss";
 
 const ActivityFiltersComponent = () => {
+    const tFilters = useTranslation("dashboard.filters.activities");
+    const tActivityTypes = useTranslation("forms.activity.activity_type_options");
+
     // Use Zustand selectors to prevent unnecessary re-renders
     const startDate = useActivityFiltersStore((state) => state.startDate);
     const endDate = useActivityFiltersStore((state) => state.endDate);
@@ -36,18 +40,18 @@ const ActivityFiltersComponent = () => {
     // Activity type options
     const activityTypeOptions: SelectOption[] = React.useMemo(
         () => [
-            { value: "", label: "Toutes les activités" },
-            { value: ActivityType.CREATION, label: "Création" },
-            { value: ActivityType.SALE, label: "Vente" },
-            { value: ActivityType.STOCK_CORRECTION, label: "Correction de stock" },
-            { value: ActivityType.OTHER, label: "Autre" },
+            { value: "", label: tFilters("allActivities") },
+            { value: ActivityType.CREATION, label: tActivityTypes("CREATION") },
+            { value: ActivityType.SALE, label: tActivityTypes("SALE") },
+            { value: ActivityType.STOCK_CORRECTION, label: tActivityTypes("STOCK_CORRECTION") },
+            { value: ActivityType.OTHER, label: tActivityTypes("OTHER") },
         ],
-        []
+        [tFilters, tActivityTypes]
     );
 
     // Product options (with "All" option)
     const productOptions: SelectOption[] = React.useMemo(() => {
-        const options: SelectOption[] = [{ value: "", label: "Tous les produits" }];
+        const options: SelectOption[] = [{ value: "", label: tFilters("allProducts") }];
         if (products) {
             products.forEach((product) => {
                 if (product.name) {
@@ -59,7 +63,7 @@ const ActivityFiltersComponent = () => {
             });
         }
         return options;
-    }, [products]);
+    }, [products, tFilters]);
 
     // Event handlers with useCallback to prevent unnecessary re-renders
     const handleStartDateChange = React.useCallback(
@@ -101,28 +105,28 @@ const ActivityFiltersComponent = () => {
             <div className={styles.activityFilters__row}>
                 <DateInput
                     id="activity-filter-start-date"
-                    label="Date de début"
+                    label={tFilters("startDate")}
                     value={startDate}
                     onChange={handleStartDateChange}
                     max={endDate}
                 />
                 <DateInput
                     id="activity-filter-end-date"
-                    label="Date de fin"
+                    label={tFilters("endDate")}
                     value={endDate}
                     onChange={handleEndDateChange}
                     min={startDate}
                 />
                 <Select
                     id="activity-filter-type"
-                    label="Type d'activité"
+                    label={tFilters("type")}
                     options={activityTypeOptions}
                     value={type || ""}
                     onChange={handleTypeChange}
                 />
                 <Select
                     id="activity-filter-product"
-                    label="Produit"
+                    label={tFilters("product")}
                     options={productOptions}
                     value={productId || ""}
                     onChange={handleProductChange}
@@ -132,9 +136,9 @@ const ActivityFiltersComponent = () => {
                     <Button
                         variant="secondary"
                         onClick={handleReset}
-                        ariaLabel="Réinitialiser tous les filtres"
+                        ariaLabel={tFilters("resetAria")}
                     >
-                        Réinitialiser les filtres
+                        {tFilters("reset")}
                     </Button>
                 </div>
             </div>

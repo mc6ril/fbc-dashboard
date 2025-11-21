@@ -5,29 +5,33 @@ import Card from "@/presentation/components/ui/Card";
 import Text from "@/presentation/components/ui/Text";
 import { useLowStockProducts } from "@/presentation/hooks/useDashboard";
 import type { Product } from "@/core/domain/product";
-import { LOADING_MESSAGE, ERROR_MESSAGES, EMPTY_STATE_MESSAGES } from "@/shared/constants/messages";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import styles from "./LowStockWidget.module.scss";
 
 const LowStockWidgetComponent = () => {
     const { data, isLoading, error } = useLowStockProducts();
+    const tCommon = useTranslation("common");
+    const tWidgets = useTranslation("ui.widgets");
+    const tErrors = useTranslation("errors");
+    const tEmpty = useTranslation("empty");
 
     return (
-        <Card title="Produits en stock faible" className={styles.lowStockWidget}>
+        <Card title={tWidgets("lowStock.title")} className={styles.lowStockWidget}>
             {isLoading && (
                 <Text size="md" muted>
-                    {LOADING_MESSAGE}
+                    {tCommon("loading")}
                 </Text>
             )}
             {error && (
                 <Text size="md" role="alert">
-                    {ERROR_MESSAGES.PRODUCTS}
+                    {tErrors("dashboard.products")}
                 </Text>
             )}
             {!isLoading && !error && data !== undefined && (
                 <>
                     {data.length === 0 ? (
                         <Text size="md" muted>
-                            {EMPTY_STATE_MESSAGES.LOW_STOCK_PRODUCTS}
+                            {tEmpty("dashboard.lowStock")}
                         </Text>
                     ) : (
                         <ul className={styles.lowStockWidget__list} role="list">
@@ -37,7 +41,7 @@ const LowStockWidgetComponent = () => {
                                         {product.name}
                                     </Text>
                                     <Text size="sm" muted className={styles.lowStockWidget__stock}>
-                                        Stock: {product.stock}
+                                        {tWidgets("lowStock.stock")}: {product.stock}
                                     </Text>
                                 </li>
                             ))}

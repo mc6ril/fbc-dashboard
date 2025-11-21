@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import ChartContainer from "@/presentation/components/ui/ChartContainer";
 import { getAccessibilityId } from "@/shared/a11y/utils";
+import frMessages from "@/shared/i18n/messages/fr.json";
 
 // Mock the accessibility utility to have predictable IDs in tests
 jest.mock("@/shared/a11y/utils", () => ({
@@ -101,7 +102,7 @@ describe("ChartContainer", () => {
                 </ChartContainer>
             );
 
-            expect(screen.getByText("Loading chart data...")).toBeInTheDocument();
+            expect(screen.getByText(frMessages.ui.chart.loading)).toBeInTheDocument();
             expect(screen.queryByTestId("chart-content")).not.toBeInTheDocument();
         });
 
@@ -162,7 +163,7 @@ describe("ChartContainer", () => {
                 </ChartContainer>
             );
 
-            expect(screen.getByText(/Error loading chart: Failed to load data/)).toBeInTheDocument();
+            expect(screen.getByText(new RegExp(`${frMessages.ui.chart.error}: Failed to load data`))).toBeInTheDocument();
             expect(screen.queryByTestId("chart-content")).not.toBeInTheDocument();
         });
 
@@ -178,7 +179,7 @@ describe("ChartContainer", () => {
                 </ChartContainer>
             );
 
-            expect(screen.getByText(/Error loading chart: Network error/)).toBeInTheDocument();
+            expect(screen.getByText(new RegExp(`${frMessages.ui.chart.error}: Network error`))).toBeInTheDocument();
         });
 
         it("sets role='alert' on error container", () => {
@@ -237,8 +238,8 @@ describe("ChartContainer", () => {
                 </ChartContainer>
             );
 
-            expect(screen.getByText(/Error loading chart: Error message/)).toBeInTheDocument();
-            expect(screen.queryByText("Loading chart data...")).not.toBeInTheDocument();
+            expect(screen.getByText(new RegExp(`${frMessages.ui.chart.error}: Error message`))).toBeInTheDocument();
+            expect(screen.queryByText(frMessages.ui.chart.loading)).not.toBeInTheDocument();
         });
     });
 
@@ -366,7 +367,7 @@ describe("ChartContainer", () => {
             );
 
             expect(screen.getByTestId("content")).toBeInTheDocument();
-            expect(screen.queryByText(/Error loading chart/)).not.toBeInTheDocument();
+            expect(screen.queryByText(new RegExp(frMessages.ui.chart.error))).not.toBeInTheDocument();
         });
 
         it("handles undefined error gracefully", () => {
@@ -381,7 +382,7 @@ describe("ChartContainer", () => {
             );
 
             expect(screen.getByTestId("content")).toBeInTheDocument();
-            expect(screen.queryByText(/Error loading chart/)).not.toBeInTheDocument();
+            expect(screen.queryByText(new RegExp(frMessages.ui.chart.error))).not.toBeInTheDocument();
         });
 
         it("handles complex children", () => {

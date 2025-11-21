@@ -20,8 +20,8 @@ import type { Product, ProductId } from "@/core/domain/product";
 import { getAccessibilityId } from "@/shared/a11y/utils";
 import { A11yIds } from "@/shared/a11y/ids";
 import { ACCESSIBILITY_ANNOUNCEMENT_DELAY_MS } from "@/shared/constants/timing";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import Text from "@/presentation/components/ui/Text";
-import { LOADING_MESSAGE } from "@/shared/constants/messages";
 import styles from "./page.module.scss";
 
 const EditProductPage = () => {
@@ -39,6 +39,10 @@ const EditProductPage = () => {
     );
     const [showSuccess, setShowSuccess] = React.useState(false);
     const [errorMessage, setErrorMessage] = React.useState<string>("");
+
+    // Translation hooks
+    const tCatalog = useTranslation("pages.catalog");
+    const tCommon = useTranslation("common");
 
     // Accessibility IDs
     const mainId = React.useMemo(() => getAccessibilityId(A11yIds.main, "edit-product"), []);
@@ -59,7 +63,7 @@ const EditProductPage = () => {
     const handleSubmit = React.useCallback(
         (productData: Omit<Product, "id">) => {
             if (!productId) {
-                setErrorMessage("ID de produit invalide");
+                setErrorMessage(tCatalog("errors.invalidId"));
                 return;
             }
 
@@ -76,13 +80,13 @@ const EditProductPage = () => {
                         if (error && typeof error === "object" && "message" in error) {
                             setErrorMessage(error.message as string);
                         } else {
-                            setErrorMessage("Une erreur est survenue lors de la mise à jour du produit");
+                            setErrorMessage(tCatalog("errors.update"));
                         }
                     },
                 }
             );
         },
-        [updateProductMutation, productId]
+        [updateProductMutation, productId, tCatalog]
     );
 
     // Redirect after success message is shown and mutation is settled
@@ -105,16 +109,16 @@ const EditProductPage = () => {
     React.useEffect(() => {
         let isMounted = true;
 
-        if (product && isMounted) {
-            document.title = `Modifier ${product.name} - Atelier FBC`;
+        if (product && product.name && isMounted) {
+            document.title = tCatalog("editProductPageTitleWithName", { name: product.name });
         } else if (isMounted) {
-            document.title = "Modifier un produit - Atelier FBC";
+            document.title = tCatalog("editProductPageTitle");
         }
 
         return () => {
             isMounted = false;
         };
-    }, [product]);
+    }, [product, tCatalog]);
 
     // Clear success message when component unmounts or when navigating away
     React.useEffect(() => {
@@ -145,11 +149,11 @@ const EditProductPage = () => {
             <main id={mainId} className={styles.page} role="main">
                 <div className={styles.page__header}>
                     <Heading level={1} className={styles.page__title}>
-                        Modifier un produit
+                        {tCatalog("editProductPageTitle")}
                     </Heading>
                     <Link href="/dashboard/catalog" className={styles.page__cancelLink}>
-                        <Button variant="secondary" ariaLabel="Retourner au catalogue">
-                            Retour
+                        <Button variant="secondary" ariaLabel={tCatalog("backAria")}>
+                            {tCatalog("back")}
                         </Button>
                     </Link>
                 </div>
@@ -159,7 +163,7 @@ const EditProductPage = () => {
                     role="alert"
                     aria-live="assertive"
                 >
-                    <Text size="md">ID de produit invalide</Text>
+                    <Text size="md">{tCatalog("errors.invalidId")}</Text>
                 </div>
             </main>
         );
@@ -171,11 +175,11 @@ const EditProductPage = () => {
             <main id={mainId} className={styles.page} role="main">
                 <div className={styles.page__header}>
                     <Heading level={1} className={styles.page__title}>
-                        Modifier un produit
+                        {tCatalog("editProductPageTitle")}
                     </Heading>
                 </div>
                 <div className={styles.page__loading}>
-                    <Text size="md">{LOADING_MESSAGE}</Text>
+                    <Text size="md">{tCommon("loading")}</Text>
                 </div>
             </main>
         );
@@ -183,16 +187,16 @@ const EditProductPage = () => {
 
     // Handle error state (product not found or fetch error)
     if (productError || !product) {
-        const errorMsg = productError?.message || "Produit introuvable";
+        const errorMsg = productError?.message || tCatalog("errors.notFound");
         return (
             <main id={mainId} className={styles.page} role="main">
                 <div className={styles.page__header}>
                     <Heading level={1} className={styles.page__title}>
-                        Modifier un produit
+                        {tCatalog("editProductPageTitle")}
                     </Heading>
                     <Link href="/dashboard/catalog" className={styles.page__cancelLink}>
-                        <Button variant="secondary" ariaLabel="Retourner au catalogue">
-                            Retour
+                        <Button variant="secondary" ariaLabel={tCatalog("backAria")}>
+                            {tCatalog("back")}
                         </Button>
                     </Link>
                 </div>
@@ -212,11 +216,11 @@ const EditProductPage = () => {
         <main id={mainId} className={styles.page} role="main">
             <div className={styles.page__header}>
                 <Heading level={1} className={styles.page__title}>
-                    Modifier un produit
+                    {tCatalog("editProductPageTitle")}
                 </Heading>
                 <Link href="/dashboard/catalog" className={styles.page__cancelLink}>
-                    <Button variant="secondary" ariaLabel="Annuler et retourner au catalogue">
-                        Annuler
+                    <Button variant="secondary" ariaLabel={tCatalog("cancelAria")}>
+                        {tCatalog("cancel")}
                     </Button>
                 </Link>
             </div>
@@ -243,7 +247,7 @@ const EditProductPage = () => {
                     aria-atomic="true"
                 >
                     <p className={styles.page__successText}>
-                        Produit mis à jour avec succès. Redirection en cours...
+                        {tCatalog("success.update")}
                     </p>
                 </div>
             )}

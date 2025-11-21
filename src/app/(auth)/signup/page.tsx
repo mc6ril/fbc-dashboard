@@ -4,6 +4,7 @@ import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSignUp } from "@/presentation/hooks/useAuth";
 import { useAuthStore } from "@/presentation/stores/useAuthStore";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import Heading from "@/presentation/components/ui/Heading";
 import Text from "@/presentation/components/ui/Text";
 import Link from "@/presentation/components/ui/Link";
@@ -18,6 +19,10 @@ const SignUpPage = () => {
   const [email, setEmail] = useState("cyril.lesot@yahoo.fr");
   const [password, setPassword] = useState("Azerty123");
   const userId = useAuthStore((state) => state.user?.id);
+
+  // Translation hooks
+  const tAuth = useTranslation("pages.auth.signup");
+
   const mainId = getAccessibilityId("main", "signup");
   
   // Reset mutation state when component mounts to ensure clean state
@@ -62,9 +67,9 @@ const SignUpPage = () => {
   
   return (
     <main id={mainId} className={styles.main} role="main">
-      <Heading level={1}>{`S'inscrire`}</Heading>
+      <Heading level={1}>{tAuth("title")}</Heading>
       <Text className={styles.description}>
-        Créez un nouveau compte pour commencer.
+        {tAuth("description")}
       </Text>
       
       <form onSubmit={handleSubmit} className={styles.form}>
@@ -72,7 +77,7 @@ const SignUpPage = () => {
           <Input
             id="email"
             type="email"
-            label="Email"
+            label={tAuth("fields.email.label")}
             value={email}
             onChange={onEmailChange}
             placeholder="cyril.lesot@yahoo.fr"
@@ -86,7 +91,7 @@ const SignUpPage = () => {
           <Input
             id="password"
             type="password"
-            label="Mot de passe"
+            label={tAuth("fields.password.label")}
             value={password}
             onChange={onPasswordChange}
             placeholder="Azerty123"
@@ -104,14 +109,14 @@ const SignUpPage = () => {
             loading={isLoading}
             fullWidth
           >
-            {isLoading ? "Inscription en cours..." : "S'inscrire"}
+            {isLoading ? tAuth("loading") : tAuth("title")}
           </Button>
         </div>
       </form>
       
       <div className={styles.links}>
         <Text>
-          Vous avez déjà un compte ? <Link href="/signin">Se connecter</Link>
+          {tAuth("hasAccount")} <Link href="/signin">{tAuth("signinLink")}</Link>
         </Text>
       </div>
     </main>

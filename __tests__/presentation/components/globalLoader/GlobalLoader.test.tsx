@@ -7,6 +7,7 @@ import { render, screen, cleanup } from "@testing-library/react";
 import { useGlobalLoadingStore } from "@/presentation/stores/useGlobalLoadingStore";
 import { createMockGlobalLoadingStoreState } from "../../../utils/mocks";
 import GlobalLoader from "@/presentation/components/globalLoader/GlobalLoader";
+import frMessages from "@/shared/i18n/messages/fr.json";
 
 // Mock the store
 jest.mock("@/presentation/stores/useGlobalLoadingStore");
@@ -73,7 +74,7 @@ describe("GlobalLoader", () => {
             const overlay = screen.getByRole("status");
             expect(overlay).toHaveAttribute("aria-live", "polite");
             expect(overlay).toHaveAttribute("aria-busy", "true");
-            expect(overlay).toHaveAttribute("aria-label", "Loading");
+            expect(overlay).toHaveAttribute("aria-label", frMessages.ui.loader.label);
             expect(overlay).toHaveAttribute("id", "a11y-status-global-loader");
         });
 
@@ -88,7 +89,7 @@ describe("GlobalLoader", () => {
         it("should render the loading text", () => {
             render(<GlobalLoader />);
 
-            const text = screen.getByText("Loading...");
+            const text = screen.getByText(frMessages.ui.loader.text);
             expect(text).toBeInTheDocument();
             expect(text).toHaveClass("text");
         });

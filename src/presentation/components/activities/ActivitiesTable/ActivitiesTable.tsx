@@ -16,7 +16,7 @@ import Text from "@/presentation/components/ui/Text";
 import { formatDate } from "@/shared/utils/date";
 import { formatCurrency } from "@/shared/utils/currency";
 import { useProducts } from "@/presentation/hooks/useProducts";
-import { LOADING_MESSAGE, ERROR_MESSAGES } from "@/shared/constants/messages";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import styles from "./ActivitiesTable.module.scss";
 import { formatActivityType } from "@/shared/utils/product";
 
@@ -30,6 +30,10 @@ type Props = {
 };
 
 const ActivitiesTableComponent = ({ activities, isLoading, error }: Props) => {
+    const tCommon = useTranslation("common");
+    const tErrors = useTranslation("errors");
+    const tDashboard = useTranslation("dashboard.tables.activities");
+
     // Fetch products for product name lookup
     const { data: products } = useProducts();
 
@@ -51,11 +55,11 @@ const ActivitiesTableComponent = ({ activities, isLoading, error }: Props) => {
     const getProductName = React.useCallback(
         (productId: string | undefined): string => {
             if (!productId) {
-                return "-";
+                return tDashboard("noProduct");
             }
-            return productMap.get(productId) || "Unknown Product";
+            return productMap.get(productId) || tDashboard("unknownProduct");
         },
-        [productMap]
+        [productMap, tDashboard]
     );
 
     // Define table columns
@@ -63,7 +67,7 @@ const ActivitiesTableComponent = ({ activities, isLoading, error }: Props) => {
         () => [
             {
                 key: "date",
-                header: "Date",
+                header: tDashboard("columns.date"),
                 render: (value: unknown) => {
                     const date = value as string;
                     return formatDate(date);
@@ -71,7 +75,7 @@ const ActivitiesTableComponent = ({ activities, isLoading, error }: Props) => {
             },
             {
                 key: "type",
-                header: "Type",
+                header: tDashboard("columns.type"),
                 render: (value: unknown) => {
                     const type = value as ActivityType;
                     return formatActivityType(type);
@@ -79,14 +83,14 @@ const ActivitiesTableComponent = ({ activities, isLoading, error }: Props) => {
             },
             {
                 key: "productId",
-                header: "Produit",
+                header: tDashboard("columns.product"),
                 render: (value: unknown, row: Activity) => {
                     return getProductName(row.productId);
                 },
             },
             {
                 key: "quantity",
-                header: "Quantité",
+                header: tDashboard("columns.quantity"),
                 render: (value: unknown) => {
                     const quantity = value as number;
                     return `${Math.abs(quantity)}`;
@@ -94,7 +98,7 @@ const ActivitiesTableComponent = ({ activities, isLoading, error }: Props) => {
             },
             {
                 key: "amount",
-                header: "Montant",
+                header: tDashboard("columns.amount"),
                 render: (value: unknown) => {
                     const amount = value as number;
                     return formatCurrency(amount);
@@ -102,14 +106,14 @@ const ActivitiesTableComponent = ({ activities, isLoading, error }: Props) => {
             },
             {
                 key: "note",
-                header: "Remarque",
+                header: tDashboard("columns.note"),
                 render: (value: unknown) => {
                     const note = value as string | undefined;
-                    return note || "-";
+                    return note || tDashboard("noProduct");
                 },
             },
         ],
-        [getProductName]
+        [getProductName, tDashboard]
     );
 
     // Loading state
@@ -117,7 +121,7 @@ const ActivitiesTableComponent = ({ activities, isLoading, error }: Props) => {
         return (
             <div className={styles.activitiesTable}>
                 <Text size="md" muted>
-                    {LOADING_MESSAGE}
+                    {tCommon("loading")}
                 </Text>
             </div>
         );
@@ -128,7 +132,7 @@ const ActivitiesTableComponent = ({ activities, isLoading, error }: Props) => {
         return (
             <div className={styles.activitiesTable}>
                 <Text size="md" role="alert">
-                    {ERROR_MESSAGES.ACTIVITIES}
+                    {tErrors("dashboard.activities")}
                 </Text>
             </div>
         );
@@ -140,8 +144,8 @@ const ActivitiesTableComponent = ({ activities, isLoading, error }: Props) => {
             <Table
                 columns={columns}
                 data={activities}
-                caption="Activities"
-                ariaLabel="Activities table"
+                caption={tDashboard("caption")}
+                ariaLabel={tDashboard("ariaLabel")}
             />
         </div>
     );

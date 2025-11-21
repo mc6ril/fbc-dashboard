@@ -16,6 +16,7 @@
 
 import React from "react";
 import { getAccessibilityId } from "@/shared/a11y/utils";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import Text from "@/presentation/components/ui/Text";
 import "@/styles/components/_chart-container.scss";
 
@@ -42,6 +43,8 @@ const ChartContainerComponent = ({
   error = null,
   className,
 }: Props) => {
+  const t = useTranslation("ui.chart");
+
   const chartId = React.useMemo(() => getAccessibilityId("chart", title.toLowerCase().replace(/\s+/g, "-")), [title]);
   const descriptionId = React.useMemo(() => getAccessibilityId("chart-description", title.toLowerCase().replace(/\s+/g, "-")), [title]);
 
@@ -70,7 +73,7 @@ const ChartContainerComponent = ({
         </div>
         <div className="chart-container__error" role="alert">
           <Text size="sm" muted>
-            Error loading chart: {errorMessage}
+            {t("error")}: {errorMessage}
           </Text>
         </div>
       </section>
@@ -94,7 +97,7 @@ const ChartContainerComponent = ({
         </div>
         <div className="chart-container__loading">
           <Text size="sm" muted>
-            Loading chart data...
+            {t("loading")}
           </Text>
         </div>
       </section>

@@ -5,7 +5,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { useMonthlyProfit } from "@/presentation/hooks/useDashboard";
-import { LOADING_MESSAGE, ERROR_MESSAGES } from "@/shared/constants/messages";
+import frMessages from "@/shared/i18n/messages/fr.json";
 
 // Mock Supabase client before importing components
 jest.mock("@/infrastructure/supabase/client", () => ({
@@ -33,7 +33,7 @@ describe("ProfitWidget", () => {
         } as ReturnType<typeof useMonthlyProfit>);
 
         render(<ProfitWidget />);
-        expect(screen.getByText(LOADING_MESSAGE)).toBeInTheDocument();
+        expect(screen.getByText(frMessages.common.loading)).toBeInTheDocument();
     });
 
     it("should render error state", () => {
@@ -44,7 +44,7 @@ describe("ProfitWidget", () => {
         } as ReturnType<typeof useMonthlyProfit>);
 
         render(<ProfitWidget />);
-        expect(screen.getByText(ERROR_MESSAGES.PROFIT_DATA)).toBeInTheDocument();
+        expect(screen.getByText(frMessages.errors.dashboard.profit)).toBeInTheDocument();
         expect(screen.getByRole("alert")).toBeInTheDocument();
     });
 

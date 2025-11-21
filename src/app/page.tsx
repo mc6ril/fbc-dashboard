@@ -4,6 +4,7 @@ import React, { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/presentation/stores/useAuthStore";
 import { useSession } from "@/presentation/hooks/useAuth";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import Heading from "@/presentation/components/ui/Heading";
 import Text from "@/presentation/components/ui/Text";
 import Link from "@/presentation/components/ui/Link";
@@ -14,6 +15,9 @@ const Home = () => {
   const router = useRouter();
   const session = useAuthStore((state) => state.session);
   const { data: sessionData, isLoading: isLoadingQuery } = useSession();
+
+  // Translation hooks
+  const tHome = useTranslation("pages.home");
   
   // Determine if user is authenticated
   const isAuthenticated = useMemo(() => {
@@ -40,7 +44,7 @@ const Home = () => {
     
     return (
       <main id={mainId} className={styles.main} role="main">
-        <Text>Chargement...</Text>
+        <Text>{tHome("loading")}</Text>
       </main>
     );
   }
@@ -50,13 +54,13 @@ const Home = () => {
   
   return (
     <main id={mainId} className={styles.main} role="main">
-      <Heading level={1}>Bienvenue</Heading>
+      <Heading level={1}>{tHome("welcome")}</Heading>
       <Text>
-        Redirection vers la page appropriée...
+        {tHome("redirecting")}
       </Text>
       <div className={styles.links}>
-        <Link href="/signin">Se connecter</Link>
-        <Link href="/signup">{`S'inscrire`}</Link>
+        <Link href="/signin">{tHome("signin")}</Link>
+        <Link href="/signup">{tHome("signup")}</Link>
       </div>
     </main>
   );

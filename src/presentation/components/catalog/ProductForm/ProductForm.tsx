@@ -16,6 +16,7 @@ import type {
 import { ProductType } from "@/core/domain/product";
 import { getAccessibilityId } from "@/shared/a11y/utils";
 import { A11yIds } from "@/shared/a11y/ids";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import Input from "@/presentation/components/ui/Input";
 import Select, { type SelectOption } from "@/presentation/components/ui/Select";
 import Button from "@/presentation/components/ui/Button";
@@ -64,6 +65,11 @@ const formatProductType = (type: ProductType): string => {
 };
 
 const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false }: Props) => {
+    // Translation hooks
+    const tProduct = useTranslation("forms.product");
+    const tProductFields = useTranslation("forms.product.fields");
+    const tProductButton = useTranslation("forms.product.button");
+
     // Form state - using new structure (modelId, colorisId)
     const [type, setType] = React.useState<ProductType>(
         initialValues?.type || ProductType.SAC_BANANE
@@ -280,52 +286,52 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
 
         // Validate type
         if (!type) {
-            newErrors.type = "Le type est requis";
+            newErrors.type = tProductFields("type.required");
         }
 
         // Validate modelId
         if (!modelId) {
-            newErrors.modelId = "Le modèle est requis";
+            newErrors.modelId = tProductFields("model.required");
         }
 
         // Validate colorisId
         if (!colorisId) {
-            newErrors.colorisId = "Le coloris est requis";
+            newErrors.colorisId = tProductFields("coloris.required");
         }
 
         // Validate unitCost
         if (!unitCost || unitCost.trim() === "") {
-            newErrors.unitCost = "Le coût unitaire est requis";
+            newErrors.unitCost = tProductFields("unitCost.required");
         } else {
             const unitCostNum = Number.parseFloat(unitCost);
             if (Number.isNaN(unitCostNum) || !Number.isFinite(unitCostNum)) {
-                newErrors.unitCost = "Le coût unitaire doit être un nombre valide";
+                newErrors.unitCost = tProductFields("unitCost.invalid");
             } else if (unitCostNum <= 0) {
-                newErrors.unitCost = "Le coût unitaire doit être supérieur à 0";
+                newErrors.unitCost = tProductFields("unitCost.must_be_positive");
             }
         }
 
         // Validate salePrice
         if (!salePrice || salePrice.trim() === "") {
-            newErrors.salePrice = "Le prix de vente est requis";
+            newErrors.salePrice = tProductFields("salePrice.required");
         } else {
             const salePriceNum = Number.parseFloat(salePrice);
             if (Number.isNaN(salePriceNum) || !Number.isFinite(salePriceNum)) {
-                newErrors.salePrice = "Le prix de vente doit être un nombre valide";
+                newErrors.salePrice = tProductFields("salePrice.invalid");
             } else if (salePriceNum <= 0) {
-                newErrors.salePrice = "Le prix de vente doit être supérieur à 0";
+                newErrors.salePrice = tProductFields("salePrice.must_be_positive");
             }
         }
 
         // Validate stock
         if (!stock || stock.trim() === "") {
-            newErrors.stock = "Le stock est requis";
+            newErrors.stock = tProductFields("stock.required");
         } else {
             const stockNum = Number.parseFloat(stock);
             if (Number.isNaN(stockNum) || !Number.isFinite(stockNum)) {
-                newErrors.stock = "Le stock doit être un nombre valide";
+                newErrors.stock = tProductFields("stock.invalid");
             } else if (stockNum < 0) {
-                newErrors.stock = "Le stock doit être supérieur ou égal à 0";
+                newErrors.stock = tProductFields("stock.must_be_non_negative");
             }
         }
 
@@ -333,15 +339,15 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
         if (weight && weight.trim() !== "") {
             const weightNum = Number.parseInt(weight, 10);
             if (Number.isNaN(weightNum) || !Number.isFinite(weightNum)) {
-                newErrors.weight = "Le poids doit être un nombre entier valide (en grammes)";
+                newErrors.weight = tProductFields("weight.invalid");
             } else if (weightNum <= 0) {
-                newErrors.weight = "Le poids doit être supérieur à 0";
+                newErrors.weight = tProductFields("weight.must_be_positive");
             }
         }
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
-    }, [type, modelId, colorisId, unitCost, salePrice, stock, weight]);
+    }, [type, modelId, colorisId, unitCost, salePrice, stock, weight, tProductFields]);
 
     // Handle form submission
     const handleSubmit = React.useCallback(
@@ -355,7 +361,7 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
             }
 
             if (!modelId || !colorisId) {
-                setGeneralError("Veuillez sélectionner un modèle et un coloris");
+                setGeneralError(tProduct("validation.model_and_coloris_required"));
                 return;
             }
 
@@ -370,7 +376,7 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
 
             onSubmit(formData);
         },
-        [modelId, colorisId, unitCost, salePrice, stock, weight, validateForm, onSubmit]
+        [modelId, colorisId, unitCost, salePrice, stock, weight, validateForm, onSubmit, tProduct]
     );
 
     const isDisabled = isLoading || isLoadingModels || isLoadingColoris;
@@ -387,62 +393,62 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
             {/* Type */}
             <Select
                 id="product-type"
-                label="Type"
+                label={tProductFields("type.label")}
                 options={productTypeOptions}
                 value={type}
                 onChange={handleTypeChange}
                 required
                 disabled={isDisabled}
                 error={errors.type}
-                placeholder="Sélectionnez un type"
+                placeholder={tProductFields("type.placeholder")}
             />
 
             {/* Model */}
             <Select
                 id="product-model"
-                label="Modèle"
+                label={tProductFields("model.label")}
                 options={modelOptions}
                 value={modelId || ""}
                 onChange={handleModelChange}
                 required
                 disabled={isDisabled || !type || isLoadingModels}
-                error={errors.modelId || (modelsError ? "Erreur lors du chargement des modèles" : undefined)}
+                error={errors.modelId || (modelsError ? tProductFields("model.error") : undefined)}
                 placeholder={
                     isLoadingModels
-                        ? "Chargement des modèles..."
+                        ? tProductFields("model.loading")
                         : !type
-                          ? "Sélectionnez d'abord un type"
-                          : "Sélectionnez un modèle"
+                          ? tProductFields("model.placeholder_no_type")
+                          : tProductFields("model.placeholder")
                 }
             />
 
             {/* Coloris */}
             <Select
                 id="product-coloris"
-                label="Coloris"
+                label={tProductFields("coloris.label")}
                 options={colorisOptions}
                 value={colorisId || ""}
                 onChange={handleColorisChange}
                 required
                 disabled={isDisabled || !modelId || isLoadingColoris}
-                error={errors.colorisId || (colorisError ? "Erreur lors du chargement des coloris" : undefined)}
+                error={errors.colorisId || (colorisError ? tProductFields("coloris.error") : undefined)}
                 placeholder={
                     isLoadingColoris
-                        ? "Chargement des coloris..."
+                        ? tProductFields("coloris.loading")
                         : !modelId
-                          ? "Sélectionnez d'abord un modèle"
-                          : "Sélectionnez un coloris"
+                          ? tProductFields("coloris.placeholder_no_model")
+                          : tProductFields("coloris.placeholder")
                 }
             />
 
             {/* Unit Cost */}
             <Input
                 id="product-unit-cost"
-                label="Coût unitaire"
+                label={tProductFields("unitCost.label")}
                 type="number"
                 value={unitCost}
                 onChange={handleUnitCostChange}
-                placeholder="Ex: 10.50"
+                placeholder={tProductFields("unitCost.placeholder")}
                 required
                 disabled={isDisabled}
                 error={errors.unitCost}
@@ -451,11 +457,11 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
             {/* Sale Price */}
             <Input
                 id="product-sale-price"
-                label="Prix de vente"
+                label={tProductFields("salePrice.label")}
                 type="number"
                 value={salePrice}
                 onChange={handleSalePriceChange}
-                placeholder="Ex: 19.99"
+                placeholder={tProductFields("salePrice.placeholder")}
                 required
                 disabled={isDisabled}
                 error={errors.salePrice}
@@ -464,11 +470,11 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
             {/* Stock */}
             <Input
                 id="product-stock"
-                label="Stock"
+                label={tProductFields("stock.label")}
                 type="number"
                 value={stock}
                 onChange={handleStockChange}
-                placeholder="Ex: 100"
+                placeholder={tProductFields("stock.placeholder")}
                 required
                 disabled={isDisabled}
                 error={errors.stock}
@@ -477,14 +483,14 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
             {/* Weight (optional) */}
             <Input
                 id="product-weight"
-                label="Poids (optionnel)"
+                label={tProductFields("weight.label")}
                 type="number"
                 value={weight}
                 onChange={handleWeightChange}
-                placeholder="Ex: 150 (en grammes)"
+                placeholder={tProductFields("weight.placeholder")}
                 disabled={isDisabled}
                 error={errors.weight}
-                helperText="Poids en grammes (optionnel)"
+                helperText={tProductFields("weight.helper")}
             />
 
             {/* Submit button */}
@@ -494,15 +500,19 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
                     variant="primary"
                     disabled={isDisabled}
                     loading={isLoading}
-                    ariaLabel={mode === "create" ? "Créer le produit" : "Mettre à jour le produit"}
+                    ariaLabel={
+                        mode === "create"
+                            ? tProductButton("aria_create")
+                            : tProductButton("aria_edit")
+                    }
                 >
                     {isLoading
                         ? mode === "create"
-                          ? "Création en cours..."
-                          : "Mise à jour en cours..."
+                          ? tProductButton("create_loading")
+                          : tProductButton("edit_loading")
                         : mode === "create"
-                          ? "Créer le produit"
-                          : "Mettre à jour le produit"}
+                          ? tProductButton("create")
+                          : tProductButton("edit")}
                 </Button>
             </div>
         </form>

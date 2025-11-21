@@ -7,7 +7,7 @@ import { render, screen } from "@testing-library/react";
 import type { Product } from "@/core/domain/product";
 import { ProductType } from "@/core/domain/product";
 import { useLowStockProducts } from "@/presentation/hooks/useDashboard";
-import { LOADING_MESSAGE, ERROR_MESSAGES, EMPTY_STATE_MESSAGES } from "@/shared/constants/messages";
+import frMessages from "@/shared/i18n/messages/fr.json";
 import { createProductId } from "../../../utils/brandedIds";
 
 // Mock Supabase client before importing components
@@ -36,7 +36,7 @@ describe("LowStockWidget", () => {
         } as ReturnType<typeof useLowStockProducts>);
 
         render(<LowStockWidget />);
-        expect(screen.getByText(LOADING_MESSAGE)).toBeInTheDocument();
+        expect(screen.getByText(frMessages.common.loading)).toBeInTheDocument();
     });
 
     it("should render error state", () => {
@@ -47,7 +47,7 @@ describe("LowStockWidget", () => {
         } as ReturnType<typeof useLowStockProducts>);
 
         render(<LowStockWidget />);
-        expect(screen.getByText(ERROR_MESSAGES.PRODUCTS)).toBeInTheDocument();
+        expect(screen.getByText(frMessages.errors.dashboard.products)).toBeInTheDocument();
         expect(screen.getByRole("alert")).toBeInTheDocument();
     });
 
@@ -62,7 +62,7 @@ describe("LowStockWidget", () => {
         } as unknown as ReturnType<typeof useLowStockProducts>);
 
         render(<LowStockWidget />);
-        expect(screen.getByText(EMPTY_STATE_MESSAGES.LOW_STOCK_PRODUCTS)).toBeInTheDocument();
+        expect(screen.getByText(frMessages.empty.dashboard.lowStock)).toBeInTheDocument();
     });
 
     it("should render list of low stock products", () => {

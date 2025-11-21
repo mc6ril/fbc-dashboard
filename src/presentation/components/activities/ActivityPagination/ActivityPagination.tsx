@@ -9,6 +9,7 @@
 "use client";
 
 import React from "react";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import Button from "@/presentation/components/ui/Button";
 import styles from "./ActivityPagination.module.scss";
 
@@ -32,9 +33,19 @@ type PageButtonProps = {
 };
 
 const PageButton = React.memo(({ page, isCurrentPage, onPageClick }: PageButtonProps) => {
+    const tPagination = useTranslation("dashboard.pagination.activities");
+
     const handleClick = React.useCallback(() => {
         onPageClick(page);
     }, [page, onPageClick]);
+
+    const ariaLabel = React.useMemo(
+        () =>
+            isCurrentPage
+                ? tPagination("currentPageAria", { page })
+                : tPagination("goToPageAria", { page }),
+        [isCurrentPage, page, tPagination]
+    );
 
     return (
         <button
@@ -44,9 +55,7 @@ const PageButton = React.memo(({ page, isCurrentPage, onPageClick }: PageButtonP
             }`}
             onClick={handleClick}
             disabled={isCurrentPage}
-            aria-label={
-                isCurrentPage ? `Current page, page ${page}` : `Go to page ${page}`
-            }
+            aria-label={ariaLabel}
             aria-current={isCurrentPage ? "page" : undefined}
         >
             {page}
@@ -61,6 +70,8 @@ const ActivityPaginationComponent = ({
     totalPages,
     onPageChange,
 }: Props) => {
+    const tPagination = useTranslation("dashboard.pagination.activities");
+
     // Calculate if buttons should be disabled
     const isFirstPage = currentPage <= 1;
     const isLastPage = currentPage >= totalPages;
@@ -127,7 +138,7 @@ const ActivityPaginationComponent = ({
     return (
         <nav
             className={styles.activityPagination}
-            aria-label="Activities pagination"
+            aria-label={tPagination("ariaLabel")}
         >
             <div className={styles.activityPagination__controls}>
                 <Button
@@ -135,9 +146,9 @@ const ActivityPaginationComponent = ({
                     size="sm"
                     onClick={handlePrevious}
                     disabled={isFirstPage}
-                    ariaLabel={`Go to previous page (page ${currentPage - 1})`}
+                    ariaLabel={tPagination("previousAria", { page: currentPage - 1 })}
                 >
-                    Précédent
+                    {tPagination("previous")}
                 </Button>
 
                 <div className={styles.activityPagination__pages} role="list">
@@ -156,9 +167,9 @@ const ActivityPaginationComponent = ({
                     size="sm"
                     onClick={handleNext}
                     disabled={isLastPage}
-                    ariaLabel={`Go to next page (page ${currentPage + 1})`}
+                    ariaLabel={tPagination("nextAria", { page: currentPage + 1 })}
                 >
-                    Suivant
+                    {tPagination("next")}
                 </Button>
             </div>
         </nav>

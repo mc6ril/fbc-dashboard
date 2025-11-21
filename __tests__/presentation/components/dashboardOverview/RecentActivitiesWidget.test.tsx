@@ -7,7 +7,7 @@ import { render, screen } from "@testing-library/react";
 import type { Activity } from "@/core/domain/activity";
 import { ActivityType } from "@/core/domain/activity";
 import { useRecentActivities } from "@/presentation/hooks/useDashboard";
-import { LOADING_MESSAGE, ERROR_MESSAGES, EMPTY_STATE_MESSAGES } from "@/shared/constants/messages";
+import frMessages from "@/shared/i18n/messages/fr.json";
 import { createActivityId, createProductId } from "../../../utils/brandedIds";
 
 // Mock Supabase client before importing components
@@ -36,7 +36,7 @@ describe("RecentActivitiesWidget", () => {
         } as ReturnType<typeof useRecentActivities>);
 
         render(<RecentActivitiesWidget />);
-        expect(screen.getByText(LOADING_MESSAGE)).toBeInTheDocument();
+        expect(screen.getByText(frMessages.common.loading)).toBeInTheDocument();
     });
 
     it("should render error state", () => {
@@ -47,7 +47,7 @@ describe("RecentActivitiesWidget", () => {
         } as ReturnType<typeof useRecentActivities>);
 
         render(<RecentActivitiesWidget />);
-        expect(screen.getByText(ERROR_MESSAGES.ACTIVITIES)).toBeInTheDocument();
+        expect(screen.getByText(frMessages.errors.dashboard.activities)).toBeInTheDocument();
         expect(screen.getByRole("alert")).toBeInTheDocument();
     });
 
@@ -62,7 +62,7 @@ describe("RecentActivitiesWidget", () => {
         } as unknown as ReturnType<typeof useRecentActivities>);
 
         render(<RecentActivitiesWidget />);
-        expect(screen.getByText(EMPTY_STATE_MESSAGES.RECENT_ACTIVITIES)).toBeInTheDocument();
+        expect(screen.getByText(frMessages.empty.dashboard.recentActivities)).toBeInTheDocument();
     });
 
     it("should render list of recent activities", () => {

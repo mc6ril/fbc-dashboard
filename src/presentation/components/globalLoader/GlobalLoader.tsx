@@ -3,6 +3,7 @@
 import React from "react";
 import { useGlobalLoadingStore } from "@/presentation/stores/useGlobalLoadingStore";
 import { getAccessibilityId } from "@/shared/a11y/utils";
+import { useTranslation } from "@/presentation/hooks/useTranslation";
 import styles from "./GlobalLoader.module.scss";
 
 /**
@@ -19,6 +20,7 @@ import styles from "./GlobalLoader.module.scss";
  */
 const GlobalLoader = () => {
     const isLoading = useGlobalLoadingStore((state) => state.isLoading);
+    const t = useTranslation("ui.loader");
 
     if (!isLoading) {
         return null;
@@ -33,10 +35,10 @@ const GlobalLoader = () => {
             role="status"
             aria-live="polite"
             aria-busy="true"
-            aria-label="Loading"
+            aria-label={t("label")}
         >
             <div className={styles.spinner} aria-hidden="true" />
-            <span className={styles.text}>Loading...</span>
+            <span className={styles.text}>{t("text")}</span>
         </div>
     );
 };

@@ -1,0 +1,407 @@
+{
+  "common": {
+    "loading": "Chargement en cours...",
+    "error": "Une erreur est survenue",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "add": "Ajouter",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "none": "Aucun",
+    "none_f": "Aucune"
+  },
+  "ui": {
+    "table": {
+      "empty": "Aucune donnée disponible"
+    },
+    "chart": {
+      "loading": "Chargement des données du graphique...",
+      "error": "Erreur lors du chargement du graphique"
+    },
+    "loader": {
+      "label": "Chargement",
+      "text": "Chargement..."
+    },
+    "widgets": {
+      "sales": {
+        "title": "Total Ventes (Du mois)"
+      },
+      "profit": {
+        "title": "Marge Brute (Du mois)"
+      },
+      "lowStock": {
+        "title": "Produits en stock faible",
+        "stock": "Stock"
+      },
+      "recentActivities": {
+        "title": "Activités récentes"
+      }
+    }
+  },
+  "dashboard": {
+    "header": {
+      "title": "Tableau de bord"
+    },
+    "navbar": {
+      "dashboard": "Dashboard",
+      "stats": "Statistiques",
+      "activities": "Activités",
+      "catalog": "Catalogue",
+      "signOut": "Se déconnecter",
+      "signingOut": "Déconnexion en cours...",
+      "signOutAria": "Se déconnecter"
+    },
+    "tables": {
+      "activities": {
+        "caption": "Activités",
+        "ariaLabel": "Tableau des activités",
+        "columns": {
+          "date": "Date",
+          "type": "Type",
+          "product": "Produit",
+          "quantity": "Quantité",
+          "amount": "Montant",
+          "note": "Remarque"
+        },
+        "unknownProduct": "Produit inconnu",
+        "noProduct": "-"
+      },
+      "products": {
+        "columns": {
+          "name": "Nom",
+          "type": "Type",
+          "coloris": "Couleur",
+          "unitCost": "Coût unitaire",
+          "salePrice": "Prix de vente",
+          "stock": "Stock restant",
+          "weight": "Poids du produit",
+          "actions": "Actions disponibles"
+        },
+        "edit": "Modifier",
+        "editAria": "Modifier le produit {name}",
+        "notAvailable": "N/A",
+        "noWeight": "-",
+        "weightUnit": "g"
+      }
+    },
+    "filters": {
+      "activities": {
+        "startDate": "Date de début",
+        "endDate": "Date de fin",
+        "type": "Type d'activité",
+        "product": "Produit",
+        "reset": "Réinitialiser les filtres",
+        "resetAria": "Réinitialiser tous les filtres",
+        "allActivities": "Toutes les activités",
+        "allProducts": "Tous les produits"
+      }
+    },
+    "pagination": {
+      "activities": {
+        "ariaLabel": "Pagination des activités",
+        "previous": "Précédent",
+        "next": "Suivant",
+        "previousAria": "Aller à la page précédente (page {page})",
+        "nextAria": "Aller à la page suivante (page {page})",
+        "currentPageAria": "Page actuelle, page {page}",
+        "goToPageAria": "Aller à la page {page}"
+      }
+    }
+  },
+  "forms": {
+    "activity": {
+      "title": {
+        "add": "Ajouter une activité",
+        "edit": "Modifier une activité"
+      },
+      "activity_type_options": {
+        "CREATION": "Création",
+        "SALE": "Vente",
+        "STOCK_CORRECTION": "Correction de stock",
+        "OTHER": "Autre"
+      },
+      "fields": {
+        "date": {
+          "label": "Date",
+          "required": "La date est requise"
+        },
+        "type": {
+          "label": "Type d'activité",
+          "required": "Le type d'activité est requis",
+          "options": {
+            "CREATION": "Création",
+            "SALE": "Vente",
+            "STOCK_CORRECTION": "Correction de stock",
+            "OTHER": "Autre"
+          }
+        },
+        "product": {
+          "label": "Produit",
+          "required": "Le produit est requis",
+          "loading": "Chargement des produits...",
+          "error": "Erreur lors du chargement des produits",
+          "type": {
+            "label": "Type de produit",
+            "required": "Le type de produit est requis",
+            "placeholder": "Sélectionnez un type"
+          },
+          "model": {
+            "label": "Modèle",
+            "required": "Le modèle est requis",
+            "placeholder": "Sélectionnez un modèle",
+            "placeholder_no_type": "Sélectionnez d'abord un type"
+          },
+          "coloris": {
+            "label": "Coloris",
+            "required": "Le coloris est requis",
+            "placeholder": "Sélectionnez un coloris",
+            "placeholder_no_model": "Sélectionnez d'abord un modèle"
+          },
+          "not_found": "Le produit sélectionné n'existe pas"
+        },
+        "quantity": {
+          "label": "Quantité",
+          "label_sale": "Quantité vendue",
+          "required": "La quantité est requise",
+          "invalid": "La quantité doit être un nombre valide",
+          "must_be_positive": "La quantité doit être supérieure à 0",
+          "helper_creation": "Quantité ajoutée au stock",
+          "helper_sale": "Saisissez le nombre d'unités vendues (sera déduit du stock)",
+          "helper_correction": "Peut être positive ou négative",
+          "helper_add": "Quantité à ajouter au stock (laissez vide si vous réduisez)",
+          "placeholder_sale": "Ex: 2",
+          "placeholder_other": "Ex: 5 ou -5"
+        },
+        "addToStock": {
+          "label": "Ajout au stock",
+          "required": "Au moins un des deux champs doit être rempli",
+          "invalid": "La valeur doit être un nombre valide",
+          "must_be_positive": "La valeur doit être supérieure à 0",
+          "placeholder": "Ex: 5",
+          "helper": "Quantité à ajouter au stock (laissez vide si vous réduisez)"
+        },
+        "reduceFromStock": {
+          "label": "Réduction du stock",
+          "required": "Au moins un des deux champs doit être rempli",
+          "invalid": "La valeur doit être un nombre valide",
+          "must_be_positive": "La valeur doit être supérieure à 0",
+          "placeholder": "Ex: 3",
+          "helper": "Quantité à retirer du stock (laissez vide si vous ajoutez)"
+        },
+        "amount": {
+          "label": "Montant",
+          "required": "Le montant est requis",
+          "invalid": "Le montant doit être un nombre valide",
+          "must_be_positive": "Le montant doit être supérieur à 0",
+          "placeholder": "Ex: 99.95"
+        },
+        "note": {
+          "label": "Note",
+          "placeholder": "Informations supplémentaires (optionnel)"
+        }
+      },
+      "button": {
+        "create": "Créer l'activité",
+        "create_loading": "Création en cours...",
+        "aria_create": "Créer l'activité"
+      },
+      "models": {
+        "loading": "Chargement des modèles...",
+        "error": "Erreur lors du chargement des modèles"
+      },
+      "coloris": {
+        "loading": "Chargement des coloris...",
+        "error": "Erreur lors du chargement des coloris"
+      },
+      "errors": {
+        "create": "Une erreur est survenue lors de la création de l'activité",
+        "update": "Une erreur est survenue lors de la mise à jour de l'activité"
+      },
+      "success": {
+        "create": "Activité créée avec succès",
+        "update": "Activité mise à jour avec succès"
+      }
+    },
+    "product": {
+      "title": {
+        "add": "Ajouter un produit",
+        "edit": "Modifier un produit"
+      },
+      "fields": {
+        "type": {
+          "label": "Type",
+          "required": "Le type est requis",
+          "placeholder": "Sélectionnez un type",
+          "options": {
+            "SAC_BANANE": "Sac banane",
+            "POCHETTE_ORDINATEUR": "Pochette ordinateur",
+            "TROUSSE_TOILETTE": "Trousse de toilette",
+            "POCHETTE_VOLANTS": "Pochette à volants",
+            "TROUSSE_ZIPPEE": "Trousse zippée",
+            "ACCESSOIRES_DIVERS": "Accessoires divers"
+          }
+        },
+        "model": {
+          "label": "Modèle",
+          "required": "Le modèle est requis",
+          "loading": "Chargement des modèles...",
+          "error": "Erreur lors du chargement des modèles",
+          "placeholder": "Sélectionnez un modèle",
+          "placeholder_no_type": "Sélectionnez d'abord un type"
+        },
+        "coloris": {
+          "label": "Coloris",
+          "required": "Le coloris est requis",
+          "loading": "Chargement des coloris...",
+          "error": "Erreur lors du chargement des coloris",
+          "placeholder": "Sélectionnez un coloris",
+          "placeholder_no_model": "Sélectionnez d'abord un modèle"
+        },
+        "unitCost": {
+          "label": "Coût unitaire",
+          "required": "Le coût unitaire est requis",
+          "invalid": "Le coût unitaire doit être un nombre valide",
+          "must_be_positive": "Le coût unitaire doit être supérieur à 0",
+          "placeholder": "Ex: 10.50"
+        },
+        "salePrice": {
+          "label": "Prix de vente",
+          "required": "Le prix de vente est requis",
+          "invalid": "Le prix de vente doit être un nombre valide",
+          "must_be_positive": "Le prix de vente doit être supérieur à 0",
+          "placeholder": "Ex: 19.99"
+        },
+        "stock": {
+          "label": "Stock",
+          "required": "Le stock est requis",
+          "invalid": "Le stock doit être un nombre valide",
+          "must_be_non_negative": "Le stock doit être supérieur ou égal à 0",
+          "placeholder": "Ex: 100"
+        },
+        "weight": {
+          "label": "Poids (optionnel)",
+          "invalid": "Le poids doit être un nombre entier valide (en grammes)",
+          "must_be_positive": "Le poids doit être supérieur à 0",
+          "placeholder": "Ex: 150 (en grammes)",
+          "helper": "Poids en grammes (optionnel)"
+        }
+      },
+      "button": {
+        "create": "Créer le produit",
+        "create_loading": "Création en cours...",
+        "edit": "Mettre à jour le produit",
+        "edit_loading": "Mise à jour en cours...",
+        "aria_create": "Créer le produit",
+        "aria_edit": "Mettre à jour le produit"
+      },
+      "validation": {
+        "model_and_coloris_required": "Veuillez sélectionner un modèle et un coloris"
+      },
+      "errors": {
+        "create": "Une erreur est survenue lors de la création du produit",
+        "update": "Une erreur est survenue lors de la mise à jour du produit"
+      },
+      "success": {
+        "create": "Produit créé avec succès. Redirection en cours...",
+        "update": "Produit mis à jour avec succès. Redirection en cours..."
+      }
+    }
+  },
+  "pages": {
+    "home": {
+      "loading": "Chargement...",
+      "welcome": "Bienvenue",
+      "redirecting": "Redirection vers la page appropriée...",
+      "signin": "Se connecter",
+      "signup": "S'inscrire"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "pageTitle": "Tableau de bord - Atelier FBC"
+    },
+    "catalog": {
+      "title": "Catalogue",
+      "pageTitle": "Catalogue - Atelier FBC",
+      "addProduct": "Ajouter un produit",
+      "addProductPageTitle": "Ajouter un produit - Atelier FBC",
+      "editProductPageTitle": "Modifier un produit - Atelier FBC",
+      "editProductPageTitleWithName": "Modifier {name} - Atelier FBC",
+      "cancel": "Annuler",
+      "cancelAria": "Annuler et retourner au catalogue",
+      "back": "Retour",
+      "backAria": "Retourner au catalogue",
+      "errors": {
+        "invalidId": "ID de produit invalide",
+        "notFound": "Produit introuvable",
+        "create": "Une erreur est survenue lors de la création du produit",
+        "update": "Une erreur est survenue lors de la mise à jour du produit"
+      },
+      "success": {
+        "create": "Produit créé avec succès. Redirection en cours...",
+        "update": "Produit mis à jour avec succès. Redirection en cours..."
+      }
+    },
+    "activities": {
+      "title": "Activités",
+      "pageTitle": "Activités - Atelier FBC",
+      "addActivity": "Ajouter une activité",
+      "addActivityPageTitle": "Ajouter une activité - Atelier FBC",
+      "cancel": "Annuler",
+      "cancelAria": "Annuler et retourner à la liste des activités",
+      "success": {
+        "create": "Activité créée avec succès. Redirection en cours..."
+      }
+    },
+    "auth": {
+      "signin": {
+        "title": "Se connecter",
+        "link": "Se connecter",
+        "description": "Connectez-vous pour accéder à votre tableau de bord.",
+        "loading": "Connexion en cours...",
+        "noAccount": "Vous n'avez pas de compte ?",
+        "signupLink": "S'inscrire",
+        "fields": {
+          "email": {
+            "label": "Email"
+          },
+          "password": {
+            "label": "Mot de passe"
+          }
+        }
+      },
+      "signup": {
+        "title": "S'inscrire",
+        "link": "S'inscrire",
+        "description": "Créez un nouveau compte pour commencer.",
+        "loading": "Inscription en cours...",
+        "hasAccount": "Vous avez déjà un compte ?",
+        "signinLink": "Se connecter",
+        "fields": {
+          "email": {
+            "label": "Email"
+          },
+          "password": {
+            "label": "Mot de passe"
+          }
+        }
+      }
+    }
+  },
+  "errors": {
+    "dashboard": {
+      "sales": "Erreur lors du chargement des données de ventes. Veuillez réessayer plus tard.",
+      "profit": "Erreur lors du chargement des données de profit. Veuillez réessayer plus tard.",
+      "products": "Erreur lors du chargement des produits. Veuillez réessayer plus tard.",
+      "activities": "Erreur lors du chargement des activités. Veuillez réessayer plus tard."
+    }
+  },
+  "empty": {
+    "dashboard": {
+      "lowStock": "Aucun produit en stock faible trouvé.",
+      "recentActivities": "Aucune activité récente trouvée."
+    }
+  }
+}
+
