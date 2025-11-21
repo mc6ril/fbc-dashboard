@@ -42,14 +42,14 @@ const ActivitiesPage = () => {
         <main className={styles.activities}>
             <div className={styles.activities__header}>
                 <Heading level={1} className={styles.activities__title}>
-                    Activities
+                    Activités
                 </Heading>
                 <Link
                     href="/dashboard/activities/new"
                     className={styles.activities__addButton}
                 >
                     <Button variant="primary" ariaLabel="Add new activity">
-                        Add Activity
+                        Ajouter une activité
                     </Button>
                 </Link>
             </div>

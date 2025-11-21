@@ -15,9 +15,9 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/dashboard/stats", label: "Statistics" },
-  { href: "/dashboard/activities", label: "Activities" },
-  { href: "/dashboard/catalog", label: "Catalog" },
+  { href: "/dashboard/stats", label: "Statistiques" },
+  { href: "/dashboard/activities", label: "Activités" },
+  { href: "/dashboard/catalog", label: "Catalogue" },
 ];
 
 const DashboardNavbar = () => {
@@ -72,7 +72,7 @@ const DashboardNavbar = () => {
           loading={signOut.isPending}
           ariaLabel="Sign out"
         >
-          {signOut.isPending ? "Signing out..." : "Sign Out"}
+          {signOut.isPending ? "Déconnexion en cours..." : "Se déconnecter"}
         </Button>
       </div>
     </nav>

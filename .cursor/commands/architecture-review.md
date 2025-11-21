@@ -98,41 +98,33 @@ The Architecture Guardian performs a read-only review checking:
 
 ## Output Format
 
-The Architecture Guardian outputs:
+The Architecture Guardian outputs using a standardized template:
 
 ```
-## Architecture Compliance Review
+# Architecture Compliance Review
 
-### Status
-✅ Compliant | ⚠️ Violations Found
+**Description:** Brief 1-2 sentence summary of the review scope and findings.
 
-### Violations by Category
+**Status:** ✅ OK for merge | ⚠️ Refused | 🔴 Blocked
 
-**Clean Architecture / Layer Separation**
-- `file:line` - Rule: {rule} - Fix: {minimal_diff}
+## Alerts
 
-**Domain / Usecases / Infrastructure**
-- `file:line` - Rule: {rule} - Fix: {minimal_diff}
+{ONLY_LIST_ALERTS_IF_VIOLATIONS_FOUND}
 
-**Presentation / React Query / Zustand**
-- `file:line` - Rule: {rule} - Fix: {minimal_diff}
+### 🔴 High Risk
+- `file:line` - **Rule:** {rule} - **Recommandation:** {minimal_fix_or_action}
 
-**SCSS Variables**
-- `file:line` - Rule: {rule} - Fix: {minimal_diff}
+### ⚠️ Medium Risk
+- `file:line` - **Rule:** {rule} - **Recommandation:** {minimal_fix_or_action}
 
-**Supabase Usage**
-- `file:line` - Rule: {rule} - Fix: {minimal_diff}
+### ℹ️ Low Risk
+- `file:line` - **Rule:** {rule} - **Recommandation:** {minimal_fix_or_action}
 
-**Accessibility**
-- `file:line` - Rule: {rule} - Fix: {minimal_diff}
-
-**Product Reference Tables**
-- `file:line` - Rule: {rule} - Fix: {minimal_diff}
-- Check: Free-text name/coloris in products table, missing cascading filters, invalid model/coloris combinations, missing reference table queries
-
-### Summary
-{count} violations found. Apply minimal fixes above.
+{IF_NO_VIOLATIONS:}
+No violations detected. The code respects the architecture rules.
 ```
+
+**Important:** Alerts are only listed if violations are found. If the code is compliant, the report will clearly state that no violations were detected.
 
 ## Important Notes
 

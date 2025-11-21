@@ -68,7 +68,7 @@ describe("ProfitWidget", () => {
         } as ReturnType<typeof useMonthlyProfit>);
 
         render(<ProfitWidget />);
-        expect(screen.getByRole("heading", { name: "Total Profit (This Month)", level: 2 })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Marge Brute (Du mois)", level: 2 })).toBeInTheDocument();
     });
 
     it("should use semantic HTML structure", () => {
@@ -79,7 +79,7 @@ describe("ProfitWidget", () => {
         } as ReturnType<typeof useMonthlyProfit>);
 
         render(<ProfitWidget />);
-        const article = screen.getByRole("heading", { name: "Total Profit (This Month)" }).closest("article");
+        const article = screen.getByRole("heading", { name: "Marge Brute (Du mois)" }).closest("article");
         expect(article).toBeInTheDocument();
     });
 });

@@ -73,10 +73,12 @@ The Security Agent performs automated security scans including:
     - Audit network security configs
 
 8. **Report Generation**
-    - Generate comprehensive report at `report/security/security-audit-{timestamp}.md`
-    - Include Executive Summary with traffic-light status
-    - List top 10 actionable items
-    - Provide dependency upgrade suggestions
+    - Generate comprehensive report at `report/security/security-audit-{timestamp}.md` using standardized template
+    - Include Title, Description (1-2 sentences), Status (✅ OK pour merge | ⚠️ Refused | 🔴 Blocked)
+    - List alerts ONLY if security issues are found, grouped by severity (🔴 High Risk, ⚠️ Medium Risk, ℹ️ Low Risk)
+    - For each alert: file:line (if applicable), description, recommendation
+    - If no issues found: "No vulnerabilities detected. The code respects the security standards."
+    - Always use english in your reports
     - Timestamp format: YYYY-MM-DD-HHMMSS
 
 ## Security Checklist
@@ -89,3 +91,33 @@ The Security Agent performs automated security scans including:
 -   [ ] Environment variables properly managed
 -   [ ] Next.js security headers configured
 -   [ ] Supabase RLS policies reviewed
+
+## Output Format
+
+The Security Agent uses a standardized template:
+
+```
+# Security Audit Report
+
+**Description:** Brief 1-2 sentence summary of the security audit scope and findings.
+
+**Status:** ✅ OK for merge | ⚠️ Refused | 🔴 Blocked
+
+## Alertes
+
+{ONLY_LIST_ALERTS_IF_SECURITY_ISSUES_FOUND}
+
+### 🔴 High Risk
+- **Issue:** {title} - **Location:** `file:line` - **Recommandation:** {fix_or_action}
+
+### ⚠️ Medium Risk
+- **Issue:** {title} - **Location:** `file:line` - **Recommandation:** {fix_or_action}
+
+### ℹ️ Low Risk
+- **Issue:** {title} - **Location:** `file:line` - **Recommandation:** {fix_or_action}
+
+{IF_NO_ISSUES:}
+No vulnerabilities detected. The code respects the security standards.
+```
+
+**Important:** Alerts are only listed if security issues are found. If the code is secure, the report will clearly state that no vulnerabilities were detected.

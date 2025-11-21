@@ -68,7 +68,7 @@ describe("SalesWidget", () => {
         } as ReturnType<typeof useMonthlySales>);
 
         render(<SalesWidget />);
-        expect(screen.getByRole("heading", { name: "Total Sales (This Month)", level: 2 })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Total Ventes (Du mois)", level: 2 })).toBeInTheDocument();
     });
 
     it("should use semantic HTML structure", () => {
@@ -79,7 +79,7 @@ describe("SalesWidget", () => {
         } as ReturnType<typeof useMonthlySales>);
 
         render(<SalesWidget />);
-        const article = screen.getByRole("heading", { name: "Total Sales (This Month)" }).closest("article");
+        const article = screen.getByRole("heading", { name: "Total Ventes (Du mois)" }).closest("article");
         expect(article).toBeInTheDocument();
     });
 });

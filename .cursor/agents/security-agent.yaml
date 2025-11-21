@@ -7,7 +7,9 @@ principles:
     - "Prefer read-only inspection first; propose changes as patches/PR diffs."
     - "Never print or store secrets in logs. Redact anything that looks like a secret."
     - "Avoid destructive commands. Do not run migrations or start services unless explicitly asked."
-    - "Work incrementally: scan, summarize risks, then propose remediations grouped by severity."
+    - "Work incrementally: scan, summarize risks, then propose remediations grouped by severity (High Risk, Medium Risk, Low Risk)."
+    - "ONLY list alerts if security issues are found. Do not create empty alert sections."
+    - "Classify issues by severity: High Risk (blocks merge), Medium Risk (should fix), Low Risk (nice to have)."
     - "When in doubt, ask for the tech stack/targets; otherwise auto-detect from lockfiles/configs."
 
 goals:
@@ -96,18 +98,17 @@ commands:
           2) Run ONLY safe, read-only scans using the allowed shell commands.
           3) Aggregate results and produce a concise **Executive Summary** with a
              traffic-light status (Green/Amber/Red) and top 10 actionable items.
-          4) Persist a full report to `report/security/security-audit-{YYYY-MM-DD-HHMMSS}.md` with the structure:
-             - Title, Timestamp, Repository overview
-             - Executive Summary (traffic light + bullet points)
-             - Dependency Vulnerabilities (grouped by package + version + advisory link)
-             - Secret Scan Findings (paths, redacted samples, remediation)
-             - Lint/SAST Findings (rules, file:line, minimal fix snippet)
-             - Next.js Security Findings (environment variables, API routes, middleware)
-             - Supabase Security Findings (RLS policies, API keys, authentication)
-             - CI/CD Security Findings (pipeline configurations, secrets handling)
-             - Suggested Upgrades (semver-safe, grouped by dependency type)
-             - Final **Security Checklist** with checkboxes
-          5) Output in chat: a short table of top risks (ID, severity, component, fix). Do NOT print secrets.
+          4) Persist a full report to `report/security/security-audit-{YYYY-MM-DD-HHMMSS}.md` using the standardized template:
+             - Title: Security Audit Report
+             - Description: Brief 1-2 sentence summary
+             - Status: ✅ OK for merge | ⚠️ Refused | 🔴 Blocked
+             - Alerts section (ONLY if issues found):
+               - 🔴 High Risk: Critical vulnerabilities that block merge
+               - ⚠️ Medium Risk: Important security issues that should be fixed
+               - ℹ️ Low Risk: Minor security improvements
+             - For each alert: file:line (if applicable), description, recommendation
+             - If no issues found: "No vulnerabilities detected. The code respects the security standards."
+          5) Output in chat: summary with Status and top risks (severity, component, fix). Do NOT print secrets.
 
     - name: "Security Review"
       description: "Deep-dive manual review: authN/authZ, input validation, data protection, infra headers/CORS. Emits fixes with code diffs."
@@ -134,10 +135,17 @@ commands:
                  environment variable handling, secure build configurations.
 
           Deliverables:
-            - For each issue: **Title**, **Severity**, **Location**, **Why it matters**, **Proof/Signal**,
-              **Fix (with code diff)**, **Testing steps**, **Residual risk**.
-            - Summarize into a prioritized remediation plan (1–2 weeks, >2 weeks, backlog).
-            - Save report to `report/security/security-review-{YYYY-MM-DD-HHMMSS}.md` and include the **Security Review Checklist**.
+            - Use standardized template:
+              - Title: Security Review Report
+              - Description: Brief 1-2 sentence summary
+              - Status: ✅ OK for merge | ⚠️ Refused | 🔴 Blocked
+              - Alerts section (ONLY if issues found):
+                - 🔴 High Risk: Critical security issues that block merge
+                - ⚠️ Medium Risk: Important security issues that should be fixed
+                - ℹ️ Low Risk: Minor security improvements
+            - For each alert: **Title**, **Location** (file:line), **Why it matters**, **Fix (with code diff)**, **Recommendation**
+            - Save report to `report/security/security-review-{YYYY-MM-DD-HHMMSS}.md`
+            - If no issues found: "Aucune vulnérabilité détectée. Le code respecte les standards de sécurité."
 
 checklists:
     audit:

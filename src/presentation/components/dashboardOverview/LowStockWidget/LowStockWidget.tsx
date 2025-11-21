@@ -12,7 +12,7 @@ const LowStockWidgetComponent = () => {
     const { data, isLoading, error } = useLowStockProducts();
 
     return (
-        <Card title="Low Stock Products" className={styles.lowStockWidget}>
+        <Card title="Produits en stock faible" className={styles.lowStockWidget}>
             {isLoading && (
                 <Text size="md" muted>
                     {LOADING_MESSAGE}

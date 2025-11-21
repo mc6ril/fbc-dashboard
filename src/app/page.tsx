@@ -40,7 +40,7 @@ const Home = () => {
     
     return (
       <main id={mainId} className={styles.main} role="main">
-        <Text>Loading...</Text>
+        <Text>Chargement...</Text>
       </main>
     );
   }
@@ -50,13 +50,13 @@ const Home = () => {
   
   return (
     <main id={mainId} className={styles.main} role="main">
-      <Heading level={1}>Welcome</Heading>
+      <Heading level={1}>Bienvenue</Heading>
       <Text>
-        Redirecting you to the appropriate page...
+        Redirection vers la page appropriée...
       </Text>
       <div className={styles.links}>
-        <Link href="/signin">Go to Sign In</Link>
-        <Link href="/signup">Go to Sign Up</Link>
+        <Link href="/signin">Se connecter</Link>
+        <Link href="/signup">{`S'inscrire`}</Link>
       </div>
     </main>
   );

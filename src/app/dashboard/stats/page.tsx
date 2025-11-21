@@ -53,38 +53,38 @@ const StatsPage = () => {
     <main className={styles.stats} role="main">
       <div className={styles.stats__header}>
         <Heading level={1} className={styles.stats__title}>
-          Statistics
+          Statistiques
         </Heading>
         <Text className={styles.stats__description}>
-          Visual analytics and trends for sales, activities, and profitability.
+          Analyse des tendances et anomalies pour les ventes, les activités, et la rentabilité.
         </Text>
       </div>
 
       <div className={styles.stats__grid}>
         <section className={styles.stats__chartSection} aria-labelledby="sales-chart-heading">
           <h2 id="sales-chart-heading" className={styles.stats__chartHeading}>
-            Sales Per Month
+            Ventes par mois
           </h2>
           <SalesPerMonthChart />
         </section>
 
         <section className={styles.stats__chartSection} aria-labelledby="activities-chart-heading">
           <h2 id="activities-chart-heading" className={styles.stats__chartHeading}>
-            Activities Over Time
+            Activités au fil du temps
           </h2>
           <ActivitiesOverTimeChart />
         </section>
 
         <section className={styles.stats__chartSection} aria-labelledby="margin-chart-heading">
           <h2 id="margin-chart-heading" className={styles.stats__chartHeading}>
-            Revenue & Margin per Month
+            Revenu & Marge par mois
           </h2>
           <MarginPerMonthChart />
         </section>
 
         <section className={styles.stats__chartSection} aria-labelledby="top-products-chart-heading">
           <h2 id="top-products-chart-heading" className={styles.stats__chartHeading}>
-            Top Products by Profit
+            Top Produits par Profit
           </h2>
           <TopProfitableProductsChart />
         </section>

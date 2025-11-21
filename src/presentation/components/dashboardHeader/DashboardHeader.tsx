@@ -9,7 +9,7 @@ const DashboardHeader = () => {
   return (
     <header id={headerId} className={styles.header} role="banner">
       <Heading level={2} className={styles.title}>
-        Dashboard
+        Tableau de bord
       </Heading>
     </header>
   );

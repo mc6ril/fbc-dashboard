@@ -116,3 +116,33 @@ The Security Agent performs a deep-dive manual review covering:
 -   [ ] Checked HTTPS configuration
 -   [ ] Analyzed CORS policies and security headers
 -   [ ] Reviewed CI/CD pipeline secrets management
+
+## Output Format
+
+The Security Agent uses a standardized template:
+
+```
+# Security Review Report
+
+**Description:** Brief 1-2 sentence summary of the security review scope and findings.
+
+**Status:** ✅ OK for merge | ⚠️ Refused | 🔴 Blocked
+
+## Alertes
+
+{ONLY_LIST_ALERTS_IF_SECURITY_ISSUES_FOUND}
+
+### 🔴 High Risk
+- **Issue:** {title} - **Location:** `file:line` - **Recommandation:** {fix_with_code_diff}
+
+### ⚠️ Medium Risk
+- **Issue:** {title} - **Location:** `file:line` - **Recommandation:** {fix_with_code_diff}
+
+### ℹ️ Low Risk
+- **Issue:** {title} - **Location:** `file:line` - **Recommandation:** {fix_with_code_diff}
+
+{IF_NO_ISSUES:}
+No vulnerabilities detected. The code respects the security standards.
+```
+
+**Important:** Alerts are only listed if security issues are found. If the code is secure, the report will clearly state that no vulnerabilities were detected.

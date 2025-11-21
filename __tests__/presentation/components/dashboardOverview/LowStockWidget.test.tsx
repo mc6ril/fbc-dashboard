@@ -113,7 +113,7 @@ describe("LowStockWidget", () => {
         } as unknown as ReturnType<typeof useLowStockProducts>);
 
         render(<LowStockWidget />);
-        expect(screen.getByRole("heading", { name: "Low Stock Products", level: 2 })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "Produits en stock faible", level: 2 })).toBeInTheDocument();
     });
 
     it("should use semantic HTML structure with list", () => {

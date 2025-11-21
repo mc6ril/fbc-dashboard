@@ -12,7 +12,7 @@ const ProfitWidgetComponent = () => {
     const { data, isLoading, error } = useMonthlyProfit();
 
     return (
-        <Card title="Total Profit (This Month)" className={styles.profitWidget}>
+        <Card title="Marge Brute (Du mois)" className={styles.profitWidget}>
             {isLoading && (
                 <Text size="md" muted>
                     {LOADING_MESSAGE}

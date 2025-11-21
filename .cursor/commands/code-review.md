@@ -99,3 +99,33 @@ Perform a thorough code review that verifies functionality, maintainability, and
 -   Suggested alternatives, additional test cases, or documentation updates captured
 
 Provide constructive feedback with concrete examples and actionable guidance for the author.
+
+## Output Format
+
+Both agents use a standardized template:
+
+```
+# Code Review Report
+
+**Description:** Brief 1-2 sentence summary of the review scope and findings.
+
+**Status:** ✅ OK for merge | ⚠️ Refused | 🔴 Blocked
+
+## Alerts
+
+{ONLY_LIST_ALERTS_IF_ISSUES_FOUND}
+
+### 🔴 High Risk
+- `file:line` - **Issue:** {description} - **Recommendation:** {fix_or_action}
+
+### ⚠️ Medium Risk
+- `file:line` - **Issue:** {description} - **Recommendation:** {fix_or_action}
+
+### ℹ️ Low Risk
+- `file:line` - **Issue:** {description} - **Recommendation:** {fix_or_action}
+
+{IF_NO_ISSUES:}
+No issue detected. Code is ready for merge.
+```
+
+**Important:** Alerts are only listed if issues are found. If the code is clean, the report will clearly state that no issues were detected.

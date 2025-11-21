@@ -936,4 +936,3 @@ export const listRecentActivities = async (
     // Limit results to specified count
     return sortedActivities.slice(0, limit);
 };
-

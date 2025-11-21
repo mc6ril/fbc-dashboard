@@ -9,3 +9,13 @@
 -   suppliers
 -   purchases
 -   material_stock_movements
+
+3. Dark mode.
+4. Avoir un endroit ou il y a une liste de to-do
+5. list de choses à acheter
+6. Taches du jours
+7. Taches en attentes
+8. Commandes en attentes
+9. Nouvelles créations en attente
+10. A recevoir (commandes), à envoyer (ventes)
+11. Rajouter un status à l'activité ajouté vendue (envoyé, en attente de création...)

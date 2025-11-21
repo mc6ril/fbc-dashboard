@@ -36,18 +36,18 @@ const ActivityFiltersComponent = () => {
     // Activity type options
     const activityTypeOptions: SelectOption[] = React.useMemo(
         () => [
-            { value: "", label: "All" },
-            { value: ActivityType.CREATION, label: "Creation" },
-            { value: ActivityType.SALE, label: "Sale" },
-            { value: ActivityType.STOCK_CORRECTION, label: "Stock Correction" },
-            { value: ActivityType.OTHER, label: "Other" },
+            { value: "", label: "Toutes les activités" },
+            { value: ActivityType.CREATION, label: "Création" },
+            { value: ActivityType.SALE, label: "Vente" },
+            { value: ActivityType.STOCK_CORRECTION, label: "Correction de stock" },
+            { value: ActivityType.OTHER, label: "Autre" },
         ],
         []
     );
 
     // Product options (with "All" option)
     const productOptions: SelectOption[] = React.useMemo(() => {
-        const options: SelectOption[] = [{ value: "", label: "All" }];
+        const options: SelectOption[] = [{ value: "", label: "Tous les produits" }];
         if (products) {
             products.forEach((product) => {
                 if (product.name) {
@@ -101,28 +101,28 @@ const ActivityFiltersComponent = () => {
             <div className={styles.activityFilters__row}>
                 <DateInput
                     id="activity-filter-start-date"
-                    label="Start Date"
+                    label="Date de début"
                     value={startDate}
                     onChange={handleStartDateChange}
                     max={endDate}
                 />
                 <DateInput
                     id="activity-filter-end-date"
-                    label="End Date"
+                    label="Date de fin"
                     value={endDate}
                     onChange={handleEndDateChange}
                     min={startDate}
                 />
                 <Select
                     id="activity-filter-type"
-                    label="Activity Type"
+                    label="Type d'activité"
                     options={activityTypeOptions}
                     value={type || ""}
                     onChange={handleTypeChange}
                 />
                 <Select
                     id="activity-filter-product"
-                    label="Product"
+                    label="Produit"
                     options={productOptions}
                     value={productId || ""}
                     onChange={handleProductChange}
@@ -132,9 +132,9 @@ const ActivityFiltersComponent = () => {
                     <Button
                         variant="secondary"
                         onClick={handleReset}
-                        ariaLabel="Reset all filters"
+                        ariaLabel="Réinitialiser tous les filtres"
                     >
-                        Reset Filters
+                        Réinitialiser les filtres
                     </Button>
                 </div>
             </div>

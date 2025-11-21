@@ -102,7 +102,7 @@ const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
         () => [
             {
                 key: "name",
-                header: "Name",
+                header: "Nom",
                 render: (_value: unknown, row: Product) => {
                     return getProductName(row);
                 },
@@ -116,14 +116,14 @@ const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
             },
             {
                 key: "coloris",
-                header: "Coloris",
+                header: "Couleur",
                 render: (_value: unknown, row: Product) => {
                     return getProductColoris(row);
                 },
             },
             {
                 key: "unitCost",
-                header: "Unit Cost",
+                header: "Coût unitaire",
                 render: (value: unknown) => {
                     const unitCost = value as number;
                     return formatCurrency(unitCost);
@@ -131,7 +131,7 @@ const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
             },
             {
                 key: "salePrice",
-                header: "Sale Price",
+                header: "Prix de vente",
                 render: (value: unknown) => {
                     const salePrice = value as number;
                     return formatCurrency(salePrice);
@@ -139,7 +139,7 @@ const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
             },
             {
                 key: "stock",
-                header: "Stock",
+                header: "Stock restant",
                 render: (value: unknown) => {
                     const stock = value as number;
                     return stock.toString();
@@ -147,7 +147,7 @@ const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
             },
             {
                 key: "weight",
-                header: "Weight",
+                header: "Poids du produit",
                 render: (value: unknown) => {
                     const weight = value as number | undefined;
                     if (weight === undefined) {
@@ -158,7 +158,7 @@ const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
             },
             {
                 key: "actions",
-                header: "Actions",
+                header: "Actions disponibles",
                 render: (_value: unknown, row: Product) => {
                     const productName = getProductName(row);
                     return (
@@ -167,7 +167,7 @@ const ProductsTableComponent = ({ products, isLoading, error }: Props) => {
                             ariaLabel={`Edit product ${productName}`}
                             className="button button--secondary button--sm"
                         >
-                            Edit
+                            Modifier
                         </Link>
                     );
                 },

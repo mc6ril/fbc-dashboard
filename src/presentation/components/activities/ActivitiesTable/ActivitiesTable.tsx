@@ -18,27 +18,7 @@ import { formatCurrency } from "@/shared/utils/currency";
 import { useProducts } from "@/presentation/hooks/useProducts";
 import { LOADING_MESSAGE, ERROR_MESSAGES } from "@/shared/constants/messages";
 import styles from "./ActivitiesTable.module.scss";
-
-/**
- * Formats an activity type to a human-readable label.
- *
- * @param {ActivityType} type - Activity type
- * @returns {string} Human-readable label
- */
-const formatActivityType = (type: ActivityType): string => {
-    switch (type) {
-        case ActivityType.SALE:
-            return "Vente";
-        case ActivityType.CREATION:
-            return "Création";
-        case ActivityType.STOCK_CORRECTION:
-            return "Correction de stock";
-        case ActivityType.OTHER:
-            return "Autre";
-        default:
-            return type;
-    }
-};
+import { formatActivityType } from "@/shared/utils/product";
 
 type Props = {
     /** Array of activities to display */
