@@ -82,5 +82,19 @@ export interface ActivityRepository {
      * @throws {Error} If the update fails (e.g., database connection error, constraint violation)
      */
     update(id: ActivityId, updates: Partial<Activity>): Promise<Activity>;
+
+    /**
+     * Delete an activity by its ID.
+     *
+     * Removes an activity from the data store. This method is used for rollback
+     * scenarios when activity creation succeeds but subsequent operations (e.g., stock update)
+     * fail, ensuring data consistency.
+     *
+     * @param {ActivityId} id - The unique identifier of the activity to delete
+     * @returns Promise that resolves when the activity is deleted
+     * @throws {Error} If the activity with the given ID does not exist
+     * @throws {Error} If the deletion fails (e.g., database connection error, constraint violation)
+     */
+    delete(id: ActivityId): Promise<void>;
 }
 

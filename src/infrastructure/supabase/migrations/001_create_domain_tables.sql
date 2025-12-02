@@ -94,23 +94,9 @@ COMMENT ON COLUMN activities.note IS 'Optional note or description providing add
 -- ============================================================================
 -- Sub-Ticket 10.4: Create stock_movements table
 -- ============================================================================
-
-CREATE TABLE IF NOT EXISTS stock_movements (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-    quantity NUMERIC(10, 2) NOT NULL,
-    source TEXT NOT NULL CHECK (source IN (
-        'CREATION',
-        'SALE',
-        'INVENTORY_ADJUSTMENT'
-    ))
-);
-
-COMMENT ON TABLE stock_movements IS 'Inventory change tracking. Records changes to product inventory levels with source tracking. Provides a focused view of inventory changes and enables efficient stock tracking queries. While related to activities, this table focuses specifically on inventory changes.';
-COMMENT ON COLUMN stock_movements.id IS 'Unique identifier for the stock movement (UUID format)';
-COMMENT ON COLUMN stock_movements.product_id IS 'Unique identifier of the product whose stock changed. Required for all stock movements as they must be associated with a product. Deleted when product is deleted.';
-COMMENT ON COLUMN stock_movements.quantity IS 'Quantity change for the stock movement. The sign indicates direction: positive for increases, negative for decreases. For CREATION source: typically positive (stock added). For SALE source: typically negative (stock removed). For INVENTORY_ADJUSTMENT source: can be positive (increase) or negative (decrease).';
-COMMENT ON COLUMN stock_movements.source IS 'Source or reason for the stock movement. Must be one of: CREATION (stock added through product creation), SALE (stock reduced due to sale), INVENTORY_ADJUSTMENT (manual adjustment, correction, damage, loss, etc.)';
+-- NOTE: This table was removed in migration 004_remove_stock_movements.sql
+-- Stock is now tracked directly in products.stock and updated automatically
+-- when activities are created or modified.
 
 -- ============================================================================
 -- Sub-Ticket 10.5: Add indices for frequent query patterns
@@ -133,12 +119,10 @@ CREATE INDEX IF NOT EXISTS idx_activities_product_id_date ON activities(product_
 COMMENT ON INDEX idx_activities_product_id_date IS 'Composite index for efficient queries of product activity history ordered by date (e.g., chronological activity list for a product)';
 
 -- Index on stock_movements.product_id for product stock movement queries
-CREATE INDEX IF NOT EXISTS idx_stock_movements_product_id ON stock_movements(product_id);
-COMMENT ON INDEX idx_stock_movements_product_id IS 'Index for efficient queries of all stock movements for a specific product';
+-- NOTE: Removed in migration 004_remove_stock_movements.sql
 
 -- Index on stock_movements.source for filtering by source
-CREATE INDEX IF NOT EXISTS idx_stock_movements_source ON stock_movements(source);
-COMMENT ON INDEX idx_stock_movements_source IS 'Index for efficient filtering of stock movements by source (e.g., all CREATION movements)';
+-- NOTE: Removed in migration 004_remove_stock_movements.sql
 
 -- Index on products.type for filtering products by type
 CREATE INDEX IF NOT EXISTS idx_products_type ON products(type);

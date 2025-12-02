@@ -275,5 +275,36 @@ export const activityRepositorySupabase: ActivityRepository = {
 
         return mapSupabaseRowToActivity(data as SupabaseActivityRow);
     },
+
+    /**
+     * Delete an activity by its ID.
+     *
+     * Removes an activity from Supabase. Used for rollback scenarios when
+     * activity creation succeeds but subsequent operations fail.
+     *
+     * @param {ActivityId} id - The unique identifier of the activity to delete
+     * @returns Promise that resolves when the activity is deleted
+     * @throws {Error} If the activity does not exist or deletion fails
+     */
+    delete: async (id: ActivityId): Promise<void> => {
+        const { error } = await supabaseClient
+            .from("activities")
+            .delete()
+            .eq("id", id);
+
+        if (error) {
+            // Supabase returns an error when no row is found (PGRST116)
+            if (
+                typeof error === "object" &&
+                error !== null &&
+                "code" in error &&
+                error.code === "PGRST116"
+            ) {
+                throw new Error(`Activity with id ${id} not found`);
+            }
+
+            throw transformSupabaseError(error);
+        }
+    },
 };
 

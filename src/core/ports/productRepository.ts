@@ -192,5 +192,39 @@ export interface ProductRepository {
      * ```
      */
     getColorisById(id: ProductColorisId): Promise<ProductColoris | null>;
+
+    /**
+     * Atomically update product stock by adding a quantity delta.
+     *
+     * This method performs an atomic database-level update to prevent race conditions
+     * when multiple activities are created concurrently for the same product. The stock
+     * is updated by adding the quantity delta to the current stock, and the result is
+     * clamped to ensure stock never goes below 0.
+     *
+     * This is the recommended method for updating stock from activities, as it ensures
+     * data consistency in concurrent scenarios.
+     *
+     * @param {ProductId} id - The unique identifier of the product to update
+     * @param {number} quantityDelta - The quantity to add to the current stock (can be positive or negative)
+     * @returns Promise resolving to the new stock value after the update
+     * @throws {Error} If the product with the given ID does not exist
+     * @throws {Error} If the update fails (e.g., database connection error, query error)
+     *
+     * @example
+     * ```typescript
+     * // Increase stock by 10
+     * const newStock = await repo.updateStockAtomically(productId, 10);
+     * // Returns: 25 (if previous stock was 15)
+     *
+     * // Decrease stock by 5
+     * const newStock = await repo.updateStockAtomically(productId, -5);
+     * // Returns: 20 (if previous stock was 25)
+     *
+     * // Stock is clamped to 0 minimum
+     * const newStock = await repo.updateStockAtomically(productId, -100);
+     * // Returns: 0 (even if previous stock was 15)
+     * ```
+     */
+    updateStockAtomically(id: ProductId, quantityDelta: number): Promise<number>;
 }
 

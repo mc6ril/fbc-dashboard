@@ -11,7 +11,7 @@ import { listActivitiesPaginated, addActivity } from "@/core/usecases/activity";
 import type { PaginatedActivitiesResult } from "@/core/usecases/activity";
 import type { Activity, ActivityError } from "@/core/domain/activity";
 import { activityRepositorySupabase } from "@/infrastructure/supabase/activityRepositorySupabase";
-import { stockMovementRepositorySupabase } from "@/infrastructure/supabase/stockMovementRepositorySupabase";
+import { productRepositorySupabase } from "@/infrastructure/supabase/productRepositorySupabase";
 import { useActivityFiltersStore } from "@/presentation/stores/useActivityFiltersStore";
 import { useGlobalLoadingStore } from "@/presentation/stores/useGlobalLoadingStore";
 import { queryKeys } from "./queryKeys";
@@ -82,13 +82,13 @@ export const useActivities = () => {
  * Hook to create a new activity.
  *
  * Uses `addActivity` usecase to create a new activity via the repository.
- * Automatically creates corresponding stock movements for applicable activities
+ * Automatically updates product stock for applicable activities
  * (CREATION, SALE, STOCK_CORRECTION with productId and non-zero quantity).
  *
  * On success, invalidates:
  * - All activities list queries (with any filters/pagination)
  * - Dashboard recent activities query
- * - Stock movements queries (stock movements are created when activities are created)
+ * - Products queries (stock levels are updated when activities are created)
  * - Dashboard low stock products query (stock levels may have changed)
  *
  * This ensures dashboards reflect stock changes immediately without manual refresh.
@@ -109,7 +109,7 @@ export const useActivities = () => {
  *     amount: 99.95,
  *     note: "Sale to customer"
  *   });
- *   // Activity and corresponding stock movement are created automatically
+ *   // Activity is created and product stock is updated automatically
  *   // Dashboards are updated immediately via cache invalidation
  * };
  * ```
@@ -121,7 +121,7 @@ export const useAddActivity = () => {
 
     return useMutation<Activity, ActivityError | Error, Omit<Activity, "id">>({
         mutationFn: (activity: Omit<Activity, "id">) =>
-            addActivity(activityRepositorySupabase, stockMovementRepositorySupabase, activity),
+            addActivity(activityRepositorySupabase, productRepositorySupabase, activity),
         onMutate: () => {
             startGlobalLoading();
         },
@@ -130,8 +130,8 @@ export const useAddActivity = () => {
             queryClient.invalidateQueries({ queryKey: ["activities"] });
             // Invalidate dashboard recent activities query
             queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.recentActivities() });
-            // Invalidate stock movements queries (stock movements are created when activities are created)
-            queryClient.invalidateQueries({ queryKey: ["stock-movements"] });
+            // Invalidate products queries (stock levels are updated when activities are created)
+            queryClient.invalidateQueries({ queryKey: ["products"] });
             // Invalidate dashboard low stock products query (stock levels may have changed)
             queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.lowStockProducts() });
         },

@@ -1,5 +1,5 @@
 /**
- * Domain Validation Tests - Product, Activity, StockMovement
+ * Domain Validation Tests - Product, Activity
  *
  * Tests for domain validation functions to ensure business rules
  * and invariants are correctly enforced.
@@ -7,7 +7,6 @@
  * These tests verify:
  * - Product validation (positive prices, non-negative stock)
  * - Activity validation (productId requirements, quantity rules)
- * - StockMovement validation (quantity sign based on source)
  * - Edge cases and invalid data handling
  */
 
@@ -22,25 +21,19 @@ import type {
 import { ProductType } from "@/core/domain/product";
 import type { Activity, ActivityId } from "@/core/domain/activity";
 import { ActivityType } from "@/core/domain/activity";
-import type { StockMovement, StockMovementId } from "@/core/domain/stockMovement";
-import { StockMovementSource } from "@/core/domain/stockMovement";
 
 // Helper functions to create branded IDs from strings (for tests)
 const createProductId = (id: string): ProductId => id as ProductId;
 const createProductModelId = (id: string): ProductModelId => id as ProductModelId;
 const createProductColorisId = (id: string): ProductColorisId => id as ProductColorisId;
 const createActivityId = (id: string): ActivityId => id as ActivityId;
-const createStockMovementId = (id: string): StockMovementId => id as StockMovementId;
 
 import {
     isValidProduct,
     isValidActivity,
     isNegativeForSale,
-    isValidStockMovement,
-    isValidQuantityForSource,
     isValidQuantityForActivityType,
     isValidActivityType,
-    isValidStockMovementSource,
     isValidProductModel,
     isValidProductColoris,
     isValidProductModelForType,
@@ -423,152 +416,6 @@ describe("Domain Validation - Activity", () => {
             expect(isValidActivityType("INVALID")).toBe(false);
             expect(isValidActivityType("")).toBe(false);
             expect(isValidActivityType("sale")).toBe(false); // case sensitive
-        });
-    });
-});
-
-describe("Domain Validation - StockMovement", () => {
-    const validStockMovement: StockMovement = {
-        id: createStockMovementId("123e4567-e89b-4d3a-a456-426614174000"),
-        productId: createProductId("550e8400-e29b-41d4-a716-446655440000"),
-        quantity: -5,
-        source: StockMovementSource.SALE,
-    };
-
-    describe("isValidStockMovement", () => {
-        it("should validate stock movement with all valid fields", () => {
-            expect(isValidStockMovement(validStockMovement)).toBe(true);
-        });
-
-        it("should validate positive quantity for CREATION source", () => {
-            const movement: StockMovement = {
-                ...validStockMovement,
-                quantity: 10,
-                source: StockMovementSource.CREATION,
-            };
-            expect(isValidStockMovement(movement)).toBe(true);
-        });
-
-        it("should validate negative quantity for SALE source", () => {
-            const movement: StockMovement = {
-                ...validStockMovement,
-                quantity: -5,
-                source: StockMovementSource.SALE,
-            };
-            expect(isValidStockMovement(movement)).toBe(true);
-        });
-
-        it("should validate positive or negative quantity for INVENTORY_ADJUSTMENT", () => {
-            const positiveMovement: StockMovement = {
-                ...validStockMovement,
-                quantity: 10,
-                source: StockMovementSource.INVENTORY_ADJUSTMENT,
-            };
-            expect(isValidStockMovement(positiveMovement)).toBe(true);
-
-            const negativeMovement: StockMovement = {
-                ...validStockMovement,
-                quantity: -10,
-                source: StockMovementSource.INVENTORY_ADJUSTMENT,
-            };
-            expect(isValidStockMovement(negativeMovement)).toBe(true);
-        });
-
-        it("should reject stock movement with empty productId", () => {
-            const movement: StockMovement = {
-                ...validStockMovement,
-                productId: "" as ProductId,
-            };
-            expect(isValidStockMovement(movement)).toBe(false);
-        });
-
-        it("should reject stock movement with whitespace-only productId", () => {
-            const movement: StockMovement = {
-                ...validStockMovement,
-                productId: "   " as ProductId,
-            };
-            expect(isValidStockMovement(movement)).toBe(false);
-        });
-    });
-
-    describe("isValidQuantityForSource", () => {
-        it("should validate positive quantity for CREATION", () => {
-            expect(
-                isValidQuantityForSource(10, StockMovementSource.CREATION)
-            ).toBe(true);
-        });
-
-        it("should reject negative quantity for CREATION", () => {
-            expect(
-                isValidQuantityForSource(-10, StockMovementSource.CREATION)
-            ).toBe(false);
-        });
-
-        it("should reject zero quantity for CREATION", () => {
-            expect(
-                isValidQuantityForSource(0, StockMovementSource.CREATION)
-            ).toBe(false);
-        });
-
-        it("should validate negative quantity for SALE", () => {
-            expect(
-                isValidQuantityForSource(-5, StockMovementSource.SALE)
-            ).toBe(true);
-        });
-
-        it("should reject positive quantity for SALE", () => {
-            expect(
-                isValidQuantityForSource(5, StockMovementSource.SALE)
-            ).toBe(false);
-        });
-
-        it("should reject zero quantity for SALE", () => {
-            expect(
-                isValidQuantityForSource(0, StockMovementSource.SALE)
-            ).toBe(false);
-        });
-
-        it("should validate positive quantity for INVENTORY_ADJUSTMENT", () => {
-            expect(
-                isValidQuantityForSource(
-                    10,
-                    StockMovementSource.INVENTORY_ADJUSTMENT
-                )
-            ).toBe(true);
-        });
-
-        it("should validate negative quantity for INVENTORY_ADJUSTMENT", () => {
-            expect(
-                isValidQuantityForSource(
-                    -10,
-                    StockMovementSource.INVENTORY_ADJUSTMENT
-                )
-            ).toBe(true);
-        });
-
-        it("should reject zero quantity for INVENTORY_ADJUSTMENT", () => {
-            expect(
-                isValidQuantityForSource(
-                    0,
-                    StockMovementSource.INVENTORY_ADJUSTMENT
-                )
-            ).toBe(false);
-        });
-    });
-
-    describe("isValidStockMovementSource", () => {
-        it("should validate valid StockMovementSource values", () => {
-            expect(isValidStockMovementSource("CREATION")).toBe(true);
-            expect(isValidStockMovementSource("SALE")).toBe(true);
-            expect(isValidStockMovementSource("INVENTORY_ADJUSTMENT")).toBe(
-                true
-            );
-        });
-
-        it("should reject invalid StockMovementSource values", () => {
-            expect(isValidStockMovementSource("INVALID")).toBe(false);
-            expect(isValidStockMovementSource("")).toBe(false);
-            expect(isValidStockMovementSource("creation")).toBe(false); // case sensitive
         });
     });
 });

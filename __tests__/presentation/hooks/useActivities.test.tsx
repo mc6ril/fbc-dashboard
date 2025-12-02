@@ -28,8 +28,8 @@ jest.mock("@/infrastructure/supabase/activityRepositorySupabase", () => ({
     activityRepositorySupabase: {},
 }));
 
-jest.mock("@/infrastructure/supabase/stockMovementRepositorySupabase", () => ({
-    stockMovementRepositorySupabase: {},
+jest.mock("@/infrastructure/supabase/productRepositorySupabase", () => ({
+    productRepositorySupabase: {},
 }));
 
 const mockAddActivity = addActivity as jest.MockedFunction<typeof addActivity>;
@@ -139,8 +139,8 @@ describe("useAddActivity Hook", () => {
 
         // Should invalidate all activities queries
         expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ["activities"] });
-        // Should invalidate stock movements queries
-        expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ["stock-movements"] });
+        // Should invalidate products queries (stock levels are updated)
+        expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ["products"] });
         // Should invalidate dashboard low stock products query
         expect(invalidateQueriesSpy).toHaveBeenCalledWith({
             queryKey: queryKeys.dashboard.lowStockProducts(),
@@ -195,8 +195,8 @@ describe("useAddActivity Hook", () => {
         expect(invalidateQueriesSpy).toHaveBeenCalledWith({
             queryKey: queryKeys.dashboard.recentActivities(),
         });
-        // Should invalidate stock movements queries
-        expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ["stock-movements"] });
+        // Should invalidate products queries (stock levels are updated)
+        expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ["products"] });
         // Should invalidate dashboard low stock products query
         expect(invalidateQueriesSpy).toHaveBeenCalledWith({
             queryKey: queryKeys.dashboard.lowStockProducts(),

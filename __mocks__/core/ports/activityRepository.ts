@@ -35,6 +35,7 @@ export const createMockActivityRepository = (): jest.Mocked<ActivityRepository> 
         getById: jest.fn(),
         create: jest.fn(),
         update: jest.fn(),
+        delete: jest.fn(),
     };
 };
 
