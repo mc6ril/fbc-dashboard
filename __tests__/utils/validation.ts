@@ -7,13 +7,13 @@
  *
  * All validation functions are defined in `src/core/domain/validation.ts`
  * and re-exported here for convenience in test files.
- * Date utilities are imported from `src/shared/utils/date.ts`.
  */
 
 export {
     isValidEmail,
     isValidPassword,
     isValidUUID,
+    isValidISO8601,
     isValidProduct,
     isValidActivity,
     isNegativeForSale,
@@ -27,6 +27,4 @@ export {
     isValidProductModelForType,
     isValidProductColorisForModel,
 } from "@/core/domain/validation";
-
-export { isValidISO8601 } from "@/shared/utils/date";
 

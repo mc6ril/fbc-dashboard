@@ -14,7 +14,7 @@ import type {
 import { StatisticsPeriod } from "@/core/domain/statistics";
 import type { ProductId, Product } from "@/core/domain/product";
 import { ActivityType } from "@/core/domain/activity";
-import { isValidISO8601 } from "@/shared/utils/date";
+import { isValidISO8601 } from "@/core/domain/validation";
 
 /** Creates a typed validation error. */
 const createValidationError = (message: string): Error => {
