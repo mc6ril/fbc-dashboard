@@ -8,6 +8,7 @@ import type { ActivityRepository } from "@/core/ports/activityRepository";
 import type { Activity, ActivityId } from "@/core/domain/activity";
 import type { ProductId } from "@/core/domain/product";
 import { SupabaseActivityPayload, SupabaseActivityRow } from "./types";
+import { parseValidNumber } from "@/shared/utils/number";
 
 /**
  * Map Supabase row to domain Activity.
@@ -46,15 +47,8 @@ const mapSupabaseRowToActivity = (row: SupabaseActivityRow): Activity => {
     }
 
     // Convert NUMERIC strings to numbers
-    const quantity = parseFloat(row.quantity);
-    if (isNaN(quantity)) {
-        throw new Error(`Invalid quantity value: ${row.quantity}`);
-    }
-
-    const amount = parseFloat(row.amount);
-    if (isNaN(amount)) {
-        throw new Error(`Invalid amount value: ${row.amount}`);
-    }
+    const quantity = parseValidNumber(row.quantity, "quantity");
+    const amount = parseValidNumber(row.amount, "amount");
 
     return {
         id: row.id as ActivityId,

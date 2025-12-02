@@ -14,6 +14,7 @@ import type {
 import { ProductType } from "@/core/domain/product";
 import type { ProductRepository } from "@/core/ports/productRepository";
 import { supabaseClient } from "./client";
+import { parseValidNumber } from "@/shared/utils/number";
 import type {
     SupabaseProductRow,
     SupabaseProductModelRow,
@@ -60,30 +61,16 @@ const mapSupabaseRowToProduct = (row: SupabaseProductRow): Product => {
     }
 
     // Convert NUMERIC strings to numbers
-    const unitCost = parseFloat(row.unit_cost);
-    if (isNaN(unitCost)) {
-        throw new Error(`Invalid unit_cost value: ${row.unit_cost}`);
-    }
-
-    const salePrice = parseFloat(row.sale_price);
-    if (isNaN(salePrice)) {
-        throw new Error(`Invalid sale_price value: ${row.sale_price}`);
-    }
-
-    const stock = parseFloat(row.stock);
-    if (isNaN(stock)) {
-        throw new Error(`Invalid stock value: ${row.stock}`);
-    }
+    const unitCost = parseValidNumber(row.unit_cost, "unit_cost");
+    const salePrice = parseValidNumber(row.sale_price, "sale_price");
+    const stock = parseValidNumber(row.stock, "stock");
 
     // Convert optional weight (null in database → undefined in domain)
     // Weight is now INT4 (integer grams) after migration 003
     let weight: number | undefined;
     if (row.weight !== null && row.weight !== undefined) {
         // Weight is already a number (INT4), but ensure it's valid
-        if (typeof row.weight !== "number" || isNaN(row.weight)) {
-            throw new Error(`Invalid weight value: ${row.weight}`);
-        }
-        weight = row.weight;
+        weight = parseValidNumber(row.weight, "weight");
     }
 
     // Build product object with new structure (modelId, colorisId)

@@ -174,3 +174,37 @@ export const formatDateShort = (dateString: string): string => {
     return `${day}/${month}`;
 };
 
+/**
+ * Validates ISO 8601 date format.
+ *
+ * Validates that a string matches the ISO 8601 date-time format:
+ * - YYYY-MM-DDTHH:mm:ss.sssZ (with milliseconds and timezone)
+ * - YYYY-MM-DDTHH:mm:ssZ (without milliseconds, with timezone)
+ * - YYYY-MM-DDTHH:mm:ss (without timezone)
+ *
+ * Also verifies that the date is actually valid (not just format matching).
+ *
+ * @param {string} value - String to validate as ISO 8601 date
+ * @returns {boolean} True if value is a valid ISO 8601 date format, false otherwise
+ *
+ * @example
+ * ```typescript
+ * isValidISO8601("2025-01-27T14:00:00.000Z"); // true
+ * isValidISO8601("2025-01-27T14:00:00Z"); // true
+ * isValidISO8601("invalid-date"); // false
+ * isValidISO8601("2025-13-45T99:99:99.999Z"); // false (invalid date)
+ * ```
+ */
+export const isValidISO8601 = (value: string): boolean => {
+    const iso8601Regex =
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
+    if (!iso8601Regex.test(value)) {
+        return false;
+    }
+    const date = new Date(value);
+    return (
+        !isNaN(date.getTime()) &&
+        date.toISOString().startsWith(value.substring(0, 19))
+    );
+};
+

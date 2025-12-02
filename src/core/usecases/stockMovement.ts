@@ -8,6 +8,7 @@ import type { StockMovement, StockMovementId } from "@/core/domain/stockMovement
 import { StockMovementSource } from "@/core/domain/stockMovement";
 import { isValidStockMovement } from "@/core/domain/validation";
 import type { ProductId } from "@/core/domain/product";
+import { validateNumber } from "@/shared/utils/number";
 
 /**
  * StockMovementError represents a stock movement-related error in the system.
@@ -35,22 +36,6 @@ const createValidationError = (message: string): StockMovementError => {
     const error = new Error(message) as Error & StockMovementError;
     error.code = "VALIDATION_ERROR";
     return error;
-};
-
-/**
- * Validates that a number is valid (not NaN, not Infinity).
- *
- * @param {number} value - Number to validate
- * @param {string} fieldName - Name of the field for error messages
- * @throws {StockMovementError} If number is invalid
- */
-const validateNumber = (value: number, fieldName: string): void => {
-    if (isNaN(value)) {
-        throw createValidationError(`${fieldName} must be a valid number`);
-    }
-    if (!isFinite(value)) {
-        throw createValidationError(`${fieldName} must be a finite number`);
-    }
 };
 
 /**
@@ -87,8 +72,11 @@ export const createStockMovement = async (
     }
 
     // Validate quantity is a valid number
-    validateNumber(movement.quantity, "quantity");
-
+    try {
+        validateNumber(movement.quantity, "quantity");
+    } catch (error) {
+        throw createValidationError(error instanceof Error ? error.message : "Invalid quantity");
+    }
     // Validate quantity is non-zero
     if (movement.quantity === 0) {
         throw createValidationError("quantity must be non-zero");
