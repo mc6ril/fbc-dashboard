@@ -8,11 +8,13 @@ import type { ProductRepository } from "@/core/ports/productRepository";
 import type { StockMovementRepository } from "@/core/ports/stockMovementRepository";
 import type { Activity, ActivityId, ActivityError } from "@/core/domain/activity";
 import { ActivityType } from "@/core/domain/activity";
-import { isValidActivity, isValidISO8601 } from "@/core/domain/validation";
+import { isValidActivity } from "@/core/domain/validation";
 import type { ProductId, Product } from "@/core/domain/product";
 import type { StockMovement } from "@/core/domain/stockMovement";
 import { StockMovementSource } from "@/core/domain/stockMovement";
 import { createStockMovement } from "./stockMovement";
+import { validateNumber } from "@/shared/utils/number";
+import { isValidISO8601 } from "@/shared/utils/date";
 
 /** Creates a typed validation error. */
 const createValidationError = (message: string): ActivityError => {
@@ -101,22 +103,6 @@ const mapActivityToStockMovement = (
     };
 };
 
-/**
- * Validates that a number is valid (not NaN, not Infinity).
- *
- * @param {number} value - Number to validate
- * @param {string} fieldName - Name of the field for error messages
- * @returns {boolean} True if number is valid, false otherwise
- */
-const isValidNumber = (value: number, fieldName: string): boolean => {
-    if (isNaN(value)) {
-        throw createValidationError(`${fieldName} must be a valid number`);
-    }
-    if (!isFinite(value)) {
-        throw createValidationError(`${fieldName} must be a finite number`);
-    }
-    return true;
-};
 
 /**
  * Validates and creates a new activity.
@@ -183,10 +169,18 @@ export const addActivity = async (
     }
 
     // Validate quantity is a valid number
-    isValidNumber(activity.quantity, "quantity");
+    try {
+        validateNumber(activity.quantity, "quantity");
+    } catch (error) {
+        throw createValidationError(error instanceof Error ? error.message : "Invalid quantity");
+    }
 
     // Validate amount is a valid number
-    isValidNumber(activity.amount, "amount");
+    try {
+        validateNumber(activity.amount, "amount");
+    } catch (error) {
+        throw createValidationError(error instanceof Error ? error.message : "Invalid amount");
+    }
 
     // Validate activity using domain validation (checks productId requirement)
     const activityWithId = {
@@ -326,12 +320,20 @@ export const updateActivity = async (
 
     // Validate quantity if it's being updated
     if (updates.quantity !== undefined) {
-        isValidNumber(updates.quantity, "quantity");
+        try {
+            validateNumber(updates.quantity, "quantity");
+        } catch (error) {
+            throw createValidationError(error instanceof Error ? error.message : "Invalid quantity");
+        }
     }
 
     // Validate amount if it's being updated
     if (updates.amount !== undefined) {
-        isValidNumber(updates.amount, "amount");
+        try {
+            validateNumber(updates.amount, "amount");
+        } catch (error) {
+            throw createValidationError(error instanceof Error ? error.message : "Invalid amount");
+        }
     }
 
     // Validate merged activity using domain validation

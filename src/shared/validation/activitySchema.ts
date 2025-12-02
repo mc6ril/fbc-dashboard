@@ -17,45 +17,12 @@ import { z } from "zod";
 import { ActivityType } from "@/core/domain/activity";
 import type { ProductId, ProductModelId, ProductColorisId } from "@/core/domain/product";
 import { ProductType } from "@/core/domain/product";
-
-/**
- * Validates that a string represents a valid number (not NaN, not Infinity).
- * First checks if the field is required (non-empty), then validates format.
- */
-const validNumberString = z
-    .string()
-    .min(1, { message: "required" })
-    .refine(
-        (val) => {
-            const num = Number.parseFloat(val);
-            return !Number.isNaN(num) && Number.isFinite(num);
-        },
-        { message: "invalid" }
-    )
-    .transform((val) => Number.parseFloat(val));
-
-/**
- * Validates that a string represents a positive number (> 0).
- */
-const positiveNumberString = validNumberString.refine(
-    (val) => val > 0,
-    { message: "must_be_positive" }
-);
-
-
-/**
- * Validates ISO 8601 date string format.
- */
-const isoDateString = z
-    .string()
-    .min(1, { message: "required" })
-    .refine(
-        (val) => {
-            const date = new Date(val);
-            return !Number.isNaN(date.getTime()) && val.includes("T");
-        },
-        { message: "invalid" }
-    );
+import {
+    validNumberString,
+    positiveNumberString,
+    isoDateString,
+} from "./commonSchemas";
+import { isValidOptionalPositiveNumberString } from "@/shared/utils/number";
 
 /**
  * Base schema for product selection fields.
@@ -165,26 +132,14 @@ const stockCorrectionActivitySchema = baseActivitySchema
             .string()
             .optional()
             .refine(
-                (val) => {
-                    if (val === undefined || val === null || val.trim() === "") {
-                        return true; // Optional
-                    }
-                    const num = Number.parseFloat(val);
-                    return !Number.isNaN(num) && Number.isFinite(num) && num > 0;
-                },
+                (val) => isValidOptionalPositiveNumberString(val),
                 { message: "must_be_positive" }
             ),
         reduceFromStock: z
             .string()
             .optional()
             .refine(
-                (val) => {
-                    if (val === undefined || val === null || val.trim() === "") {
-                        return true; // Optional
-                    }
-                    const num = Number.parseFloat(val);
-                    return !Number.isNaN(num) && Number.isFinite(num) && num > 0;
-                },
+                (val) => isValidOptionalPositiveNumberString(val),
                 { message: "must_be_positive" }
             ),
         amount: z.union([z.literal("0"), z.literal(0), z.string()]).refine(

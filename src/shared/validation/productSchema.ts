@@ -17,38 +17,10 @@
 import { z } from "zod";
 import { ProductType } from "@/core/domain/product";
 import type { ProductModelId, ProductColorisId } from "@/core/domain/product";
-
-/**
- * Validates that a string represents a valid number (not NaN, not Infinity).
- * First checks if the field is required (non-empty), then validates format.
- */
-const validNumberString = z
-    .string()
-    .min(1, { message: "required" })
-    .refine(
-        (val) => {
-            const num = Number.parseFloat(val);
-            return !Number.isNaN(num) && Number.isFinite(num);
-        },
-        { message: "invalid" }
-    )
-    .transform((val) => Number.parseFloat(val));
-
-/**
- * Validates that a string represents a positive number (> 0).
- */
-const positiveNumberString = validNumberString.refine(
-    (val) => val > 0,
-    { message: "must_be_positive" }
-);
-
-/**
- * Validates that a string represents a non-negative number (>= 0).
- */
-const nonNegativeNumberString = validNumberString.refine(
-    (val) => val >= 0,
-    { message: "must_be_non_negative" }
-);
+import {
+    positiveNumberString,
+    nonNegativeNumberString,
+} from "./commonSchemas";
 
 /**
  * Product input schema.

@@ -8,6 +8,7 @@ import type { StockMovementRepository } from "@/core/ports/stockMovementReposito
 import type { StockMovement, StockMovementId } from "@/core/domain/stockMovement";
 import type { ProductId } from "@/core/domain/product";
 import { SupabaseStockMovementPayload, SupabaseStockMovementRow } from "./types";
+import { parseValidNumber } from "@/shared/utils/number";
 
 
 
@@ -42,10 +43,7 @@ const mapSupabaseRowToStockMovement = (row: SupabaseStockMovementRow): StockMove
     }
 
     // Convert NUMERIC string to number
-    const quantity = parseFloat(row.quantity);
-    if (isNaN(quantity)) {
-        throw new Error(`Invalid quantity value: ${row.quantity}`);
-    }
+    const quantity = parseValidNumber(row.quantity, "quantity");
 
     // Validate source is a valid StockMovementSource
     const validSources = ["CREATION", "SALE", "INVENTORY_ADJUSTMENT"];
