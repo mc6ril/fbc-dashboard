@@ -9,12 +9,13 @@ import type { StockMovementRepository } from "@/core/ports/stockMovementReposito
 import type { Activity, ActivityId, ActivityError } from "@/core/domain/activity";
 import { ActivityType } from "@/core/domain/activity";
 import { isValidActivity } from "@/core/domain/validation";
-import type { ProductId, Product } from "@/core/domain/product";
+import type { ProductId } from "@/core/domain/product";
 import type { StockMovement } from "@/core/domain/stockMovement";
 import { StockMovementSource } from "@/core/domain/stockMovement";
 import { createStockMovement } from "./stockMovement";
 import { validateNumber } from "@/shared/utils/number";
-import { isValidISO8601 } from "@/shared/utils/date";
+import { isValidISO8601, filterByDateRange } from "@/shared/utils/date";
+import { createProductMap } from "@/shared/utils/product";
 
 /** Creates a typed validation error. */
 const createValidationError = (message: string): ActivityError => {
@@ -496,24 +497,11 @@ export const computeProfit = async (
     const allActivities = await activityRepo.list();
 
     // Filter activities by date range if provided
-    let filteredActivities = allActivities;
-    if (startDate !== undefined || endDate !== undefined) {
-        filteredActivities = allActivities.filter((activity) => {
-            const activityDate = activity.date;
-
-            // Filter by startDate (activities on or after startDate)
-            if (startDate !== undefined && activityDate < startDate) {
-                return false;
-            }
-
-            // Filter by endDate (activities on or before endDate)
-            if (endDate !== undefined && activityDate > endDate) {
-                return false;
-            }
-
-            return true;
-        });
-    }
+    const filteredActivities = filterByDateRange(
+        allActivities,
+        startDate,
+        endDate
+    );
 
     // Filter activities to SALE type only
     const saleActivities = filteredActivities.filter(
@@ -529,10 +517,7 @@ export const computeProfit = async (
     const allProducts = await productRepo.list();
 
     // Create a map of productId -> Product for quick lookup
-    const productMap = new Map<ProductId, Product>();
-    for (const product of allProducts) {
-        productMap.set(product.id, product);
-    }
+    const productMap = createProductMap(allProducts);
 
     // Calculate profit for each sale and sum
     let totalProfit = 0;
@@ -623,24 +608,11 @@ export const computeTotalSales = async (
     const allActivities = await repo.list();
 
     // Filter activities by date range if provided
-    let filteredActivities = allActivities;
-    if (startDate !== undefined || endDate !== undefined) {
-        filteredActivities = allActivities.filter((activity) => {
-            const activityDate = activity.date;
-
-            // Filter by startDate (activities on or after startDate)
-            if (startDate !== undefined && activityDate < startDate) {
-                return false;
-            }
-
-            // Filter by endDate (activities on or before endDate)
-            if (endDate !== undefined && activityDate > endDate) {
-                return false;
-            }
-
-            return true;
-        });
-    }
+    const filteredActivities = filterByDateRange(
+        allActivities,
+        startDate,
+        endDate
+    );
 
     // Filter activities to SALE type only
     const saleActivities = filteredActivities.filter(

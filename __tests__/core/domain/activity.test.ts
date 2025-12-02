@@ -17,11 +17,11 @@ import { ActivityType } from "@/core/domain/activity";
 import type { ProductId } from "@/core/domain/product";
 import {
     isValidUUID,
-    isValidISO8601,
     isValidActivity,
     isNegativeForSale,
     isValidActivityType,
 } from "../../utils/validation";
+import { isValidISO8601 } from "@/shared/utils/date";
 
 // Helper functions to create branded IDs from strings (for tests)
 const createActivityId = (id: string): ActivityId => id as ActivityId;

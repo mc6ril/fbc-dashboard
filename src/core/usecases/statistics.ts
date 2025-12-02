@@ -12,9 +12,10 @@ import type {
     ProductMargin,
 } from "@/core/domain/statistics";
 import { StatisticsPeriod } from "@/core/domain/statistics";
-import type { ProductId, Product } from "@/core/domain/product";
+import type { ProductId } from "@/core/domain/product";
 import { ActivityType } from "@/core/domain/activity";
-import { isValidISO8601 } from "@/core/domain/validation";
+import { isValidISO8601, filterByDateRange } from "@/shared/utils/date";
+import { createProductMap } from "@/shared/utils/product";
 
 /** Creates a typed validation error. */
 const createValidationError = (message: string): Error => {
@@ -89,22 +90,11 @@ export const computeProfitsByPeriod = async (
     const allActivities = await activityRepo.list();
 
     // Filter activities by date range if provided
-    let filteredActivities = allActivities;
-    if (startDate !== undefined || endDate !== undefined) {
-        filteredActivities = allActivities.filter((activity) => {
-            const activityDate = activity.date;
-
-            if (startDate !== undefined && activityDate < startDate) {
-                return false;
-            }
-
-            if (endDate !== undefined && activityDate > endDate) {
-                return false;
-            }
-
-            return true;
-        });
-    }
+    const filteredActivities = filterByDateRange(
+        allActivities,
+        startDate,
+        endDate
+    );
 
     // Filter activities to SALE type only
     const saleActivities = filteredActivities.filter(
@@ -120,10 +110,7 @@ export const computeProfitsByPeriod = async (
     const allProducts = await productRepo.list();
 
     // Create a map of productId -> Product for quick lookup
-    const productMap = new Map<ProductId, Product>();
-    for (const product of allProducts) {
-        productMap.set(product.id, product);
-    }
+    const productMap = createProductMap(allProducts);
 
     // Helper function to extract period key from ISO 8601 date string
     // Uses UTC methods to ensure consistent grouping regardless of local timezone
@@ -265,22 +252,11 @@ export const computeTotalCreations = async (
     const allActivities = await repo.list();
 
     // Filter activities by date range if provided
-    let filteredActivities = allActivities;
-    if (startDate !== undefined || endDate !== undefined) {
-        filteredActivities = allActivities.filter((activity) => {
-            const activityDate = activity.date;
-
-            if (startDate !== undefined && activityDate < startDate) {
-                return false;
-            }
-
-            if (endDate !== undefined && activityDate > endDate) {
-                return false;
-            }
-
-            return true;
-        });
-    }
+    const filteredActivities = filterByDateRange(
+        allActivities,
+        startDate,
+        endDate
+    );
 
     // Filter activities to CREATION type only and count
     const creationActivities = filteredActivities.filter(
@@ -350,22 +326,11 @@ export const computeProductMargins = async (
     const allActivities = await activityRepo.list();
 
     // Filter activities by date range if provided
-    let filteredActivities = allActivities;
-    if (startDate !== undefined || endDate !== undefined) {
-        filteredActivities = allActivities.filter((activity) => {
-            const activityDate = activity.date;
-
-            if (startDate !== undefined && activityDate < startDate) {
-                return false;
-            }
-
-            if (endDate !== undefined && activityDate > endDate) {
-                return false;
-            }
-
-            return true;
-        });
-    }
+    const filteredActivities = filterByDateRange(
+        allActivities,
+        startDate,
+        endDate
+    );
 
     // Filter activities to SALE type only
     const saleActivities = filteredActivities.filter(
@@ -381,10 +346,7 @@ export const computeProductMargins = async (
     const allProducts = await productRepo.list();
 
     // Create a map of productId -> Product for quick lookup
-    const productMap = new Map<ProductId, Product>();
-    for (const product of allProducts) {
-        productMap.set(product.id, product);
-    }
+    const productMap = createProductMap(allProducts);
 
     // Group sales by product and calculate margins
     const productMarginMap = new Map<
@@ -504,22 +466,11 @@ export const computeBusinessStatistics = async (
     const allActivities = await activityRepo.list();
 
     // Filter activities by date range if provided
-    let filteredActivities = allActivities;
-    if (startDate !== undefined || endDate !== undefined) {
-        filteredActivities = allActivities.filter((activity) => {
-            const activityDate = activity.date;
-
-            if (startDate !== undefined && activityDate < startDate) {
-                return false;
-            }
-
-            if (endDate !== undefined && activityDate > endDate) {
-                return false;
-            }
-
-            return true;
-        });
-    }
+    const filteredActivities = filterByDateRange(
+        allActivities,
+        startDate,
+        endDate
+    );
 
     // Filter activities by type
     const saleActivities = filteredActivities.filter(
@@ -534,10 +485,7 @@ export const computeBusinessStatistics = async (
 
     // Retrieve all products for profit and margin calculations
     const allProducts = await productRepo.list();
-    const productMap = new Map<ProductId, Product>();
-    for (const product of allProducts) {
-        productMap.set(product.id, product);
-    }
+    const productMap = createProductMap(allProducts);
 
     // Compute total profit, total sales, and product margins
     let totalProfit = 0;

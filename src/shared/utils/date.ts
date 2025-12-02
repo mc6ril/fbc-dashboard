@@ -7,9 +7,14 @@
  */
 
 /**
- * Validates that a string is a valid ISO 8601 date string.
+ * Validates ISO 8601 date format.
  *
- * Checks if the string can be parsed as a valid date and follows ISO 8601 format.
+ * Validates that a string matches the ISO 8601 date-time format:
+ * - YYYY-MM-DDTHH:mm:ss.sssZ (with milliseconds and timezone)
+ * - YYYY-MM-DDTHH:mm:ssZ (without milliseconds, with timezone)
+ * - YYYY-MM-DDTHH:mm:ss (without timezone)
+ *
+ * Also verifies that the date is actually valid (not just format matching).
  * Used in usecases for date validation.
  *
  * @param {string} dateString - Date string to validate
@@ -17,9 +22,10 @@
  *
  * @example
  * ```typescript
- * isValidISO8601("2025-01-27T14:30:00.000Z"); // true
- * isValidISO8601("2025-01-27"); // false (missing time component)
- * isValidISO8601("invalid"); // false
+ * isValidISO8601("2025-01-27T14:00:00.000Z"); // true
+ * isValidISO8601("2025-01-27T14:00:00Z"); // true
+ * isValidISO8601("invalid-date"); // false
+ * isValidISO8601("2025-13-45T99:99:99.999Z"); // false (invalid date)
  * ```
  */
 export const isValidISO8601 = (dateString: string): boolean => {
@@ -32,21 +38,19 @@ export const isValidISO8601 = (dateString: string): boolean => {
         return false;
     }
 
-    // Check if it contains 'T' (required for ISO 8601 with time)
-    if (!trimmed.includes("T")) {
+    // Validate ISO 8601 format with regex
+    const iso8601Regex =
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
+    if (!iso8601Regex.test(trimmed)) {
         return false;
     }
 
-    // Try to parse as date
+    // Verify that the date is actually valid (not just format matching)
     const date = new Date(trimmed);
-    
-    // Check if date is valid (not NaN)
-    if (Number.isNaN(date.getTime())) {
-        return false;
-    }
-
-    // If we can parse it and it's not NaN, it's a valid ISO 8601 date
-    return true;
+    return (
+        !isNaN(date.getTime()) &&
+        date.toISOString().startsWith(trimmed.substring(0, 19))
+    );
 };
 
 /**
@@ -215,5 +219,66 @@ export const formatMonth = (monthString: string): string => {
 export const formatDateShort = (dateString: string): string => {
     const [, month, day] = dateString.split("-");
     return `${day}/${month}`;
+};
+
+/**
+ * Filters items by date range using ISO 8601 string comparison.
+ *
+ * Filters an array of items that have a `date` property (ISO 8601 string format)
+ * to include only items within the specified date range.
+ *
+ * Date range logic:
+ * - If `startDate` is provided, only items on or after this date are included
+ * - If `endDate` is provided, only items on or before this date are included
+ * - Date comparison uses ISO 8601 string comparison (lexicographic order)
+ * - Both dates are optional (if neither is provided, all items are returned)
+ *
+ * @template T - Type of items in the array (must have a `date: string` property)
+ * @param {T[]} items - Array of items to filter (each item must have a `date` property)
+ * @param {string} [startDate] - Optional start date (ISO 8601 format) to filter items from this date onwards
+ * @param {string} [endDate] - Optional end date (ISO 8601 format) to filter items up to this date
+ * @returns {T[]} Filtered array of items within the date range
+ *
+ * @example
+ * ```typescript
+ * const activities = [
+ *   { id: "1", date: "2025-01-15T10:00:00.000Z", ... },
+ *   { id: "2", date: "2025-01-20T10:00:00.000Z", ... },
+ *   { id: "3", date: "2025-01-25T10:00:00.000Z", ... },
+ * ];
+ * const filtered = filterByDateRange(
+ *   activities,
+ *   "2025-01-18T00:00:00.000Z",
+ *   "2025-01-22T23:59:59.999Z"
+ * );
+ * // Returns: [{ id: "2", date: "2025-01-20T10:00:00.000Z", ... }]
+ * ```
+ */
+export const filterByDateRange = <T extends { date: string }>(
+    items: T[],
+    startDate?: string,
+    endDate?: string
+): T[] => {
+    // If no date filters provided, return all items
+    if (startDate === undefined && endDate === undefined) {
+        return items;
+    }
+
+    // Filter items by date range
+    return items.filter((item) => {
+        const itemDate = item.date;
+
+        // Filter by startDate (items on or after startDate)
+        if (startDate !== undefined && itemDate < startDate) {
+            return false;
+        }
+
+        // Filter by endDate (items on or before endDate)
+        if (endDate !== undefined && itemDate > endDate) {
+            return false;
+        }
+
+        return true;
+    });
 };
 
