@@ -103,6 +103,40 @@ export const isValidUUID = (value: string): boolean => {
 };
 
 /**
+ * Validates ISO 8601 date format.
+ *
+ * Validates that a string matches the ISO 8601 date-time format:
+ * - YYYY-MM-DDTHH:mm:ss.sssZ (with milliseconds and timezone)
+ * - YYYY-MM-DDTHH:mm:ssZ (without milliseconds, with timezone)
+ * - YYYY-MM-DDTHH:mm:ss (without timezone)
+ *
+ * Also verifies that the date is actually valid (not just format matching).
+ *
+ * @param {string} value - String to validate as ISO 8601 date
+ * @returns {boolean} True if value is a valid ISO 8601 date format, false otherwise
+ *
+ * @example
+ * ```typescript
+ * isValidISO8601("2025-01-27T14:00:00.000Z"); // true
+ * isValidISO8601("2025-01-27T14:00:00Z"); // true
+ * isValidISO8601("invalid-date"); // false
+ * isValidISO8601("2025-13-45T99:99:99.999Z"); // false (invalid date)
+ * ```
+ */
+export const isValidISO8601 = (value: string): boolean => {
+    const iso8601Regex =
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
+    if (!iso8601Regex.test(value)) {
+        return false;
+    }
+    const date = new Date(value);
+    return (
+        !isNaN(date.getTime()) &&
+        date.toISOString().startsWith(value.substring(0, 19))
+    );
+};
+
+/**
  * Validates a Product entity against business rules.
  *
  * Business rules:
@@ -261,14 +295,11 @@ export const isValidQuantityForActivityType = (
  * Business rules:
  * - productId is REQUIRED for SALE and STOCK_CORRECTION types
  * - productId is OPTIONAL for CREATION and OTHER types
- * - When productId is present, quantity must be NON-ZERO and sign must match activity type conventions:
+ * - When productId is present, quantity sign must match activity type conventions:
  *   - CREATION: quantity must be POSITIVE (stock increases)
  *   - SALE: quantity must be NEGATIVE (stock decreases)
  *   - STOCK_CORRECTION: quantity must be NON-ZERO (can be positive or negative)
- *   - OTHER: quantity must be NON-ZERO (any sign allowed)
- *
- * Activities with productId represent actual stock events and must have non-zero quantities.
- * Zero quantity is only allowed for activities without productId (no stock impact).
+ *   - OTHER: no sign requirement
  *
  * This validation ensures that activities with productId have correct quantity signs
  * before they are converted to stock movements, preventing validation failures
@@ -300,12 +331,6 @@ export const isValidQuantityForActivityType = (
  *   quantity: 5, // Invalid: should be negative for SALE
  * };
  * isValidActivity(invalidSaleQuantity); // false
- *
- * const invalidZeroQuantity: Activity = {
- *   ...validSale,
- *   quantity: 0, // Invalid: activities with productId must have non-zero quantity
- * };
- * isValidActivity(invalidZeroQuantity); // false
  * ```
  */
 export const isValidActivity = (activity: Activity): boolean => {
@@ -319,13 +344,12 @@ export const isValidActivity = (activity: Activity): boolean => {
         }
     }
 
-    // Validate quantity when productId is present (activities with productId represent actual stock events)
+    // Validate quantity sign when productId is present (activities with productId generate stock movements)
     if (activity.productId !== undefined && activity.productId !== null) {
-        // Activities with productId must have non-zero quantity (they represent actual stock events)
+        // Activities with productId represent actual stock events and must have non-zero quantity
         if (activity.quantity === 0) {
             return false;
         }
-        // Validate quantity sign matches activity type conventions
         return isValidQuantityForActivityType(activity.quantity, activity.type);
     }
 

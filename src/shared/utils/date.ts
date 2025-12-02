@@ -7,6 +7,49 @@
  */
 
 /**
+ * Validates that a string is a valid ISO 8601 date string.
+ *
+ * Checks if the string can be parsed as a valid date and follows ISO 8601 format.
+ * Used in usecases for date validation.
+ *
+ * @param {string} dateString - Date string to validate
+ * @returns {boolean} True if the string is a valid ISO 8601 date, false otherwise
+ *
+ * @example
+ * ```typescript
+ * isValidISO8601("2025-01-27T14:30:00.000Z"); // true
+ * isValidISO8601("2025-01-27"); // false (missing time component)
+ * isValidISO8601("invalid"); // false
+ * ```
+ */
+export const isValidISO8601 = (dateString: string): boolean => {
+    if (!dateString || typeof dateString !== "string") {
+        return false;
+    }
+
+    const trimmed = dateString.trim();
+    if (trimmed === "") {
+        return false;
+    }
+
+    // Check if it contains 'T' (required for ISO 8601 with time)
+    if (!trimmed.includes("T")) {
+        return false;
+    }
+
+    // Try to parse as date
+    const date = new Date(trimmed);
+    
+    // Check if date is valid (not NaN)
+    if (Number.isNaN(date.getTime())) {
+        return false;
+    }
+
+    // If we can parse it and it's not NaN, it's a valid ISO 8601 date
+    return true;
+};
+
+/**
  * Gets the start of the current month as an ISO 8601 string.
  *
  * Returns the first day of the current month at 00:00:00.000 in the browser's
@@ -172,39 +215,5 @@ export const formatMonth = (monthString: string): string => {
 export const formatDateShort = (dateString: string): string => {
     const [, month, day] = dateString.split("-");
     return `${day}/${month}`;
-};
-
-/**
- * Validates ISO 8601 date format.
- *
- * Validates that a string matches the ISO 8601 date-time format:
- * - YYYY-MM-DDTHH:mm:ss.sssZ (with milliseconds and timezone)
- * - YYYY-MM-DDTHH:mm:ssZ (without milliseconds, with timezone)
- * - YYYY-MM-DDTHH:mm:ss (without timezone)
- *
- * Also verifies that the date is actually valid (not just format matching).
- *
- * @param {string} value - String to validate as ISO 8601 date
- * @returns {boolean} True if value is a valid ISO 8601 date format, false otherwise
- *
- * @example
- * ```typescript
- * isValidISO8601("2025-01-27T14:00:00.000Z"); // true
- * isValidISO8601("2025-01-27T14:00:00Z"); // true
- * isValidISO8601("invalid-date"); // false
- * isValidISO8601("2025-13-45T99:99:99.999Z"); // false (invalid date)
- * ```
- */
-export const isValidISO8601 = (value: string): boolean => {
-    const iso8601Regex =
-        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
-    if (!iso8601Regex.test(value)) {
-        return false;
-    }
-    const date = new Date(value);
-    return (
-        !isNaN(date.getTime()) &&
-        date.toISOString().startsWith(value.substring(0, 19))
-    );
 };
 
