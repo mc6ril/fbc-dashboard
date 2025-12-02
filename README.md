@@ -1,5 +1,7 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+[![CI](https://github.com/mc6ril/fbc-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/mc6ril/fbc-dashboard/actions/workflows/ci.yml)
+
 ## Getting Started
 
 ### Prerequisites
@@ -81,6 +83,19 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
   ```
 
   This is enforced in code review and via ESLint (`curly: "all"`).
+
+## Continuous Integration
+
+This project uses GitHub Actions for CI/CD. The CI workflow runs automatically on:
+- Pull requests targeting the `main` branch
+- Pushes to the `main` branch
+
+The workflow executes:
+- Linting (ESLint)
+- Tests (Jest)
+- Build (Next.js)
+
+See `.github/workflows/ci.yml` for the complete workflow configuration.
 
 ## Learn More
 

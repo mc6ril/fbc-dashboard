@@ -1,0 +1,53 @@
+name: CI
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    ci:
+        name: Lint, Test, Build
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "yarn"
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
+
+            - name: Cache Next.js build
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      .next/cache
+                  key: ${{ runner.os }}-nextjs-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx') }}
+                  restore-keys: |
+                      ${{ runner.os }}-nextjs-${{ hashFiles('**/yarn.lock') }}-
+
+            - name: Run lint
+              run: yarn lint
+
+            - name: Run tests
+              run: yarn test
+
+            - name: Set build environment variables
+              env:
+                  SUPABASE_URL_SECRET: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+                  SUPABASE_KEY_SECRET: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+              run: |
+                  echo "NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL_SECRET:-https://placeholder.supabase.co}" >> $GITHUB_ENV
+                  echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_KEY_SECRET:-placeholder-key}" >> $GITHUB_ENV
+
+            - name: Build
+              run: yarn build
