@@ -42,6 +42,8 @@ import Select from "@/presentation/components/ui/Select";
 import type { SelectOption } from "@/presentation/components/ui/Select";
 import Textarea from "@/presentation/components/ui/Textarea";
 import Button from "@/presentation/components/ui/Button";
+import { activityInputSchema } from "@/shared/validation/activitySchema";
+import { mapZodErrorsToFormErrors } from "@/shared/validation/errorMapper";
 import styles from "./AddActivityForm.module.scss";
 
 type Props = {
@@ -365,113 +367,135 @@ const AddActivityFormComponent = ({ onSuccess }: Props) => {
         []
     );
 
-    // Validate form (type-specific validation - FBC-28)
+    // Validate form using Zod schema (FBC-17)
     const validateForm = React.useCallback((): boolean => {
-        const newErrors: Record<string, string> = {};
+        // Prepare form data for validation
+        const formData: Record<string, unknown> = {
+            date,
+            type: activityType,
+            note: note.trim() || undefined,
+        };
 
-        // Validate date
-        if (!date) {
-            newErrors.date = tActivityFields("date.required");
-        }
-
-        // Validate quantity (type-specific - FBC-28)
-        if (activityType === ActivityType.STOCK_CORRECTION) {
-            // STOCK_CORRECTION: Validate two separate fields (FBC-28 Sub-Ticket 28.4)
-            const addNum = addToStock && addToStock.trim() !== "" ? Number.parseFloat(addToStock) : null;
-            const reduceNum = reduceFromStock && reduceFromStock.trim() !== "" ? Number.parseFloat(reduceFromStock) : null;
-            
-            // At least one field must be filled
-            if (addNum === null && reduceNum === null) {
-                newErrors.addToStock = tActivityFields("addToStock.required");
-                newErrors.reduceFromStock = tActivityFields("reduceFromStock.required");
-            } else {
-                // Validate add to stock if filled
-                if (addNum !== null) {
-                    if (Number.isNaN(addNum) || !Number.isFinite(addNum)) {
-                        newErrors.addToStock = tActivityFields("addToStock.invalid");
-                    } else if (addNum <= 0) {
-                        newErrors.addToStock = tActivityFields("addToStock.must_be_positive");
-                    }
-                }
-                // Validate reduce from stock if filled
-                if (reduceNum !== null) {
-                    if (Number.isNaN(reduceNum) || !Number.isFinite(reduceNum)) {
-                        newErrors.reduceFromStock = tActivityFields("reduceFromStock.invalid");
-                    } else if (reduceNum <= 0) {
-                        newErrors.reduceFromStock = tActivityFields("reduceFromStock.must_be_positive");
-                    }
-                }
-            }
-        } else {
-            // Other types: validate standard quantity field
-            if (!quantity || quantity.trim() === "") {
-                newErrors.quantity = tActivityFields("quantity.required");
-            } else {
-                const quantityNum = Number.parseFloat(quantity);
-                if (Number.isNaN(quantityNum) || !Number.isFinite(quantityNum)) {
-                    newErrors.quantity = tActivityFields("quantity.invalid");
-                } else {
-                    // Type-specific quantity validation
-                    if (activityType === ActivityType.CREATION || activityType === ActivityType.SALE) {
-                        // CREATION and SALE require positive quantity (user enters positive, SALE converts to negative on submit)
-                        if (quantityNum <= 0) {
-                            newErrors.quantity = tActivityFields("quantity.must_be_positive");
-                        }
-                    }
-                    // OTHER: allow any non-zero number
-                }
-            }
-        }
-
-        // Validate amount (only for types that show the field - FBC-28)
-        const requiresAmount = activityType === ActivityType.SALE || activityType === ActivityType.OTHER;
-        if (requiresAmount) {
-            if (!amount || amount.trim() === "") {
-                newErrors.amount = tActivityFields("amount.required");
-            } else {
-                const amountNum = Number.parseFloat(amount);
-                if (Number.isNaN(amountNum) || !Number.isFinite(amountNum)) {
-                    newErrors.amount = tActivityFields("amount.invalid");
-                } else if (amountNum <= 0) {
-                    newErrors.amount = tActivityFields("amount.must_be_positive");
-                }
-            }
-        }
-
-        // Validate product selection based on activity type
+        // Add product selection fields based on activity type
         const requiresProduct =
             activityType === ActivityType.CREATION ||
             activityType === ActivityType.SALE ||
             activityType === ActivityType.STOCK_CORRECTION;
 
         if (requiresProduct) {
-            if (!selectedProductType) {
-                newErrors.selectedProductType = tActivityProduct("type.required");
-            }
-            if (!selectedModelId) {
-                newErrors.selectedModelId = tActivityProduct("model.required");
-            }
-            if (!selectedColorisId) {
-                newErrors.selectedColorisId = tActivityProduct("coloris.required");
-            }
-            if (!productId) {
-                newErrors.productId = tActivityProduct("not_found");
+            // Product is required - include all fields
+            formData.productId = productId || "";
+            formData.selectedProductType = selectedProductType || undefined;
+            formData.selectedModelId = selectedModelId || "";
+            formData.selectedColorisId = selectedColorisId || "";
+        } else {
+            // Product is optional (OTHER type) - include only if any field is set
+            if (productId || selectedProductType || selectedModelId || selectedColorisId) {
+                formData.productId = productId || "";
+                formData.selectedProductType = selectedProductType || undefined;
+                formData.selectedModelId = selectedModelId || "";
+                formData.selectedColorisId = selectedColorisId || "";
             }
         }
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        // Add type-specific fields
+        if (activityType === ActivityType.STOCK_CORRECTION) {
+            formData.addToStock = addToStock || undefined;
+            formData.reduceFromStock = reduceFromStock || undefined;
+            formData.amount = "0";
+        } else {
+            formData.quantity = quantity;
+            if (activityType === ActivityType.CREATION) {
+                formData.amount = "0";
+            } else {
+                formData.amount = amount;
+            }
+        }
+
+        // Validate with Zod schema
+        const result = activityInputSchema.safeParse(formData);
+
+        if (!result.success) {
+            // Map Zod errors to form errors with i18n messages
+            const zodErrors = mapZodErrorsToFormErrors(result.error);
+            const newErrors: Record<string, string> = {};
+
+            // Check if product selections are complete (all selection fields are filled)
+            // This helps distinguish between "selection incomplete" vs "product not found"
+            const isProductSelectionComplete =
+                requiresProduct &&
+                selectedProductType !== undefined &&
+                selectedModelId !== undefined &&
+                selectedColorisId !== undefined;
+
+            // Track if productId has a Zod error (needed to handle Bug 2)
+            const hasProductIdZodError = zodErrors.productId !== undefined;
+
+            // Map error keys to i18n messages
+            Object.entries(zodErrors).forEach(([field, errorKey]) => {
+                if (field === "date") {
+                    newErrors.date = tActivityFields(`date.${errorKey}`);
+                } else if (field === "type") {
+                    newErrors.type = tActivityFields(`type.${errorKey}`);
+                } else if (field === "quantity") {
+                    newErrors.quantity = tActivityFields(`quantity.${errorKey}`);
+                } else if (field === "amount") {
+                    newErrors.amount = tActivityFields(`amount.${errorKey}`);
+                } else if (field === "addToStock") {
+                    newErrors.addToStock = tActivityFields(`addToStock.${errorKey}`);
+                } else if (field === "reduceFromStock") {
+                    newErrors.reduceFromStock = tActivityFields(`reduceFromStock.${errorKey}`);
+                } else if (field === "productId") {
+                    // Only map productId error if selection is incomplete
+                    // If selection is complete, we'll show "not_found" error instead (handled below)
+                    if (!isProductSelectionComplete) {
+                        newErrors.selectedProductType = tActivityProduct(`type.${errorKey}`);
+                    }
+                    // Note: If selection is complete, the productId error will be handled below as "not_found"
+                } else if (field === "selectedProductType") {
+                    newErrors.selectedProductType = tActivityProduct(`type.${errorKey}`);
+                } else if (field === "selectedModelId") {
+                    newErrors.selectedModelId = tActivityProduct(`model.${errorKey}`);
+                } else if (field === "selectedColorisId") {
+                    newErrors.selectedColorisId = tActivityProduct(`coloris.${errorKey}`);
+                }
+            });
+
+            // Check if productId is missing but required (product not found)
+            // Add this error if:
+            // 1. Product is required for this activity type
+            // 2. Product selection is complete (all fields filled)
+            // 3. Either productId is missing OR Zod reported an error on productId (Bug 2 fix)
+            //    - If Zod reported an error on productId when selection is complete, it means product not found
+            //    - We show "not_found" even if other selection fields have errors (prioritize productId error)
+            // Note: If selection is incomplete, productId errors are already mapped to selectedProductType above
+            if (
+                requiresProduct &&
+                isProductSelectionComplete &&
+                (!productId || hasProductIdZodError)
+            ) {
+                newErrors.productId = tActivityProduct("not_found");
+            }
+
+            setErrors(newErrors);
+            return false;
+        }
+
+        // Validation successful
+        setErrors({});
+        return true;
     }, [
         date,
+        activityType,
         quantity,
         amount,
-        activityType,
+        addToStock,
+        reduceFromStock,
+        note,
+        productId,
         selectedProductType,
         selectedModelId,
         selectedColorisId,
-        productId,
-        addToStock,
-        reduceFromStock,
         tActivityFields,
         tActivityProduct,
     ]);
