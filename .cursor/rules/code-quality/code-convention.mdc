@@ -23,6 +23,7 @@ Maintain strict and consistent code conventions for style, naming, TypeScript pa
 -   **ALWAYS** translate any non-English content to English before committing
 
 **This rule applies to:**
+
 -   Source code (`src/**/*.{ts,tsx}`)
 -   Documentation files (`*.md`, `*.mdx`)
 -   Jira tickets (`jira/*.md`)
@@ -295,7 +296,69 @@ import { signInUser } from "../../core/usecases/auth";
 
 ## CODE CONVENTION COMPLIANCE - MANDATORY VERIFICATION
 
-### 12. Code Generation Checklist
+### 12. Zod Schemas – STRICT VALIDATION RULES
+
+## Zod Placement Rules
+
+-   **ALWAYS** place all Zod schemas inside the domain or inside /core/domain/schemas
+-   **NEVER** create Zod schemas in components, hooks, or presentation layer
+-   **ALWAYS** group schemas by domain (Product, Activity, StockMovement…)
+
+## Schema Naming
+
+-   **ALWAYS** name schemas with the suffix Schema
+    Example:
+
+```ts
+const ProductSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+});
+```
+
+-   **ALWAYS** create a TypeScript type using z.infer<typeof Schema>
+-   **NEVER** write a duplicated interface or type manually for what the schema already defines
+
+## Validation Rules
+
+-   **ALWAYS** validate external data (Supabase, network, forms) using Zod
+-   **ALWAYS** validate user input inside usecases, never in UI
+-   **NEVER** validate inside React components or Zustand stores
+-   **ALWAYS** throw a domain error when validation fails
+
+## Zod + Usecases – MANDATORY PATTERN
+
+Every usecase that receives input must validate it:
+
+```ts
+export async function createProduct(input: CreateProductInput): Promise<Product> {
+    const parsed = CreateProductSchema.parse(input);
+    return productRepository.create(parsed);
+}
+
+Types Derived From Zod – MANDATORY
+export type Product = z.infer<typeof ProductSchema>;
+export type CreateProductInput = z.infer<typeof CreateProductSchema>;
+```
+
+No duplicated types.
+No manual interfaces.
+
+## Structure Example (MANDATORY)
+
+core/
+domain/
+product/
+product.schema.ts ← All schemas
+product.types.ts ← all z.infer exported types
+product.entity.ts ← domain entity if needed
+
+## React Query + Zod
+
+-   **ALWAYS** validate server data inside the usecase, before returning
+-   **NEVER** validate inside React Query hook
+
+### 13. Code Generation Checklist
 
 Before EVERY code generation:
 

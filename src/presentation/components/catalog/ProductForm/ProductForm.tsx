@@ -24,6 +24,8 @@ import {
     useProductModelsByType,
     useProductColorisByModel,
 } from "@/presentation/hooks/useProducts";
+import { productInputSchema } from "@/shared/validation/productSchema";
+import { mapZodErrorsToFormErrors } from "@/shared/validation/errorMapper";
 import styles from "./ProductForm.module.scss";
 
 type ProductFormData = Omit<Product, "id">;
@@ -280,73 +282,53 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
         }));
     }, [coloris]);
 
-    // Validate form
+    // Validate form using Zod schema (FBC-17)
     const validateForm = React.useCallback((): boolean => {
-        const newErrors: Record<string, string> = {};
+        // Prepare form data for validation
+        const formData = {
+            type,
+            modelId: modelId || "",
+            colorisId: colorisId || "",
+            unitCost,
+            salePrice,
+            stock,
+            weight: weight || undefined,
+        };
 
-        // Validate type
-        if (!type) {
-            newErrors.type = tProductFields("type.required");
+        // Validate with Zod schema
+        const result = productInputSchema.safeParse(formData);
+
+        if (!result.success) {
+            // Map Zod errors to form errors with i18n messages
+            const zodErrors = mapZodErrorsToFormErrors(result.error);
+            const newErrors: Record<string, string> = {};
+
+            // Map error keys to i18n messages
+            Object.entries(zodErrors).forEach(([field, errorKey]) => {
+                if (field === "type") {
+                    newErrors.type = tProductFields(`type.${errorKey}`);
+                } else if (field === "modelId") {
+                    newErrors.modelId = tProductFields(`model.${errorKey}`);
+                } else if (field === "colorisId") {
+                    newErrors.colorisId = tProductFields(`coloris.${errorKey}`);
+                } else if (field === "unitCost") {
+                    newErrors.unitCost = tProductFields(`unitCost.${errorKey}`);
+                } else if (field === "salePrice") {
+                    newErrors.salePrice = tProductFields(`salePrice.${errorKey}`);
+                } else if (field === "stock") {
+                    newErrors.stock = tProductFields(`stock.${errorKey}`);
+                } else if (field === "weight") {
+                    newErrors.weight = tProductFields(`weight.${errorKey}`);
+                }
+            });
+
+            setErrors(newErrors);
+            return false;
         }
 
-        // Validate modelId
-        if (!modelId) {
-            newErrors.modelId = tProductFields("model.required");
-        }
-
-        // Validate colorisId
-        if (!colorisId) {
-            newErrors.colorisId = tProductFields("coloris.required");
-        }
-
-        // Validate unitCost
-        if (!unitCost || unitCost.trim() === "") {
-            newErrors.unitCost = tProductFields("unitCost.required");
-        } else {
-            const unitCostNum = Number.parseFloat(unitCost);
-            if (Number.isNaN(unitCostNum) || !Number.isFinite(unitCostNum)) {
-                newErrors.unitCost = tProductFields("unitCost.invalid");
-            } else if (unitCostNum <= 0) {
-                newErrors.unitCost = tProductFields("unitCost.must_be_positive");
-            }
-        }
-
-        // Validate salePrice
-        if (!salePrice || salePrice.trim() === "") {
-            newErrors.salePrice = tProductFields("salePrice.required");
-        } else {
-            const salePriceNum = Number.parseFloat(salePrice);
-            if (Number.isNaN(salePriceNum) || !Number.isFinite(salePriceNum)) {
-                newErrors.salePrice = tProductFields("salePrice.invalid");
-            } else if (salePriceNum <= 0) {
-                newErrors.salePrice = tProductFields("salePrice.must_be_positive");
-            }
-        }
-
-        // Validate stock
-        if (!stock || stock.trim() === "") {
-            newErrors.stock = tProductFields("stock.required");
-        } else {
-            const stockNum = Number.parseFloat(stock);
-            if (Number.isNaN(stockNum) || !Number.isFinite(stockNum)) {
-                newErrors.stock = tProductFields("stock.invalid");
-            } else if (stockNum < 0) {
-                newErrors.stock = tProductFields("stock.must_be_non_negative");
-            }
-        }
-
-        // Validate weight (optional, but if provided must be > 0 and integer)
-        if (weight && weight.trim() !== "") {
-            const weightNum = Number.parseInt(weight, 10);
-            if (Number.isNaN(weightNum) || !Number.isFinite(weightNum)) {
-                newErrors.weight = tProductFields("weight.invalid");
-            } else if (weightNum <= 0) {
-                newErrors.weight = tProductFields("weight.must_be_positive");
-            }
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        // Validation successful
+        setErrors({});
+        return true;
     }, [type, modelId, colorisId, unitCost, salePrice, stock, weight, tProductFields]);
 
     // Handle form submission
