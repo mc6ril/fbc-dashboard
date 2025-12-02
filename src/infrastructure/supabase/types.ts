@@ -120,25 +120,4 @@ export type SupabaseActivityPayload = {
     note?: string | null;
 };
 
-/**
- * Supabase insert payload type.
- * Used for creating stock movements.
- * All fields are required for creation.
- */
-export type SupabaseStockMovementPayload = {
-    product_id: string;
-    quantity: number;
-    source: string;
-};
-
-/**
- * Supabase row type for stock_movements table.
- * Matches the database schema with snake_case column names.
- */
-export type SupabaseStockMovementRow = {
-    id: string;
-    product_id: string;
-    quantity: string; // NUMERIC returned as string from Supabase
-    source: string;
-};
 

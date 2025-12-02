@@ -21,8 +21,6 @@ import type {
 import { ProductType } from "./product";
 import type { Activity } from "./activity";
 import { ActivityType } from "./activity";
-import type { StockMovement } from "./stockMovement";
-import { StockMovementSource } from "./stockMovement";
 
 /**
  * Validates email format using a basic regex pattern.
@@ -358,88 +356,6 @@ export const isNegativeForSale = (activity: Activity): boolean => {
 };
 
 /**
- * Validates a StockMovement entity against business rules.
- *
- * Business rules:
- * - productId is REQUIRED (all stock movements must be associated with a product)
- * - quantity sign should match source conventions (positive for CREATION, negative for SALE)
- *   Note: INVENTORY_ADJUSTMENT can have either sign
- *
- * @param {StockMovement} movement - StockMovement entity to validate
- * @returns {boolean} True if movement meets all business rules, false otherwise
- *
- * @example
- * ```typescript
- * const validCreation: StockMovement = {
- *   id: "123e4567-e89b-4d3a-a456-426614174000" as StockMovementId,
- *   productId: "550e8400-e29b-41d4-a716-446655440000" as ProductId,
- *   quantity: 10, // Positive for CREATION
- *   source: StockMovementSource.CREATION,
- * };
- * isValidStockMovement(validCreation); // true
- *
- * const invalidSale: StockMovement = {
- *   ...validCreation,
- *   quantity: 10, // Invalid: should be negative for SALE
- *   source: StockMovementSource.SALE,
- * };
- * isValidStockMovement(invalidSale); // false
- * ```
- */
-export const isValidStockMovement = (movement: StockMovement): boolean => {
-    // productId is required (enforced by type, but validate it's not empty)
-    if (!movement.productId || movement.productId.trim() === "") {
-        return false;
-    }
-
-    // Validate quantity sign matches source conventions
-    return isValidQuantityForSource(movement.quantity, movement.source);
-};
-
-/**
- * Validates that a quantity sign is appropriate for a given StockMovementSource.
- *
- * Business rules for quantity signs:
- * - CREATION: quantity should be POSITIVE (stock increases)
- * - SALE: quantity should be NEGATIVE (stock decreases)
- * - INVENTORY_ADJUSTMENT: quantity can be POSITIVE or NEGATIVE (either direction allowed)
- *
- * @param {number} quantity - Quantity value to validate
- * @param {StockMovementSource} source - Source of the stock movement
- * @returns {boolean} True if quantity sign is valid for the source, false otherwise
- *
- * @example
- * ```typescript
- * isValidQuantityForSource(10, StockMovementSource.CREATION); // true (positive for creation)
- * isValidQuantityForSource(-10, StockMovementSource.CREATION); // false (should be positive)
- * isValidQuantityForSource(-5, StockMovementSource.SALE); // true (negative for sale)
- * isValidQuantityForSource(5, StockMovementSource.SALE); // false (should be negative)
- * isValidQuantityForSource(10, StockMovementSource.INVENTORY_ADJUSTMENT); // true (either sign allowed)
- * isValidQuantityForSource(-10, StockMovementSource.INVENTORY_ADJUSTMENT); // true (either sign allowed)
- * ```
- */
-export const isValidQuantityForSource = (
-    quantity: number,
-    source: StockMovementSource
-): boolean => {
-    switch (source) {
-        case StockMovementSource.CREATION:
-            // CREATION should have positive quantity (stock increases)
-            return quantity > 0;
-        case StockMovementSource.SALE:
-            // SALE should have negative quantity (stock decreases)
-            return quantity < 0;
-        case StockMovementSource.INVENTORY_ADJUSTMENT:
-            // INVENTORY_ADJUSTMENT can have either positive or negative quantity
-            // (zero is not allowed as it represents no change)
-            return quantity !== 0;
-        default:
-            // Unknown source type - reject for safety
-            return false;
-    }
-};
-
-/**
  * Validates that an ActivityType value is valid.
  *
  * This helper function checks if a value is a valid ActivityType enum value.
@@ -458,29 +374,6 @@ export const isValidQuantityForSource = (
  */
 export const isValidActivityType = (value: string): boolean => {
     return Object.values(ActivityType).includes(value as ActivityType);
-};
-
-/**
- * Validates that a StockMovementSource value is valid.
- *
- * This helper function checks if a value is a valid StockMovementSource enum value.
- * Useful for validating data from external sources (e.g., API responses, user input).
- *
- * @param {string} value - Value to validate as StockMovementSource
- * @returns {boolean} True if value is a valid StockMovementSource, false otherwise
- *
- * @example
- * ```typescript
- * isValidStockMovementSource("CREATION"); // true
- * isValidStockMovementSource("SALE"); // true
- * isValidStockMovementSource("INVALID"); // false
- * isValidStockMovementSource(""); // false
- * ```
- */
-export const isValidStockMovementSource = (value: string): boolean => {
-    return Object.values(StockMovementSource).includes(
-        value as StockMovementSource
-    );
 };
 
 /**

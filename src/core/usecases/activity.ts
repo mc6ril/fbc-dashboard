@@ -5,14 +5,10 @@
 
 import type { ActivityRepository } from "@/core/ports/activityRepository";
 import type { ProductRepository } from "@/core/ports/productRepository";
-import type { StockMovementRepository } from "@/core/ports/stockMovementRepository";
 import type { Activity, ActivityId, ActivityError } from "@/core/domain/activity";
 import { ActivityType } from "@/core/domain/activity";
 import { isValidActivity } from "@/core/domain/validation";
 import type { ProductId } from "@/core/domain/product";
-import type { StockMovement } from "@/core/domain/stockMovement";
-import { StockMovementSource } from "@/core/domain/stockMovement";
-import { createStockMovement } from "./stockMovement";
 import { validateNumber } from "@/shared/utils/number";
 import { isValidISO8601, filterByDateRange } from "@/shared/utils/date";
 import { createProductMap } from "@/shared/utils/product";
@@ -26,84 +22,78 @@ const createValidationError = (message: string): ActivityError => {
 };
 
 /**
- * Maps an Activity to a StockMovement if applicable.
+ * Updates product stock based on activity quantity using atomic database operations.
  *
- * Stock movements are created for:
- * - CREATION activities with productId
- * - SALE activities with productId
- * - STOCK_CORRECTION activities with productId
+ * This function updates the product's stock level by adding the activity quantity
+ * to the current stock using an atomic database operation. The stock is updated
+ * only for activities that affect inventory:
+ * - CREATION activities with productId (typically increases stock)
+ * - SALE activities with productId (typically decreases stock)
+ * - STOCK_CORRECTION activities with productId (can increase or decrease stock)
  *
- * Stock movements are NOT created for:
+ * Stock is NOT updated for:
  * - OTHER activities (regardless of productId)
  * - Activities without productId
  * - Activities with zero quantity
  *
- * Mapping:
- * - ActivityType.CREATION → StockMovementSource.CREATION
- * - ActivityType.SALE → StockMovementSource.SALE
- * - ActivityType.STOCK_CORRECTION → StockMovementSource.INVENTORY_ADJUSTMENT
- * - ActivityType.OTHER → null (no stock movement)
+ * The stock update is performed atomically at the database level using a PostgreSQL
+ * RPC function, which prevents race conditions when multiple activities are created
+ * concurrently for the same product. The result is clamped to ensure stock never
+ * goes below 0.
  *
- * Quantity is passed through exactly as-is (no transformation).
+ * Data Quality Monitoring:
+ * - If the stock would go negative (e.g., selling more than available), a warning
+ *   is logged to help detect potential business logic errors
+ * - The stock is still clamped to 0 to prevent data corruption, but the warning
+ *   alerts developers to investigate the root cause
  *
- * @param {Activity} activity - Activity to map to stock movement
- * @returns {Omit<StockMovement, 'id'> | null} Stock movement data if applicable, null otherwise
- *
- * @example
- * ```typescript
- * const activity: Activity = {
- *   id: "123e4567-e89b-4d3a-a456-426614174000" as ActivityId,
- *   date: "2025-01-27T14:00:00.000Z",
- *   type: ActivityType.SALE,
- *   productId: "550e8400-e29b-41d4-a716-446655440000" as ProductId,
- *   quantity: -5,
- *   amount: 99.95,
- * };
- * const movement = mapActivityToStockMovement(activity);
- * // Returns: { productId: "...", quantity: -5, source: StockMovementSource.SALE }
- * ```
+ * @param {ProductRepository} productRepo - Product repository for stock updates
+ * @param {Activity} activity - Activity that affects stock
+ * @returns {Promise<void>} Promise that resolves when stock is updated
+ * @throws {Error} If product is not found or stock update fails
  */
-const mapActivityToStockMovement = (
+const updateProductStockFromActivity = async (
+    productRepo: ProductRepository,
     activity: Activity
-): Omit<StockMovement, "id"> | null => {
-    // Only create stock movement for activities with productId
+): Promise<void> => {
+    // Only update stock for activities with productId
     if (!activity.productId) {
-        return null;
+        return;
     }
 
-    // Only create stock movement for CREATION, SALE, STOCK_CORRECTION
+    // Only update stock for CREATION, SALE, STOCK_CORRECTION
     if (activity.type === ActivityType.OTHER) {
-        return null;
+        return;
     }
 
-    // Map ActivityType to StockMovementSource
-    let source: StockMovementSource;
-    switch (activity.type) {
-        case ActivityType.CREATION:
-            source = StockMovementSource.CREATION;
-            break;
-        case ActivityType.SALE:
-            source = StockMovementSource.SALE;
-            break;
-        case ActivityType.STOCK_CORRECTION:
-            source = StockMovementSource.INVENTORY_ADJUSTMENT;
-            break;
-        default:
-            return null;
-    }
-
-    // Only create if quantity is non-zero
+    // Skip if quantity is zero (no stock change)
     if (activity.quantity === 0) {
-        return null;
+        return;
     }
 
-    return {
-        productId: activity.productId,
-        quantity: activity.quantity, // Quantity matches exactly (no transformation)
-        source,
-    };
-};
+    // Get current stock to detect if update would result in negative stock
+    const currentProduct = await productRepo.getById(activity.productId);
+    if (!currentProduct) {
+        throw new Error(`Product with id ${activity.productId} not found`);
+    }
 
+    // Calculate expected new stock (before clamping)
+    const expectedNewStock = currentProduct.stock + activity.quantity;
+
+    // Log warning if stock would go negative (indicates potential business logic error)
+    // This helps detect issues like selling more than available stock
+    if (expectedNewStock < 0) {
+        console.warn(
+            `Stock would go negative for product ${activity.productId}: current stock ${currentProduct.stock}, activity quantity ${activity.quantity}, expected stock ${expectedNewStock}. Stock will be clamped to 0.`
+        );
+    }
+
+    // Atomically update product stock by adding activity quantity
+    // Uses database-level atomic operation to prevent race conditions
+    // when multiple activities are created concurrently for the same product
+    // Note: Stock is clamped to 0 minimum at database level
+    await productRepo.updateStockAtomically(activity.productId, activity.quantity);
+};
 
 /**
  * Validates and creates a new activity.
@@ -114,23 +104,34 @@ const mapActivityToStockMovement = (
  * - quantity must be a valid number (not NaN, not Infinity)
  * - amount must be a valid number (not NaN, not Infinity)
  *
- * After creating the activity, this usecase automatically creates a corresponding
- * stock movement if applicable (CREATION, SALE, or STOCK_CORRECTION activities
- * with productId and non-zero quantity).
+ * After creating the activity, this usecase automatically updates the product's stock
+ * if applicable (CREATION, SALE, or STOCK_CORRECTION activities with productId
+ * and non-zero quantity).
  *
- * Transaction handling (Option B):
+ * Stock update logic:
  * - Activity is created first
- * - Stock movement is created second
- * - If stock movement creation fails, an error is thrown
- * - Note: Activity will remain in database if stock movement fails (acceptable trade-off for simplicity)
+ * - Product stock is updated by adding activity.quantity to current stock
+ * - Stock is clamped to ensure it never goes below 0
+ * - If stock update fails, the activity is automatically rolled back (deleted)
+ *   to maintain data consistency
+ *
+ * Data Consistency Guarantees:
+ * - The activity and stock update are NOT atomic at the database level (no transaction)
+ * - However, a manual rollback mechanism ensures that if stock update fails, the activity
+ *   is automatically deleted to prevent orphaned activities
+ * - If the rollback itself fails (rare edge case), the activity may remain without
+ *   affecting stock. This should be monitored and can be detected by comparing
+ *   activities with product stock levels
+ * - Consider implementing a background job to detect and fix inconsistencies, or use
+ *   database triggers to ensure stock updates are always applied
  *
  * @param {ActivityRepository} activityRepo - Activity repository for data persistence
- * @param {StockMovementRepository} stockMovementRepo - Stock movement repository for data persistence
+ * @param {ProductRepository} productRepo - Product repository for stock updates
  * @param {Omit<Activity, 'id'>} activity - Activity data to create (without the id field)
  * @returns {Promise<Activity>} Promise resolving to the created activity with generated ID
  * @throws {ActivityError} If validation fails (missing productId for SALE/STOCK_CORRECTION, invalid date, invalid numbers)
  * @throws {Error} If activity repository creation fails (database error, constraint violation, etc.)
- * @throws {Error} If stock movement creation fails (database error, validation error, etc.)
+ * @throws {Error} If product stock update fails (product not found, database error, etc.)
  *
  * @example
  * ```typescript
@@ -142,13 +143,13 @@ const mapActivityToStockMovement = (
  *   amount: 99.95,
  *   note: "Sale to customer"
  * };
- * const created = await addActivity(activityRepository, stockMovementRepository, newActivity);
- * // Activity and corresponding stock movement are both created
+ * const created = await addActivity(activityRepository, productRepository, newActivity);
+ * // Activity is created and product stock is updated (decreased by 5)
  * ```
  */
 export const addActivity = async (
     activityRepo: ActivityRepository,
-    stockMovementRepo: StockMovementRepository,
+    productRepo: ProductRepository,
     activity: Omit<Activity, "id">
 ): Promise<Activity> => {
     // Validate productId is provided for SALE and STOCK_CORRECTION types
@@ -192,21 +193,39 @@ export const addActivity = async (
         throw createValidationError("Activity validation failed");
     }
 
-    // Create activity first (Option B: manual rollback if stock movement fails)
+    // Create activity first
     const createdActivity = await activityRepo.create(activity);
 
-    // Create stock movement if applicable
-    const stockMovementData = mapActivityToStockMovement(createdActivity);
-    if (stockMovementData) {
+    // Update product stock if applicable
+    // Note: This operation is NOT atomic at the database level, but we implement
+    // a manual rollback mechanism to maintain data consistency. If stock update fails,
+    // the activity is automatically deleted to prevent orphaned activities that don't
+    // affect stock levels. This ensures that activities and stock levels remain consistent.
+    //
+    // Edge case: If the rollback itself fails (e.g., database connection lost),
+    // the activity may remain in the database without affecting stock. This is a
+    // rare scenario that should be monitored and can be detected by comparing
+    // activities with product stock levels. Consider implementing:
+    // - A background job to detect and fix inconsistencies
+    // - Database triggers to ensure stock updates are always applied
+    // - Monitoring alerts for rollback failures
+    try {
+        await updateProductStockFromActivity(productRepo, createdActivity);
+    } catch (error) {
+        // If stock update fails, rollback activity creation to maintain data consistency
         try {
-            await createStockMovement(stockMovementRepo, stockMovementData);
-        } catch (error) {
-            // If stock movement creation fails, throw error
-            // Note: Activity remains in database (acceptable trade-off per Option B)
-            throw new Error(
-                `Failed to create stock movement for activity: ${error instanceof Error ? error.message : "Unknown error"}`
+            await activityRepo.delete(createdActivity.id);
+        } catch (rollbackError) {
+            // If rollback fails, log but don't throw (original error is more important)
+            // In production, this should be logged to monitoring system
+            // This is a critical error that indicates potential data inconsistency
+            console.error(
+                `Failed to rollback activity creation after stock update failure: ${rollbackError instanceof Error ? rollbackError.message : "Unknown error"}. Activity ${createdActivity.id} may remain in database without affecting stock.`
             );
         }
+        throw new Error(
+            `Failed to update product stock for activity: ${error instanceof Error ? error.message : "Unknown error"}`
+        );
     }
 
     return createdActivity;
@@ -250,13 +269,33 @@ export const listActivities = async (
  * The function first retrieves the existing activity to validate updates against
  * the current state (e.g., preventing removal of productId from SALE activities).
  *
- * @param {ActivityRepository} repo - Activity repository for data persistence
+ * After updating the activity, this usecase automatically recalculates and updates
+ * the product's stock if the quantity or productId changed. The stock update logic:
+ * - Recalculates stock from all activities using `computeStockFromActivities`
+ *   (this avoids race conditions by using the source of truth instead of incremental updates)
+ * - Updates the product stock to match the recalculated value
+ * - If productId changed, both old and new products are recalculated and updated
+ * - If stock recalculation fails, the activity update is rolled back to maintain data consistency
+ *
+ * Data Consistency Guarantees:
+ * - The activity update and stock recalculation are NOT atomic at the database level (no transaction)
+ * - However, a manual rollback mechanism ensures that if stock recalculation fails, the activity
+ *   is automatically reverted to its previous state to prevent activities with incorrect stock impact
+ * - If the rollback itself fails (rare edge case), the activity may remain in an updated state
+ *   without the corresponding stock update. This should be monitored and can be detected by
+ *   comparing activities with product stock levels
+ * - Consider implementing a background job to detect and fix inconsistencies, or use database
+ *   triggers to ensure stock updates are always applied
+ *
+ * @param {ActivityRepository} activityRepo - Activity repository for data persistence
+ * @param {ProductRepository} productRepo - Product repository for stock updates
  * @param {ActivityId} id - Unique identifier of the activity to update
  * @param {Partial<Activity>} updates - Partial activity object with fields to update
  * @returns {Promise<Activity>} Promise resolving to the updated activity
  * @throws {ActivityError} If validation fails (missing productId for SALE/STOCK_CORRECTION, invalid date, invalid numbers, removing productId from SALE/STOCK_CORRECTION)
  * @throws {Error} If the activity with the given ID does not exist
  * @throws {Error} If repository update fails (database error, constraint violation, etc.)
+ * @throws {Error} If product stock update fails (product not found, database error, etc.)
  *
  * @example
  * ```typescript
@@ -265,24 +304,35 @@ export const listActivities = async (
  *   amount: 199.90,
  *   note: "Updated sale quantity"
  * };
- * const updated = await updateActivity(activityRepository, activityId, updates);
+ * const updated = await updateActivity(activityRepository, productRepository, activityId, updates);
+ * // Activity is updated and product stock is adjusted (old quantity reverted, new quantity applied)
  * ```
  */
 export const updateActivity = async (
-    repo: ActivityRepository,
+    activityRepo: ActivityRepository,
+    productRepo: ProductRepository,
     id: ActivityId,
     updates: Partial<Activity>
 ): Promise<Activity> => {
     // Retrieve existing activity to validate updates against current state
-    const existingActivity = await repo.getById(id);
+    const existingActivity = await activityRepo.getById(id);
     if (!existingActivity) {
         throw new Error(`Activity with id ${id} not found`);
     }
 
     // Validate that if productId is removed, activity type must not be SALE or STOCK_CORRECTION
-    // Check if productId was explicitly set to undefined in updates (before merge)
+    //
+    // Important: We need to distinguish between two cases:
+    // 1. productId is NOT in updates object: updates = { quantity: 10 }
+    //    → productId is not being changed (keep existing value)
+    // 2. productId is explicitly set to undefined: updates = { productId: undefined }
+    //    → productId is being removed (explicit deletion)
+    //
+    // In JavaScript/TypeScript, both cases result in updates.productId === undefined,
+    // so we use "productId" in updates to detect case 2 (key presence indicates explicit removal).
+    // Without this check, we couldn't distinguish between "don't change productId" and "remove productId".
     if (updates.productId === undefined && "productId" in updates) {
-        // productId was explicitly removed - check against existing type
+        // productId was explicitly removed (case 2) - check against existing type
         if (
             existingActivity.type === ActivityType.SALE ||
             existingActivity.type === ActivityType.STOCK_CORRECTION
@@ -342,8 +392,120 @@ export const updateActivity = async (
         throw createValidationError("Activity validation failed");
     }
 
-    // Delegate to repository
-    return repo.update(id, updates);
+    // Check if quantity or productId changed (affects stock)
+    const quantityChanged = updates.quantity !== undefined && updates.quantity !== existingActivity.quantity;
+    
+    // Detect productId changes: either changed to a new value OR explicitly removed (set to undefined)
+    // Note: We use "productId" in updates (not just updates.productId !== undefined) to detect
+    // both cases: (1) productId changed to a new value, and (2) productId explicitly removed (undefined).
+    // Without checking key presence, we couldn't distinguish between "not updating productId"
+    // (key absent) and "removing productId" (key present with undefined value).
+    const productIdChanged = "productId" in updates && updates.productId !== existingActivity.productId;
+    const typeChanged = updates.type !== undefined && updates.type !== existingActivity.type;
+    const affectsStock = quantityChanged || productIdChanged || typeChanged;
+
+    // Update activity in repository
+    const updatedActivity = await activityRepo.update(id, updates);
+
+    // Update product stock if quantity or productId changed
+    if (affectsStock) {
+        try {
+            // Collect all affected product IDs (old and new)
+            const productsToUpdate: Set<ProductId> = new Set();
+            if (existingActivity.productId) {
+                productsToUpdate.add(existingActivity.productId);
+            }
+            if (updatedActivity.productId) {
+                productsToUpdate.add(updatedActivity.productId);
+            }
+
+            // Recalculate stock from all activities for each affected product
+            // This approach avoids race conditions by recalculating from the source of truth
+            // instead of using incremental updates
+            for (const productId of productsToUpdate) {
+                const stockMap = await computeStockFromActivities(activityRepo, productId);
+                const newStock = stockMap[productId] || 0;
+                
+                // Update product stock to the recalculated value
+                // Use atomic update to set the exact value (not increment)
+                // Since we're recalculating from all activities, we need to set the absolute value
+                // Get current stock first to calculate the delta
+                const currentProduct = await productRepo.getById(productId);
+                if (!currentProduct) {
+                    throw new Error(`Product with id ${productId} not found`);
+                }
+                
+                // Calculate delta needed to reach the correct stock
+                const stockDelta = newStock - currentProduct.stock;
+                
+                // Log warning if stock would go negative (indicates potential business logic error)
+                // This helps detect issues like selling more than available stock
+                if (newStock < 0) {
+                    console.warn(
+                        `Stock would go negative for product ${productId}: current stock ${currentProduct.stock}, recalculated stock ${newStock}. Stock will be clamped to 0.`
+                    );
+                }
+                
+                // Apply delta using atomic update (handles clamping to 0)
+                if (stockDelta !== 0) {
+                    await productRepo.updateStockAtomically(productId, stockDelta);
+                }
+            }
+        } catch (error) {
+            // If stock update fails, rollback activity update to maintain data consistency
+            // Note: This operation is NOT atomic at the database level, but we implement
+            // a manual rollback mechanism to maintain data consistency. If stock recalculation
+            // fails, the activity is automatically reverted to its previous state to prevent
+            // activities with incorrect stock impact.
+            //
+            // Edge case: If the rollback itself fails (e.g., database connection lost),
+            // the activity may remain in an updated state without the corresponding stock
+            // update. This is a rare scenario that should be monitored and can be detected
+            // by comparing activities with product stock levels. Consider implementing:
+            // - A background job to detect and fix inconsistencies
+            // - Database triggers to ensure stock updates are always applied
+            // - Monitoring alerts for rollback failures
+            try {
+                // Revert activity to its previous state
+                const revertUpdates: Partial<Activity> = {};
+                if (updates.quantity !== undefined) {
+                    revertUpdates.quantity = existingActivity.quantity;
+                }
+                if (updates.productId !== undefined) {
+                    revertUpdates.productId = existingActivity.productId;
+                }
+                if (updates.type !== undefined) {
+                    revertUpdates.type = existingActivity.type;
+                }
+                if (updates.date !== undefined) {
+                    revertUpdates.date = existingActivity.date;
+                }
+                if (updates.amount !== undefined) {
+                    revertUpdates.amount = existingActivity.amount;
+                }
+                if (updates.note !== undefined) {
+                    revertUpdates.note = existingActivity.note;
+                }
+                
+                // Only revert if there are actual changes to revert
+                if (Object.keys(revertUpdates).length > 0) {
+                    await activityRepo.update(id, revertUpdates);
+                }
+            } catch (rollbackError) {
+                // If rollback fails, log but don't throw (original error is more important)
+                // In production, this should be logged to monitoring system
+                // This is a critical error that indicates potential data inconsistency
+                console.error(
+                    `Failed to rollback activity update after stock recalculation failure: ${rollbackError instanceof Error ? rollbackError.message : "Unknown error"}. Activity ${id} may remain in updated state without corresponding stock update.`
+                );
+            }
+            throw new Error(
+                `Failed to update product stock for activity: ${error instanceof Error ? error.message : "Unknown error"}`
+            );
+        }
+    }
+
+    return updatedActivity;
 };
 
 /**

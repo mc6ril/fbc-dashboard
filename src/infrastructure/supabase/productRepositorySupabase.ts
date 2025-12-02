@@ -629,5 +629,45 @@ export const productRepositorySupabase: ProductRepository = {
 
         return mapSupabaseRowToProductColoris(data as SupabaseProductColorisRow);
     },
+
+    /**
+     * Atomically update product stock by adding a quantity delta.
+     *
+     * Uses a PostgreSQL RPC function to perform an atomic database-level update,
+     * preventing race conditions when multiple activities update the same product
+     * stock concurrently.
+     *
+     * @param {ProductId} id - The unique identifier of the product to update
+     * @param {number} quantityDelta - The quantity to add to the current stock
+     * @returns Promise resolving to the new stock value after the update
+     * @throws {Error} If the product does not exist or update fails
+     */
+    updateStockAtomically: async (id: ProductId, quantityDelta: number): Promise<number> => {
+        const { data, error } = await supabaseClient.rpc("update_product_stock", {
+            p_product_id: id,
+            p_quantity_delta: quantityDelta,
+        });
+
+        if (error) {
+            // Transform Supabase error to domain error
+            if (
+                typeof error === "object" &&
+                error !== null &&
+                "message" in error &&
+                typeof error.message === "string" &&
+                error.message.includes("not found")
+            ) {
+                throw new Error(`Product with id ${id} not found`);
+            }
+            throw transformSupabaseError(error);
+        }
+
+        if (data === null || data === undefined) {
+            throw new Error(`Product with id ${id} not found`);
+        }
+
+        // Parse the returned NUMERIC string to number
+        return parseValidNumber(String(data), "stock");
+    },
 };
 

@@ -92,24 +92,18 @@ import {
 import { createMockActivity } from "../../../__mocks__/core/domain/activity";
 import { createMockActivityRepository } from "../../../__mocks__/core/ports/activityRepository";
 import { createMockProductRepository } from "../../../__mocks__/core/ports/productRepository";
-import { createMockStockMovementRepository } from "../../../__mocks__/core/ports/stockMovementRepository";
 import { createMockProduct } from "../../../__mocks__/core/domain/product";
 import type { ProductId } from "@/core/domain/product";
 import type { ProductRepository } from "@/core/ports/productRepository";
-import type { StockMovementRepository } from "@/core/ports/stockMovementRepository";
-import type { StockMovementId } from "@/core/domain/stockMovement";
-import { StockMovementSource } from "@/core/domain/stockMovement";
 
 describe("Activity Usecases", () => {
     let mockRepo: jest.Mocked<ActivityRepository>;
     let mockProductRepo: jest.Mocked<ProductRepository>;
-    let mockStockMovementRepo: jest.Mocked<StockMovementRepository>;
 
     beforeEach(() => {
         jest.clearAllMocks();
         mockRepo = createMockActivityRepository();
         mockProductRepo = createMockProductRepository();
-        mockStockMovementRepo = createMockStockMovementRepository();
     });
 
     describe("addActivity", () => {
@@ -131,18 +125,19 @@ describe("Activity Usecases", () => {
             });
             mockRepo.create.mockResolvedValue(createdActivity);
 
-            // Act
-            // Arrange - Mock stock movement creation for CREATION activity with productId
-            const mockStockMovement = {
-                id: "stock-movement-id" as StockMovementId,
-                productId: validProductId,
-                quantity: 10,
-                source: StockMovementSource.CREATION,
-            };
-            mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+            // Mock product for stock update
+            const mockProduct = createMockProduct({
+                id: validProductId,
+                stock: 0,
+            });
+            mockProductRepo.getById.mockResolvedValue(mockProduct);
+            mockProductRepo.update.mockResolvedValue({
+                ...mockProduct,
+                stock: 10,
+            });
 
             // Act
-            const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+            const result = await addActivity(mockRepo, mockProductRepo, activityData);
 
             // Assert
             expect(mockRepo.create).toHaveBeenCalledTimes(1);
@@ -166,18 +161,19 @@ describe("Activity Usecases", () => {
             });
             mockRepo.create.mockResolvedValue(createdActivity);
 
-            // Act
-            // Arrange - Mock stock movement creation for CREATION activity with productId
-            const mockStockMovement = {
-                id: "stock-movement-id" as StockMovementId,
-                productId: validProductId,
-                quantity: 10,
-                source: StockMovementSource.CREATION,
-            };
-            mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+            // Mock product for stock update
+            const mockProduct = createMockProduct({
+                id: validProductId,
+                stock: 0,
+            });
+            mockProductRepo.getById.mockResolvedValue(mockProduct);
+            mockProductRepo.update.mockResolvedValue({
+                ...mockProduct,
+                stock: 10,
+            });
 
             // Act
-            const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+            const result = await addActivity(mockRepo, mockProductRepo, activityData);
 
             // Assert
             expect(mockRepo.create).toHaveBeenCalledTimes(1);
@@ -196,7 +192,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockProductRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "productId is required for SALE activity type",
             });
@@ -214,7 +210,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockProductRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "productId is required for STOCK_CORRECTION activity type",
             });
@@ -232,7 +228,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockProductRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "date must be a valid ISO 8601 string",
             });
@@ -250,7 +246,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockProductRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "date must be a valid ISO 8601 string",
             });
@@ -268,7 +264,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockProductRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "quantity must be a valid number",
             });
@@ -286,7 +282,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockProductRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "quantity must be a finite number",
             });
@@ -304,7 +300,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockProductRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "amount must be a valid number",
             });
@@ -322,7 +318,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockProductRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "amount must be a finite number",
             });
@@ -342,7 +338,7 @@ describe("Activity Usecases", () => {
             mockRepo.create.mockRejectedValue(repositoryError);
 
             // Act & Assert
-            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toEqual(
+            await expect(addActivity(mockRepo, mockProductRepo, activityData)).rejects.toEqual(
                 repositoryError
             );
             expect(mockRepo.create).toHaveBeenCalledTimes(1);
@@ -361,7 +357,7 @@ describe("Activity Usecases", () => {
 
             // Act & Assert
             await expect(
-                addActivity(mockRepo, mockStockMovementRepo, activityData)
+                addActivity(mockRepo, mockProductRepo, activityData)
             ).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "Activity validation failed",
@@ -386,12 +382,12 @@ describe("Activity Usecases", () => {
             mockRepo.create.mockResolvedValue(createdActivity);
 
             // Act
-            const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+            const result = await addActivity(mockRepo, mockProductRepo, activityData);
 
             // Assert
             expect(mockRepo.create).toHaveBeenCalledWith(activityData);
-            // Stock movement should NOT be created (no productId)
-            expect(mockStockMovementRepo.create).not.toHaveBeenCalled();
+            // Stock should NOT be updated (no productId)
+            expect(mockProductRepo.getById).not.toHaveBeenCalled();
             expect(result).toEqual(createdActivity);
         });
 
@@ -410,18 +406,19 @@ describe("Activity Usecases", () => {
             });
             mockRepo.create.mockResolvedValue(createdActivity);
 
-            // Act
-            // Arrange - Mock stock movement creation for CREATION activity with productId
-            const mockStockMovement = {
-                id: "stock-movement-id" as StockMovementId,
-                productId: validProductId,
-                quantity: 10,
-                source: StockMovementSource.CREATION,
-            };
-            mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+            // Mock product for stock update
+            const mockProduct = createMockProduct({
+                id: validProductId,
+                stock: 0,
+            });
+            mockProductRepo.getById.mockResolvedValue(mockProduct);
+            mockProductRepo.update.mockResolvedValue({
+                ...mockProduct,
+                stock: 10,
+            });
 
             // Act
-            const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+            const result = await addActivity(mockRepo, mockProductRepo, activityData);
 
             // Assert
             expect(mockRepo.create).toHaveBeenCalledWith(activityData);
@@ -445,12 +442,12 @@ describe("Activity Usecases", () => {
             mockRepo.create.mockResolvedValue(createdActivity);
 
             // Act
-            const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+            const result = await addActivity(mockRepo, mockProductRepo, activityData);
 
             // Assert
             expect(mockRepo.create).toHaveBeenCalledWith(activityData);
-            // Stock movement should NOT be created when productId is missing
-            expect(mockStockMovementRepo.create).not.toHaveBeenCalled();
+            // Stock should NOT be updated when productId is missing
+            expect(mockProductRepo.getById).not.toHaveBeenCalled();
             expect(result).toEqual(createdActivity);
         });
 
@@ -470,28 +467,29 @@ describe("Activity Usecases", () => {
             });
             mockRepo.create.mockResolvedValue(createdActivity);
 
-            // Act
-            // Arrange - Mock stock movement creation for CREATION activity with productId
-            const mockStockMovement = {
-                id: "stock-movement-id" as StockMovementId,
-                productId: validProductId,
-                quantity: 10,
-                source: StockMovementSource.CREATION,
-            };
-            mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+            // Mock product for stock update
+            const mockProduct = createMockProduct({
+                id: validProductId,
+                stock: 0,
+            });
+            mockProductRepo.getById.mockResolvedValue(mockProduct);
+            mockProductRepo.update.mockResolvedValue({
+                ...mockProduct,
+                stock: 10,
+            });
 
             // Act
-            const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+            const result = await addActivity(mockRepo, mockProductRepo, activityData);
 
             // Assert
             expect(mockRepo.create).toHaveBeenCalledWith(activityData);
             expect(result).toEqual(createdActivity);
             // Stock movement should NOT be created for OTHER activities
-            expect(mockStockMovementRepo.create).not.toHaveBeenCalled();
+            expect(mockProductRepo.create).not.toHaveBeenCalled();
         });
 
-        describe("Stock Movement Creation Integration", () => {
-            it("should create stock movement for CREATION activity with productId", async () => {
+        describe("Product Stock Update Integration", () => {
+            it("should update product stock for CREATION activity with productId", async () => {
                 // Arrange
                 const activityData = {
                     date: "2025-01-27T14:00:00.000Z",
@@ -505,29 +503,27 @@ describe("Activity Usecases", () => {
                     id: "created-id" as ActivityId,
                 });
                 mockRepo.create.mockResolvedValue(createdActivity);
-
-                const mockStockMovement = {
-                    id: "stock-movement-id" as StockMovementId,
-                    productId: validProductId,
-                    quantity: 10,
-                    source: StockMovementSource.CREATION,
-                };
-                mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+                // Mock product for stock check (before update)
+                const mockProduct = createMockProduct({
+                    id: validProductId,
+                    stock: 0,
+                });
+                mockProductRepo.getById.mockResolvedValue(mockProduct);
+                // Mock atomic stock update (returns new stock value: 0 + 10 = 10)
+                mockProductRepo.updateStockAtomically.mockResolvedValue(10);
 
                 // Act
-                const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+                const result = await addActivity(mockRepo, mockProductRepo, activityData);
 
                 // Assert
                 expect(mockRepo.create).toHaveBeenCalledWith(activityData);
-                expect(mockStockMovementRepo.create).toHaveBeenCalledWith({
-                    productId: validProductId,
-                    quantity: 10,
-                    source: StockMovementSource.CREATION,
-                });
+                expect(mockProductRepo.getById).toHaveBeenCalledWith(validProductId);
+                expect(mockProductRepo.updateStockAtomically).toHaveBeenCalledWith(validProductId, 10);
+                expect(mockProductRepo.update).not.toHaveBeenCalled();
                 expect(result).toEqual(createdActivity);
             });
 
-            it("should create stock movement for SALE activity with productId", async () => {
+            it("should update product stock for SALE activity with productId", async () => {
                 // Arrange
                 const activityData = {
                     date: "2025-01-27T14:00:00.000Z",
@@ -541,65 +537,27 @@ describe("Activity Usecases", () => {
                     id: "created-id" as ActivityId,
                 });
                 mockRepo.create.mockResolvedValue(createdActivity);
-
-                const mockStockMovement = {
-                    id: "stock-movement-id" as StockMovementId,
-                    productId: validProductId,
-                    quantity: -5,
-                    source: StockMovementSource.SALE,
-                };
-                mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+                // Mock product for stock check (before update)
+                const mockProduct = createMockProduct({
+                    id: validProductId,
+                    stock: 10,
+                });
+                mockProductRepo.getById.mockResolvedValue(mockProduct);
+                // Mock atomic stock update (returns new stock value: 10 + (-5) = 5)
+                mockProductRepo.updateStockAtomically.mockResolvedValue(5);
 
                 // Act
-                const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+                const result = await addActivity(mockRepo, mockProductRepo, activityData);
 
                 // Assert
                 expect(mockRepo.create).toHaveBeenCalledWith(activityData);
-                expect(mockStockMovementRepo.create).toHaveBeenCalledWith({
-                    productId: validProductId,
-                    quantity: -5,
-                    source: StockMovementSource.SALE,
-                });
+                expect(mockProductRepo.getById).toHaveBeenCalledWith(validProductId);
+                expect(mockProductRepo.updateStockAtomically).toHaveBeenCalledWith(validProductId, -5);
+                expect(mockProductRepo.update).not.toHaveBeenCalled();
                 expect(result).toEqual(createdActivity);
             });
 
-            it("should create stock movement for STOCK_CORRECTION activity with productId (mapped to INVENTORY_ADJUSTMENT)", async () => {
-                // Arrange
-                const activityData = {
-                    date: "2025-01-27T14:00:00.000Z",
-                    type: ActivityType.STOCK_CORRECTION,
-                    productId: validProductId,
-                    quantity: -2,
-                    amount: 0,
-                };
-                const createdActivity = createMockActivity({
-                    ...activityData,
-                    id: "created-id" as ActivityId,
-                });
-                mockRepo.create.mockResolvedValue(createdActivity);
-
-                const mockStockMovement = {
-                    id: "stock-movement-id" as StockMovementId,
-                    productId: validProductId,
-                    quantity: -2,
-                    source: StockMovementSource.INVENTORY_ADJUSTMENT,
-                };
-                mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
-
-                // Act
-                const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
-
-                // Assert
-                expect(mockRepo.create).toHaveBeenCalledWith(activityData);
-                expect(mockStockMovementRepo.create).toHaveBeenCalledWith({
-                    productId: validProductId,
-                    quantity: -2,
-                    source: StockMovementSource.INVENTORY_ADJUSTMENT,
-                });
-                expect(result).toEqual(createdActivity);
-            });
-
-            it("should NOT create stock movement for OTHER activity (even with productId)", async () => {
+            it("should NOT update product stock for OTHER activity (even with productId)", async () => {
                 // Arrange
                 const activityData = {
                     date: "2025-01-27T14:00:00.000Z",
@@ -615,15 +573,15 @@ describe("Activity Usecases", () => {
                 mockRepo.create.mockResolvedValue(createdActivity);
 
                 // Act
-                const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+                const result = await addActivity(mockRepo, mockProductRepo, activityData);
 
                 // Assert
                 expect(mockRepo.create).toHaveBeenCalledWith(activityData);
-                expect(mockStockMovementRepo.create).not.toHaveBeenCalled();
+                expect(mockProductRepo.getById).not.toHaveBeenCalled();
                 expect(result).toEqual(createdActivity);
             });
 
-            it("should NOT create stock movement for CREATION activity without productId", async () => {
+            it("should NOT update product stock for CREATION activity without productId", async () => {
                 // Arrange
                 const activityData = {
                     date: "2025-01-27T14:00:00.000Z",
@@ -640,11 +598,11 @@ describe("Activity Usecases", () => {
                 mockRepo.create.mockResolvedValue(createdActivity);
 
                 // Act
-                const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+                const result = await addActivity(mockRepo, mockProductRepo, activityData);
 
                 // Assert
                 expect(mockRepo.create).toHaveBeenCalledWith(activityData);
-                expect(mockStockMovementRepo.create).not.toHaveBeenCalled();
+                expect(mockProductRepo.getById).not.toHaveBeenCalled();
                 expect(result).toEqual(createdActivity);
             });
 
@@ -660,13 +618,13 @@ describe("Activity Usecases", () => {
 
                 // Act & Assert
                 await expect(
-                    addActivity(mockRepo, mockStockMovementRepo, activityData)
+                    addActivity(mockRepo, mockProductRepo, activityData)
                 ).rejects.toMatchObject({
                     code: "VALIDATION_ERROR",
                     message: "Activity validation failed",
                 });
                 expect(mockRepo.create).not.toHaveBeenCalled();
-                expect(mockStockMovementRepo.create).not.toHaveBeenCalled();
+                expect(mockProductRepo.getById).not.toHaveBeenCalled();
             });
 
             it("should pass quantity exactly as-is (no transformation)", async () => {
@@ -683,28 +641,78 @@ describe("Activity Usecases", () => {
                     id: "created-id" as ActivityId,
                 });
                 mockRepo.create.mockResolvedValue(createdActivity);
-
-                const mockStockMovement = {
-                    id: "stock-movement-id" as StockMovementId,
-                    productId: validProductId,
-                    quantity: -7.5,
-                    source: StockMovementSource.SALE,
-                };
-                mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+                // Mock product for stock update
+                // Mock product for stock check (before update)
+                const mockProduct = createMockProduct({
+                    id: validProductId,
+                    stock: 0,
+                });
+                mockProductRepo.getById.mockResolvedValue(mockProduct);
+                // Mock atomic stock update (returns new stock value: 0 + (-7.5) = 0, clamped to 0)
+                mockProductRepo.updateStockAtomically.mockResolvedValue(0);
 
                 // Act
-                const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+                const result = await addActivity(mockRepo, mockProductRepo, activityData);
 
                 // Assert
-                expect(mockStockMovementRepo.create).toHaveBeenCalledWith({
-                    productId: validProductId,
-                    quantity: -7.5, // Quantity matches exactly
-                    source: StockMovementSource.SALE,
-                });
+                // Stock is clamped to 0 minimum (0 + (-7.5) = 0, not -7.5)
+                expect(mockProductRepo.getById).toHaveBeenCalledWith(validProductId);
+                expect(mockProductRepo.updateStockAtomically).toHaveBeenCalledWith(validProductId, -7.5);
+                expect(mockProductRepo.update).not.toHaveBeenCalled();
                 expect(result).toEqual(createdActivity);
             });
 
-            it("should throw error if stock movement creation fails", async () => {
+            it("should log warning when stock would go negative (clamped to 0)", async () => {
+                // Arrange
+                const activityData = {
+                    date: "2025-01-27T14:00:00.000Z",
+                    type: ActivityType.SALE,
+                    productId: validProductId,
+                    quantity: -15, // Selling 15 units
+                    amount: 99.95,
+                };
+                const createdActivity = createMockActivity({
+                    ...activityData,
+                    id: "created-id" as ActivityId,
+                });
+                mockRepo.create.mockResolvedValue(createdActivity);
+                
+                // Mock product with low stock (only 10 units available)
+                const mockProduct = createMockProduct({
+                    id: validProductId,
+                    stock: 10, // Only 10 units available
+                });
+                mockProductRepo.getById.mockResolvedValue(mockProduct);
+                // Mock atomic stock update (returns 0, clamped from -5)
+                mockProductRepo.updateStockAtomically.mockResolvedValue(0);
+                
+                // Spy on console.warn to verify warning is logged
+                const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+
+                // Act
+                const result = await addActivity(mockRepo, mockProductRepo, activityData);
+
+                // Assert
+                expect(mockRepo.create).toHaveBeenCalledWith(activityData);
+                expect(mockProductRepo.getById).toHaveBeenCalledWith(validProductId);
+                expect(mockProductRepo.updateStockAtomically).toHaveBeenCalledWith(validProductId, -15);
+                // Verify warning is logged when stock would go negative
+                expect(consoleWarnSpy).toHaveBeenCalledWith(
+                    expect.stringContaining("Stock would go negative")
+                );
+                expect(consoleWarnSpy).toHaveBeenCalledWith(
+                    expect.stringContaining("current stock 10")
+                );
+                expect(consoleWarnSpy).toHaveBeenCalledWith(
+                    expect.stringContaining("expected stock -5")
+                );
+                expect(result).toEqual(createdActivity);
+                
+                // Cleanup
+                consoleWarnSpy.mockRestore();
+            });
+
+            it("should rollback activity creation if stock update fails", async () => {
                 // Arrange
                 const activityData = {
                     date: "2025-01-27T14:00:00.000Z",
@@ -718,18 +726,59 @@ describe("Activity Usecases", () => {
                     id: "created-id" as ActivityId,
                 });
                 mockRepo.create.mockResolvedValue(createdActivity);
+                mockRepo.delete.mockResolvedValue(undefined);
 
-                const stockMovementError = new Error("Database connection error");
-                mockStockMovementRepo.create.mockRejectedValue(stockMovementError);
+                // Mock product for stock check (before update)
+                const mockProduct = createMockProduct({
+                    id: validProductId,
+                    stock: 0,
+                });
+                mockProductRepo.getById.mockResolvedValue(mockProduct);
+                const stockUpdateError = new Error("Product not found");
+                mockProductRepo.updateStockAtomically.mockRejectedValue(stockUpdateError);
 
                 // Act & Assert
                 await expect(
-                    addActivity(mockRepo, mockStockMovementRepo, activityData)
-                ).rejects.toThrow("Failed to create stock movement for activity");
+                    addActivity(mockRepo, mockProductRepo, activityData)
+                ).rejects.toThrow("Failed to update product stock for activity");
 
-                // Activity should have been created (Option B: manual rollback)
+                // Activity should have been created first
                 expect(mockRepo.create).toHaveBeenCalledWith(activityData);
-                expect(mockStockMovementRepo.create).toHaveBeenCalled();
+                expect(mockProductRepo.getById).toHaveBeenCalledWith(validProductId);
+                expect(mockProductRepo.updateStockAtomically).toHaveBeenCalledWith(validProductId, 10);
+                
+                // Activity should be rolled back (deleted) after stock update failure
+                expect(mockRepo.delete).toHaveBeenCalledWith(createdActivity.id);
+            });
+
+            it("should throw error even if rollback fails (original error is more important)", async () => {
+                // Arrange
+                const activityData = {
+                    date: "2025-01-27T14:00:00.000Z",
+                    type: ActivityType.CREATION,
+                    productId: validProductId,
+                    quantity: 10,
+                    amount: 50.0,
+                };
+                const createdActivity = createMockActivity({
+                    ...activityData,
+                    id: "created-id" as ActivityId,
+                });
+                mockRepo.create.mockResolvedValue(createdActivity);
+                const rollbackError = new Error("Failed to delete activity");
+                mockRepo.delete.mockRejectedValue(rollbackError);
+
+                const stockUpdateError = new Error("Product not found");
+                mockProductRepo.updateStockAtomically.mockRejectedValue(stockUpdateError);
+
+                // Act & Assert
+                // Should throw the original stock update error, not the rollback error
+                await expect(
+                    addActivity(mockRepo, mockProductRepo, activityData)
+                ).rejects.toThrow("Failed to update product stock for activity");
+
+                // Rollback should have been attempted
+                expect(mockRepo.delete).toHaveBeenCalledWith(createdActivity.id);
             });
         });
     });
@@ -808,15 +857,45 @@ describe("Activity Usecases", () => {
             });
             mockRepo.getById.mockResolvedValue(existingActivity);
             mockRepo.update.mockResolvedValue(updatedActivity);
+            // Mock list() for computeStockFromActivities
+            // Include other activities that contribute to the stock (simulating existing stock of 100)
+            // The updated activity has quantity 15, so total stock should be 100 + (15 - 10) = 105
+            const otherActivity = createMockActivity({
+                id: "other-activity-id" as ActivityId,
+                type: ActivityType.CREATION,
+                productId: existingActivity.productId,
+                quantity: 100, // Existing stock from other activities
+            });
+            mockRepo.list.mockResolvedValue([otherActivity, updatedActivity]);
+            // Mock product for stock recalculation
+            if (existingActivity.productId) {
+                const mockProduct = createMockProduct({
+                    id: existingActivity.productId,
+                    stock: 100, // Current stock in database
+                });
+                mockProductRepo.getById.mockResolvedValue(mockProduct);
+                // After recalculation: computed stock is 115 (100 from other + 15 from updated)
+                // Delta needed: 115 - 100 = 15
+                mockProductRepo.updateStockAtomically.mockResolvedValue(115);
+            }
 
             // Act
-            const result = await updateActivity(mockRepo, activityId, updates);
+            const result = await updateActivity(mockRepo, mockProductRepo, activityId, updates);
 
             // Assert
             expect(mockRepo.getById).toHaveBeenCalledTimes(1);
             expect(mockRepo.getById).toHaveBeenCalledWith(activityId);
             expect(mockRepo.update).toHaveBeenCalledTimes(1);
             expect(mockRepo.update).toHaveBeenCalledWith(activityId, updates);
+            // Should recalculate stock from all activities
+            expect(mockRepo.list).toHaveBeenCalled();
+            if (existingActivity.productId) {
+                expect(mockProductRepo.getById).toHaveBeenCalledWith(existingActivity.productId);
+                expect(mockProductRepo.updateStockAtomically).toHaveBeenCalledWith(
+                    existingActivity.productId,
+                    15 // Delta: 115 - 100 = 15
+                );
+            }
             expect(result).toEqual(updatedActivity);
         });
 
@@ -835,7 +914,7 @@ describe("Activity Usecases", () => {
 
             // Act & Assert
             await expect(
-                updateActivity(mockRepo, activityId, updates)
+                updateActivity(mockRepo, mockProductRepo, activityId, updates)
             ).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "productId is required for SALE activity type",
@@ -858,7 +937,7 @@ describe("Activity Usecases", () => {
 
             // Act & Assert
             await expect(
-                updateActivity(mockRepo, activityId, updates)
+                updateActivity(mockRepo, mockProductRepo, activityId, updates)
             ).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "Cannot remove productId from SALE activity type",
@@ -881,7 +960,7 @@ describe("Activity Usecases", () => {
 
             // Act & Assert
             await expect(
-                updateActivity(mockRepo, activityId, updates)
+                updateActivity(mockRepo, mockProductRepo, activityId, updates)
             ).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "Cannot remove productId from STOCK_CORRECTION activity type",
@@ -902,7 +981,7 @@ describe("Activity Usecases", () => {
 
             // Act & Assert
             await expect(
-                updateActivity(mockRepo, activityId, updates)
+                updateActivity(mockRepo, mockProductRepo, activityId, updates)
             ).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "date must be a valid ISO 8601 string",
@@ -923,7 +1002,7 @@ describe("Activity Usecases", () => {
 
             // Act & Assert
             await expect(
-                updateActivity(mockRepo, activityId, updates)
+                updateActivity(mockRepo, mockProductRepo, activityId, updates)
             ).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "quantity must be a valid number",
@@ -944,7 +1023,7 @@ describe("Activity Usecases", () => {
 
             // Act & Assert
             await expect(
-                updateActivity(mockRepo, activityId, updates)
+                updateActivity(mockRepo, mockProductRepo, activityId, updates)
             ).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "quantity must be a finite number",
@@ -965,7 +1044,7 @@ describe("Activity Usecases", () => {
 
             // Act & Assert
             await expect(
-                updateActivity(mockRepo, activityId, updates)
+                updateActivity(mockRepo, mockProductRepo, activityId, updates)
             ).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "amount must be a valid number",
@@ -986,7 +1065,7 @@ describe("Activity Usecases", () => {
 
             // Act & Assert
             await expect(
-                updateActivity(mockRepo, activityId, updates)
+                updateActivity(mockRepo, mockProductRepo, activityId, updates)
             ).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "amount must be a finite number",
@@ -1001,7 +1080,7 @@ describe("Activity Usecases", () => {
 
             // Act & Assert
             await expect(
-                updateActivity(mockRepo, activityId, { quantity: 10 })
+                updateActivity(mockRepo, mockProductRepo, activityId, { quantity: 10 })
             ).rejects.toThrow(`Activity with id ${activityId} not found`);
             expect(mockRepo.getById).toHaveBeenCalledTimes(1);
             expect(mockRepo.getById).toHaveBeenCalledWith(activityId);
@@ -1022,7 +1101,7 @@ describe("Activity Usecases", () => {
 
             // Act & Assert
             await expect(
-                updateActivity(mockRepo, activityId, updates)
+                updateActivity(mockRepo, mockProductRepo, activityId, updates)
             ).rejects.toEqual(repositoryError);
             expect(mockRepo.getById).toHaveBeenCalledTimes(1);
             expect(mockRepo.update).toHaveBeenCalledTimes(1);
@@ -1039,7 +1118,7 @@ describe("Activity Usecases", () => {
             mockRepo.update.mockResolvedValue(existingActivity);
 
             // Act
-            const result = await updateActivity(mockRepo, activityId, updates);
+            const result = await updateActivity(mockRepo, mockProductRepo, activityId, updates);
 
             // Assert
             expect(mockRepo.getById).toHaveBeenCalledTimes(1);
@@ -1063,9 +1142,21 @@ describe("Activity Usecases", () => {
             });
             mockRepo.getById.mockResolvedValue(existingActivity);
             mockRepo.update.mockResolvedValue(updatedActivity);
+            // Mock list() for computeStockFromActivities (includes the updated activity)
+            mockRepo.list.mockResolvedValue([updatedActivity]);
+            // Mock product for stock recalculation
+            if (existingActivity.productId) {
+                const mockProduct = createMockProduct({
+                    id: existingActivity.productId,
+                    stock: 100, // Current stock
+                });
+                mockProductRepo.getById.mockResolvedValue(mockProduct);
+                // After recalculation: stock should be 80 (100 - 10 - 10 = 80)
+                mockProductRepo.updateStockAtomically.mockResolvedValue(80);
+            }
 
             // Act
-            const result = await updateActivity(mockRepo, activityId, updates);
+            const result = await updateActivity(mockRepo, mockProductRepo, activityId, updates);
 
             // Assert
             expect(mockRepo.update).toHaveBeenCalledWith(activityId, updates);
@@ -1091,12 +1182,27 @@ describe("Activity Usecases", () => {
             });
             mockRepo.getById.mockResolvedValue(existingActivity);
             mockRepo.update.mockResolvedValue(updatedActivity);
+            // Mock list() for computeStockFromActivities
+            // The updated activity has quantity -10, so computed stock will be -10
+            mockRepo.list.mockResolvedValue([updatedActivity]);
+            // Mock product for stock recalculation
+            const mockProduct = createMockProduct({
+                id: validProductId,
+                stock: 100, // Current stock in database
+            });
+            mockProductRepo.getById.mockResolvedValue(mockProduct);
+            // After recalculation: computed stock is -10 (from updated activity)
+            // Delta needed: -10 - 100 = -110 (but clamped to 0, so actual delta is -100)
+            mockProductRepo.updateStockAtomically.mockResolvedValue(0);
 
             // Act
-            const result = await updateActivity(mockRepo, activityId, updates);
+            const result = await updateActivity(mockRepo, mockProductRepo, activityId, updates);
 
             // Assert
             expect(mockRepo.update).toHaveBeenCalledWith(activityId, updates);
+            expect(mockRepo.list).toHaveBeenCalled();
+            expect(mockProductRepo.getById).toHaveBeenCalledWith(validProductId);
+            expect(mockProductRepo.updateStockAtomically).toHaveBeenCalledWith(validProductId, -110); // Delta: -10 - 100 = -110
             expect(result).toEqual(updatedActivity);
         });
 
@@ -1119,12 +1225,69 @@ describe("Activity Usecases", () => {
             });
             mockRepo.getById.mockResolvedValue(existingActivity);
             mockRepo.update.mockResolvedValue(updatedActivity);
+            // Mock list() for computeStockFromActivities
+            // The updated activity has quantity -5, so computed stock will be -5
+            mockRepo.list.mockResolvedValue([updatedActivity]);
+            // Mock product for stock recalculation
+            const mockProduct = createMockProduct({
+                id: validProductId,
+                stock: 100, // Current stock in database
+            });
+            mockProductRepo.getById.mockResolvedValue(mockProduct);
+            // After recalculation: computed stock is -5 (from updated activity)
+            // Delta needed: -5 - 100 = -105 (but clamped to 0, so actual delta is -100)
+            mockProductRepo.updateStockAtomically.mockResolvedValue(0);
 
             // Act
-            const result = await updateActivity(mockRepo, activityId, updates);
+            const result = await updateActivity(mockRepo, mockProductRepo, activityId, updates);
 
             // Assert
             expect(mockRepo.update).toHaveBeenCalledWith(activityId, updates);
+            expect(mockRepo.list).toHaveBeenCalled();
+            expect(mockProductRepo.getById).toHaveBeenCalledWith(validProductId);
+            expect(mockProductRepo.updateStockAtomically).toHaveBeenCalledWith(validProductId, -105); // Delta: -5 - 100 = -105
+            expect(result).toEqual(updatedActivity);
+        });
+
+        it("should revert stock when productId is explicitly removed from CREATION activity", async () => {
+            // Arrange
+            const existingActivity = createMockActivity({
+                id: activityId,
+                type: ActivityType.CREATION,
+                productId: validProductId,
+                quantity: 10, // Positive for CREATION
+            });
+            const updates = {
+                productId: undefined, // Explicitly remove productId
+            };
+            const updatedActivity = createMockActivity({
+                ...existingActivity,
+                ...updates,
+            });
+            mockRepo.getById.mockResolvedValue(existingActivity);
+            mockRepo.update.mockResolvedValue(updatedActivity);
+            // Mock list() for computeStockFromActivities (no activities for this product after removal)
+            // When productId is removed, computeStockFromActivities with this productId returns empty map
+            mockRepo.list.mockResolvedValue([]);
+            // Mock product for stock recalculation
+            const mockProduct = createMockProduct({
+                id: validProductId,
+                stock: 100, // Current stock in database
+            });
+            mockProductRepo.getById.mockResolvedValue(mockProduct);
+            // After recalculation: computed stock is 0 (no activities for this product)
+            // Delta needed: 0 - 100 = -100
+            mockProductRepo.updateStockAtomically.mockResolvedValue(0);
+
+            // Act
+            const result = await updateActivity(mockRepo, mockProductRepo, activityId, updates);
+
+            // Assert
+            expect(mockRepo.update).toHaveBeenCalledWith(activityId, updates);
+            // Should recalculate stock from all activities (none for this product after removal)
+            expect(mockRepo.list).toHaveBeenCalled();
+            expect(mockProductRepo.getById).toHaveBeenCalledWith(validProductId);
+            expect(mockProductRepo.updateStockAtomically).toHaveBeenCalledWith(validProductId, -100); // Delta: 0 - 100 = -100
             expect(result).toEqual(updatedActivity);
         });
     });
