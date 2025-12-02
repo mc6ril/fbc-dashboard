@@ -23,9 +23,13 @@ jest.mock("@/core/usecases/activity", () => ({
     addActivity: jest.fn(),
 }));
 
-// Mock the repository
+// Mock the repositories
 jest.mock("@/infrastructure/supabase/activityRepositorySupabase", () => ({
     activityRepositorySupabase: {},
+}));
+
+jest.mock("@/infrastructure/supabase/stockMovementRepositorySupabase", () => ({
+    stockMovementRepositorySupabase: {},
 }));
 
 const mockAddActivity = addActivity as jest.MockedFunction<typeof addActivity>;
@@ -82,7 +86,11 @@ describe("useAddActivity Hook", () => {
             expect(mockAddActivity).toHaveBeenCalledTimes(1);
         });
 
-        expect(mockAddActivity).toHaveBeenCalledWith(expect.any(Object), newActivity);
+        expect(mockAddActivity).toHaveBeenCalledWith(
+            expect.any(Object),
+            expect.any(Object),
+            newActivity
+        );
     });
 
     it("should invalidate activities list queries on success", async () => {
@@ -131,6 +139,12 @@ describe("useAddActivity Hook", () => {
 
         // Should invalidate all activities queries
         expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ["activities"] });
+        // Should invalidate stock movements queries
+        expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ["stock-movements"] });
+        // Should invalidate dashboard low stock products query
+        expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+            queryKey: queryKeys.dashboard.lowStockProducts(),
+        });
     });
 
     it("should invalidate dashboard recent activities query on success", async () => {
@@ -180,6 +194,12 @@ describe("useAddActivity Hook", () => {
         // Should invalidate dashboard recent activities query
         expect(invalidateQueriesSpy).toHaveBeenCalledWith({
             queryKey: queryKeys.dashboard.recentActivities(),
+        });
+        // Should invalidate stock movements queries
+        expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ["stock-movements"] });
+        // Should invalidate dashboard low stock products query
+        expect(invalidateQueriesSpy).toHaveBeenCalledWith({
+            queryKey: queryKeys.dashboard.lowStockProducts(),
         });
     });
 

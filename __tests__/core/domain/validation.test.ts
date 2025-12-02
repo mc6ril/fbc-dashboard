@@ -38,6 +38,7 @@ import {
     isNegativeForSale,
     isValidStockMovement,
     isValidQuantityForSource,
+    isValidQuantityForActivityType,
     isValidActivityType,
     isValidStockMovementSource,
     isValidProductModel,
@@ -228,6 +229,118 @@ describe("Domain Validation - Activity", () => {
             };
             expect(isValidActivity(activity)).toBe(false);
         });
+
+        it("should validate quantity sign for CREATION activity with productId (must be positive)", () => {
+            const activity: Activity = {
+                ...validActivity,
+                type: ActivityType.CREATION,
+                productId: createProductId("550e8400-e29b-41d4-a716-446655440000"),
+                quantity: 10, // Positive - valid
+            };
+            expect(isValidActivity(activity)).toBe(true);
+        });
+
+        it("should reject CREATION activity with negative quantity when productId is present", () => {
+            const activity: Activity = {
+                ...validActivity,
+                type: ActivityType.CREATION,
+                productId: createProductId("550e8400-e29b-41d4-a716-446655440000"),
+                quantity: -10, // Negative - invalid for CREATION
+            };
+            expect(isValidActivity(activity)).toBe(false);
+        });
+
+        it("should validate quantity sign for SALE activity with productId (must be negative)", () => {
+            const activity: Activity = {
+                ...validActivity,
+                type: ActivityType.SALE,
+                productId: createProductId("550e8400-e29b-41d4-a716-446655440000"),
+                quantity: -5, // Negative - valid
+            };
+            expect(isValidActivity(activity)).toBe(true);
+        });
+
+        it("should reject SALE activity with positive quantity when productId is present", () => {
+            const activity: Activity = {
+                ...validActivity,
+                type: ActivityType.SALE,
+                productId: createProductId("550e8400-e29b-41d4-a716-446655440000"),
+                quantity: 5, // Positive - invalid for SALE
+            };
+            expect(isValidActivity(activity)).toBe(false);
+        });
+
+        it("should reject zero quantity for activities with productId (activities with productId represent actual stock events)", () => {
+            const creationActivity: Activity = {
+                ...validActivity,
+                type: ActivityType.CREATION,
+                productId: createProductId("550e8400-e29b-41d4-a716-446655440000"),
+                quantity: 0, // Zero - invalid (activities with productId must have non-zero quantity)
+            };
+            expect(isValidActivity(creationActivity)).toBe(false);
+
+            const saleActivity: Activity = {
+                ...validActivity,
+                type: ActivityType.SALE,
+                productId: createProductId("550e8400-e29b-41d4-a716-446655440000"),
+                quantity: 0, // Zero - invalid (activities with productId must have non-zero quantity)
+            };
+            expect(isValidActivity(saleActivity)).toBe(false);
+
+            const stockCorrectionActivity: Activity = {
+                ...validActivity,
+                type: ActivityType.STOCK_CORRECTION,
+                productId: createProductId("550e8400-e29b-41d4-a716-446655440000"),
+                quantity: 0, // Zero - invalid (activities with productId must have non-zero quantity)
+            };
+            expect(isValidActivity(stockCorrectionActivity)).toBe(false);
+        });
+
+        it("should allow zero quantity for activities without productId (no stock impact)", () => {
+            const creationActivity: Activity = {
+                ...validActivity,
+                type: ActivityType.CREATION,
+                productId: undefined, // No productId
+                quantity: 0, // Zero - allowed (no stock impact)
+            };
+            expect(isValidActivity(creationActivity)).toBe(true);
+
+            const otherActivity: Activity = {
+                ...validActivity,
+                type: ActivityType.OTHER,
+                productId: undefined, // No productId
+                quantity: 0, // Zero - allowed (no stock impact)
+            };
+            expect(isValidActivity(otherActivity)).toBe(true);
+        });
+
+        it("should allow positive or negative quantity for STOCK_CORRECTION with productId", () => {
+            const positiveActivity: Activity = {
+                ...validActivity,
+                type: ActivityType.STOCK_CORRECTION,
+                productId: createProductId("550e8400-e29b-41d4-a716-446655440000"),
+                quantity: 5, // Positive - valid
+            };
+            expect(isValidActivity(positiveActivity)).toBe(true);
+
+            const negativeActivity: Activity = {
+                ...validActivity,
+                type: ActivityType.STOCK_CORRECTION,
+                productId: createProductId("550e8400-e29b-41d4-a716-446655440000"),
+                quantity: -5, // Negative - valid
+            };
+            expect(isValidActivity(negativeActivity)).toBe(true);
+        });
+
+        it("should not validate quantity sign when productId is missing (no stock movement created)", () => {
+            const activity: Activity = {
+                ...validActivity,
+                type: ActivityType.CREATION,
+                productId: undefined, // No productId
+                quantity: -10, // Negative - but allowed because no productId
+            };
+            expect(isValidActivity(activity)).toBe(true);
+        });
     });
 
     describe("isNegativeForSale", () => {
@@ -265,6 +378,36 @@ describe("Domain Validation - Activity", () => {
                 quantity: -5,
             };
             expect(isNegativeForSale(activity)).toBe(false);
+        });
+    });
+
+    describe("isValidQuantityForActivityType", () => {
+        it("should validate positive quantity for CREATION", () => {
+            expect(isValidQuantityForActivityType(10, ActivityType.CREATION)).toBe(true);
+            expect(isValidQuantityForActivityType(-10, ActivityType.CREATION)).toBe(false);
+        });
+
+        it("should validate negative quantity for SALE", () => {
+            expect(isValidQuantityForActivityType(-5, ActivityType.SALE)).toBe(true);
+            expect(isValidQuantityForActivityType(5, ActivityType.SALE)).toBe(false);
+        });
+
+        it("should validate non-zero quantity for STOCK_CORRECTION", () => {
+            expect(isValidQuantityForActivityType(10, ActivityType.STOCK_CORRECTION)).toBe(true);
+            expect(isValidQuantityForActivityType(-10, ActivityType.STOCK_CORRECTION)).toBe(true);
+        });
+
+        it("should allow zero quantity for all activity types", () => {
+            expect(isValidQuantityForActivityType(0, ActivityType.CREATION)).toBe(true);
+            expect(isValidQuantityForActivityType(0, ActivityType.SALE)).toBe(true);
+            expect(isValidQuantityForActivityType(0, ActivityType.STOCK_CORRECTION)).toBe(true);
+            expect(isValidQuantityForActivityType(0, ActivityType.OTHER)).toBe(true);
+        });
+
+        it("should allow any quantity for OTHER type", () => {
+            expect(isValidQuantityForActivityType(10, ActivityType.OTHER)).toBe(true);
+            expect(isValidQuantityForActivityType(-10, ActivityType.OTHER)).toBe(true);
+            expect(isValidQuantityForActivityType(0, ActivityType.OTHER)).toBe(true);
         });
     });
 

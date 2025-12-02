@@ -229,11 +229,84 @@ export const isValidProduct = (product: Product): boolean => {
 };
 
 /**
+ * Validates that a quantity sign is appropriate for a given ActivityType.
+ *
+ * Business rules for quantity signs (when productId is present and quantity is non-zero):
+ * - CREATION: quantity should be POSITIVE (stock increases)
+ * - SALE: quantity should be NEGATIVE (stock decreases)
+ * - STOCK_CORRECTION: quantity can be POSITIVE or NEGATIVE (either direction allowed, but not zero)
+ * - OTHER: no sign requirement (quantity can be any value)
+ *
+ * Zero quantity is allowed for all activity types (represents no stock change).
+ * This validation ensures that activities with productId have correct quantity signs
+ * before they are converted to stock movements, preventing validation failures
+ * in the stock movement domain layer.
+ *
+ * @param {number} quantity - Quantity value to validate
+ * @param {ActivityType} type - Type of the activity
+ * @returns {boolean} True if quantity sign is valid for the activity type, false otherwise
+ *
+ * @example
+ * ```typescript
+ * isValidQuantityForActivityType(10, ActivityType.CREATION); // true (positive for creation)
+ * isValidQuantityForActivityType(-10, ActivityType.CREATION); // false (should be positive)
+ * isValidQuantityForActivityType(0, ActivityType.CREATION); // true (zero allowed - no stock change)
+ * isValidQuantityForActivityType(-5, ActivityType.SALE); // true (negative for sale)
+ * isValidQuantityForActivityType(5, ActivityType.SALE); // false (should be negative)
+ * isValidQuantityForActivityType(0, ActivityType.SALE); // true (zero allowed - no stock change)
+ * isValidQuantityForActivityType(10, ActivityType.STOCK_CORRECTION); // true (either sign allowed)
+ * isValidQuantityForActivityType(-10, ActivityType.STOCK_CORRECTION); // true (either sign allowed)
+ * isValidQuantityForActivityType(0, ActivityType.STOCK_CORRECTION); // true (zero allowed - no stock change)
+ * isValidQuantityForActivityType(10, ActivityType.OTHER); // true (no sign requirement)
+ * ```
+ */
+export const isValidQuantityForActivityType = (
+    quantity: number,
+    type: ActivityType
+): boolean => {
+    // Zero quantity is allowed for all types (represents no stock change)
+    if (quantity === 0) {
+        return true;
+    }
+
+    switch (type) {
+        case ActivityType.CREATION:
+            // CREATION should have positive quantity (stock increases)
+            return quantity > 0;
+        case ActivityType.SALE:
+            // SALE should have negative quantity (stock decreases)
+            return quantity < 0;
+        case ActivityType.STOCK_CORRECTION:
+            // STOCK_CORRECTION can have either positive or negative quantity
+            // (zero is already handled above)
+            return true;
+        case ActivityType.OTHER:
+            // OTHER has no sign requirement (quantity can be any value)
+            return true;
+        default:
+            // Unknown type - reject for safety
+            return false;
+    }
+};
+
+/**
  * Validates an Activity entity against business rules.
  *
  * Business rules:
  * - productId is REQUIRED for SALE and STOCK_CORRECTION types
  * - productId is OPTIONAL for CREATION and OTHER types
+ * - When productId is present, quantity must be NON-ZERO and sign must match activity type conventions:
+ *   - CREATION: quantity must be POSITIVE (stock increases)
+ *   - SALE: quantity must be NEGATIVE (stock decreases)
+ *   - STOCK_CORRECTION: quantity must be NON-ZERO (can be positive or negative)
+ *   - OTHER: quantity must be NON-ZERO (any sign allowed)
+ *
+ * Activities with productId represent actual stock events and must have non-zero quantities.
+ * Zero quantity is only allowed for activities without productId (no stock impact).
+ *
+ * This validation ensures that activities with productId have correct quantity signs
+ * before they are converted to stock movements, preventing validation failures
+ * in the stock movement domain layer.
  *
  * @param {Activity} activity - Activity entity to validate
  * @returns {boolean} True if activity meets all business rules, false otherwise
@@ -245,7 +318,7 @@ export const isValidProduct = (product: Product): boolean => {
  *   date: "2025-01-27T14:00:00.000Z",
  *   type: ActivityType.SALE,
  *   productId: "550e8400-e29b-41d4-a716-446655440000" as ProductId, // Required for SALE
- *   quantity: -5,
+ *   quantity: -5, // Negative for sale
  *   amount: 99.95,
  * };
  * isValidActivity(validSale); // true
@@ -255,6 +328,18 @@ export const isValidProduct = (product: Product): boolean => {
  *   productId: undefined, // Invalid: productId required for SALE
  * };
  * isValidActivity(invalidSale); // false
+ *
+ * const invalidSaleQuantity: Activity = {
+ *   ...validSale,
+ *   quantity: 5, // Invalid: should be negative for SALE
+ * };
+ * isValidActivity(invalidSaleQuantity); // false
+ *
+ * const invalidZeroQuantity: Activity = {
+ *   ...validSale,
+ *   quantity: 0, // Invalid: activities with productId must have non-zero quantity
+ * };
+ * isValidActivity(invalidZeroQuantity); // false
  * ```
  */
 export const isValidActivity = (activity: Activity): boolean => {
@@ -263,7 +348,19 @@ export const isValidActivity = (activity: Activity): boolean => {
         activity.type === ActivityType.STOCK_CORRECTION;
 
     if (requiresProductId) {
-        return activity.productId !== undefined && activity.productId !== null;
+        if (activity.productId === undefined || activity.productId === null) {
+            return false;
+        }
+    }
+
+    // Validate quantity when productId is present (activities with productId represent actual stock events)
+    if (activity.productId !== undefined && activity.productId !== null) {
+        // Activities with productId must have non-zero quantity (they represent actual stock events)
+        if (activity.quantity === 0) {
+            return false;
+        }
+        // Validate quantity sign matches activity type conventions
+        return isValidQuantityForActivityType(activity.quantity, activity.type);
     }
 
     return true;

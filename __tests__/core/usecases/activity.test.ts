@@ -92,18 +92,24 @@ import {
 import { createMockActivity } from "../../../__mocks__/core/domain/activity";
 import { createMockActivityRepository } from "../../../__mocks__/core/ports/activityRepository";
 import { createMockProductRepository } from "../../../__mocks__/core/ports/productRepository";
+import { createMockStockMovementRepository } from "../../../__mocks__/core/ports/stockMovementRepository";
 import { createMockProduct } from "../../../__mocks__/core/domain/product";
 import type { ProductId } from "@/core/domain/product";
 import type { ProductRepository } from "@/core/ports/productRepository";
+import type { StockMovementRepository } from "@/core/ports/stockMovementRepository";
+import type { StockMovementId } from "@/core/domain/stockMovement";
+import { StockMovementSource } from "@/core/domain/stockMovement";
 
 describe("Activity Usecases", () => {
     let mockRepo: jest.Mocked<ActivityRepository>;
     let mockProductRepo: jest.Mocked<ProductRepository>;
+    let mockStockMovementRepo: jest.Mocked<StockMovementRepository>;
 
     beforeEach(() => {
         jest.clearAllMocks();
         mockRepo = createMockActivityRepository();
         mockProductRepo = createMockProductRepository();
+        mockStockMovementRepo = createMockStockMovementRepository();
     });
 
     describe("addActivity", () => {
@@ -126,7 +132,17 @@ describe("Activity Usecases", () => {
             mockRepo.create.mockResolvedValue(createdActivity);
 
             // Act
-            const result = await addActivity(mockRepo, activityData);
+            // Arrange - Mock stock movement creation for CREATION activity with productId
+            const mockStockMovement = {
+                id: "stock-movement-id" as StockMovementId,
+                productId: validProductId,
+                quantity: 10,
+                source: StockMovementSource.CREATION,
+            };
+            mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+
+            // Act
+            const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
 
             // Assert
             expect(mockRepo.create).toHaveBeenCalledTimes(1);
@@ -151,7 +167,17 @@ describe("Activity Usecases", () => {
             mockRepo.create.mockResolvedValue(createdActivity);
 
             // Act
-            const result = await addActivity(mockRepo, activityData);
+            // Arrange - Mock stock movement creation for CREATION activity with productId
+            const mockStockMovement = {
+                id: "stock-movement-id" as StockMovementId,
+                productId: validProductId,
+                quantity: 10,
+                source: StockMovementSource.CREATION,
+            };
+            mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+
+            // Act
+            const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
 
             // Assert
             expect(mockRepo.create).toHaveBeenCalledTimes(1);
@@ -170,7 +196,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "productId is required for SALE activity type",
             });
@@ -188,7 +214,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "productId is required for STOCK_CORRECTION activity type",
             });
@@ -206,7 +232,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "date must be a valid ISO 8601 string",
             });
@@ -224,7 +250,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "date must be a valid ISO 8601 string",
             });
@@ -242,7 +268,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "quantity must be a valid number",
             });
@@ -260,7 +286,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "quantity must be a finite number",
             });
@@ -278,7 +304,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "amount must be a valid number",
             });
@@ -296,7 +322,7 @@ describe("Activity Usecases", () => {
             };
 
             // Act & Assert
-            await expect(addActivity(mockRepo, activityData)).rejects.toMatchObject({
+            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toMatchObject({
                 code: "VALIDATION_ERROR",
                 message: "amount must be a finite number",
             });
@@ -316,33 +342,56 @@ describe("Activity Usecases", () => {
             mockRepo.create.mockRejectedValue(repositoryError);
 
             // Act & Assert
-            await expect(addActivity(mockRepo, activityData)).rejects.toEqual(
+            await expect(addActivity(mockRepo, mockStockMovementRepo, activityData)).rejects.toEqual(
                 repositoryError
             );
             expect(mockRepo.create).toHaveBeenCalledTimes(1);
             expect(mockRepo.create).toHaveBeenCalledWith(activityData);
         });
 
-        it("should accept zero quantity (allowed)", async () => {
+        it("should reject zero quantity for activities with productId", async () => {
             // Arrange
             const activityData = {
                 date: "2025-01-27T14:00:00.000Z",
                 type: ActivityType.CREATION,
                 productId: validProductId,
-                quantity: 0,
+                quantity: 0, // Zero - invalid for activities with productId
+                amount: 50.0,
+            };
+
+            // Act & Assert
+            await expect(
+                addActivity(mockRepo, mockStockMovementRepo, activityData)
+            ).rejects.toMatchObject({
+                code: "VALIDATION_ERROR",
+                message: "Activity validation failed",
+            });
+            expect(mockRepo.create).not.toHaveBeenCalled();
+        });
+
+        it("should accept zero quantity for activities without productId (no stock impact)", async () => {
+            // Arrange
+            const activityData = {
+                date: "2025-01-27T14:00:00.000Z",
+                type: ActivityType.CREATION,
+                // productId is missing - no stock impact
+                quantity: 0, // Zero - allowed when no productId
                 amount: 50.0,
             };
             const createdActivity = createMockActivity({
                 ...activityData,
                 id: "created-id" as ActivityId,
+                productId: undefined,
             });
             mockRepo.create.mockResolvedValue(createdActivity);
 
             // Act
-            const result = await addActivity(mockRepo, activityData);
+            const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
 
             // Assert
             expect(mockRepo.create).toHaveBeenCalledWith(activityData);
+            // Stock movement should NOT be created (no productId)
+            expect(mockStockMovementRepo.create).not.toHaveBeenCalled();
             expect(result).toEqual(createdActivity);
         });
 
@@ -362,7 +411,17 @@ describe("Activity Usecases", () => {
             mockRepo.create.mockResolvedValue(createdActivity);
 
             // Act
-            const result = await addActivity(mockRepo, activityData);
+            // Arrange - Mock stock movement creation for CREATION activity with productId
+            const mockStockMovement = {
+                id: "stock-movement-id" as StockMovementId,
+                productId: validProductId,
+                quantity: 10,
+                source: StockMovementSource.CREATION,
+            };
+            mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+
+            // Act
+            const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
 
             // Assert
             expect(mockRepo.create).toHaveBeenCalledWith(activityData);
@@ -381,14 +440,17 @@ describe("Activity Usecases", () => {
             const createdActivity = createMockActivity({
                 ...activityData,
                 id: "created-id" as ActivityId,
+                productId: undefined, // Explicitly set to undefined
             });
             mockRepo.create.mockResolvedValue(createdActivity);
 
             // Act
-            const result = await addActivity(mockRepo, activityData);
+            const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
 
             // Assert
             expect(mockRepo.create).toHaveBeenCalledWith(activityData);
+            // Stock movement should NOT be created when productId is missing
+            expect(mockStockMovementRepo.create).not.toHaveBeenCalled();
             expect(result).toEqual(createdActivity);
         });
 
@@ -409,11 +471,266 @@ describe("Activity Usecases", () => {
             mockRepo.create.mockResolvedValue(createdActivity);
 
             // Act
-            const result = await addActivity(mockRepo, activityData);
+            // Arrange - Mock stock movement creation for CREATION activity with productId
+            const mockStockMovement = {
+                id: "stock-movement-id" as StockMovementId,
+                productId: validProductId,
+                quantity: 10,
+                source: StockMovementSource.CREATION,
+            };
+            mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+
+            // Act
+            const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
 
             // Assert
             expect(mockRepo.create).toHaveBeenCalledWith(activityData);
             expect(result).toEqual(createdActivity);
+            // Stock movement should NOT be created for OTHER activities
+            expect(mockStockMovementRepo.create).not.toHaveBeenCalled();
+        });
+
+        describe("Stock Movement Creation Integration", () => {
+            it("should create stock movement for CREATION activity with productId", async () => {
+                // Arrange
+                const activityData = {
+                    date: "2025-01-27T14:00:00.000Z",
+                    type: ActivityType.CREATION,
+                    productId: validProductId,
+                    quantity: 10,
+                    amount: 50.0,
+                };
+                const createdActivity = createMockActivity({
+                    ...activityData,
+                    id: "created-id" as ActivityId,
+                });
+                mockRepo.create.mockResolvedValue(createdActivity);
+
+                const mockStockMovement = {
+                    id: "stock-movement-id" as StockMovementId,
+                    productId: validProductId,
+                    quantity: 10,
+                    source: StockMovementSource.CREATION,
+                };
+                mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+
+                // Act
+                const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+
+                // Assert
+                expect(mockRepo.create).toHaveBeenCalledWith(activityData);
+                expect(mockStockMovementRepo.create).toHaveBeenCalledWith({
+                    productId: validProductId,
+                    quantity: 10,
+                    source: StockMovementSource.CREATION,
+                });
+                expect(result).toEqual(createdActivity);
+            });
+
+            it("should create stock movement for SALE activity with productId", async () => {
+                // Arrange
+                const activityData = {
+                    date: "2025-01-27T14:00:00.000Z",
+                    type: ActivityType.SALE,
+                    productId: validProductId,
+                    quantity: -5,
+                    amount: 99.95,
+                };
+                const createdActivity = createMockActivity({
+                    ...activityData,
+                    id: "created-id" as ActivityId,
+                });
+                mockRepo.create.mockResolvedValue(createdActivity);
+
+                const mockStockMovement = {
+                    id: "stock-movement-id" as StockMovementId,
+                    productId: validProductId,
+                    quantity: -5,
+                    source: StockMovementSource.SALE,
+                };
+                mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+
+                // Act
+                const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+
+                // Assert
+                expect(mockRepo.create).toHaveBeenCalledWith(activityData);
+                expect(mockStockMovementRepo.create).toHaveBeenCalledWith({
+                    productId: validProductId,
+                    quantity: -5,
+                    source: StockMovementSource.SALE,
+                });
+                expect(result).toEqual(createdActivity);
+            });
+
+            it("should create stock movement for STOCK_CORRECTION activity with productId (mapped to INVENTORY_ADJUSTMENT)", async () => {
+                // Arrange
+                const activityData = {
+                    date: "2025-01-27T14:00:00.000Z",
+                    type: ActivityType.STOCK_CORRECTION,
+                    productId: validProductId,
+                    quantity: -2,
+                    amount: 0,
+                };
+                const createdActivity = createMockActivity({
+                    ...activityData,
+                    id: "created-id" as ActivityId,
+                });
+                mockRepo.create.mockResolvedValue(createdActivity);
+
+                const mockStockMovement = {
+                    id: "stock-movement-id" as StockMovementId,
+                    productId: validProductId,
+                    quantity: -2,
+                    source: StockMovementSource.INVENTORY_ADJUSTMENT,
+                };
+                mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+
+                // Act
+                const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+
+                // Assert
+                expect(mockRepo.create).toHaveBeenCalledWith(activityData);
+                expect(mockStockMovementRepo.create).toHaveBeenCalledWith({
+                    productId: validProductId,
+                    quantity: -2,
+                    source: StockMovementSource.INVENTORY_ADJUSTMENT,
+                });
+                expect(result).toEqual(createdActivity);
+            });
+
+            it("should NOT create stock movement for OTHER activity (even with productId)", async () => {
+                // Arrange
+                const activityData = {
+                    date: "2025-01-27T14:00:00.000Z",
+                    type: ActivityType.OTHER,
+                    productId: validProductId,
+                    quantity: 5,
+                    amount: 0,
+                };
+                const createdActivity = createMockActivity({
+                    ...activityData,
+                    id: "created-id" as ActivityId,
+                });
+                mockRepo.create.mockResolvedValue(createdActivity);
+
+                // Act
+                const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+
+                // Assert
+                expect(mockRepo.create).toHaveBeenCalledWith(activityData);
+                expect(mockStockMovementRepo.create).not.toHaveBeenCalled();
+                expect(result).toEqual(createdActivity);
+            });
+
+            it("should NOT create stock movement for CREATION activity without productId", async () => {
+                // Arrange
+                const activityData = {
+                    date: "2025-01-27T14:00:00.000Z",
+                    type: ActivityType.CREATION,
+                    // productId is missing
+                    quantity: 10,
+                    amount: 50.0,
+                };
+                const createdActivity = createMockActivity({
+                    ...activityData,
+                    id: "created-id" as ActivityId,
+                    productId: undefined, // Explicitly set to undefined
+                });
+                mockRepo.create.mockResolvedValue(createdActivity);
+
+                // Act
+                const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+
+                // Assert
+                expect(mockRepo.create).toHaveBeenCalledWith(activityData);
+                expect(mockStockMovementRepo.create).not.toHaveBeenCalled();
+                expect(result).toEqual(createdActivity);
+            });
+
+            it("should reject activity with productId and zero quantity (activities with productId must have non-zero quantity)", async () => {
+                // Arrange
+                const activityData = {
+                    date: "2025-01-27T14:00:00.000Z",
+                    type: ActivityType.CREATION,
+                    productId: validProductId,
+                    quantity: 0, // Zero quantity - invalid for activities with productId
+                    amount: 50.0,
+                };
+
+                // Act & Assert
+                await expect(
+                    addActivity(mockRepo, mockStockMovementRepo, activityData)
+                ).rejects.toMatchObject({
+                    code: "VALIDATION_ERROR",
+                    message: "Activity validation failed",
+                });
+                expect(mockRepo.create).not.toHaveBeenCalled();
+                expect(mockStockMovementRepo.create).not.toHaveBeenCalled();
+            });
+
+            it("should pass quantity exactly as-is (no transformation)", async () => {
+                // Arrange
+                const activityData = {
+                    date: "2025-01-27T14:00:00.000Z",
+                    type: ActivityType.SALE,
+                    productId: validProductId,
+                    quantity: -7.5, // Negative decimal quantity
+                    amount: 149.95,
+                };
+                const createdActivity = createMockActivity({
+                    ...activityData,
+                    id: "created-id" as ActivityId,
+                });
+                mockRepo.create.mockResolvedValue(createdActivity);
+
+                const mockStockMovement = {
+                    id: "stock-movement-id" as StockMovementId,
+                    productId: validProductId,
+                    quantity: -7.5,
+                    source: StockMovementSource.SALE,
+                };
+                mockStockMovementRepo.create.mockResolvedValue(mockStockMovement);
+
+                // Act
+                const result = await addActivity(mockRepo, mockStockMovementRepo, activityData);
+
+                // Assert
+                expect(mockStockMovementRepo.create).toHaveBeenCalledWith({
+                    productId: validProductId,
+                    quantity: -7.5, // Quantity matches exactly
+                    source: StockMovementSource.SALE,
+                });
+                expect(result).toEqual(createdActivity);
+            });
+
+            it("should throw error if stock movement creation fails", async () => {
+                // Arrange
+                const activityData = {
+                    date: "2025-01-27T14:00:00.000Z",
+                    type: ActivityType.CREATION,
+                    productId: validProductId,
+                    quantity: 10,
+                    amount: 50.0,
+                };
+                const createdActivity = createMockActivity({
+                    ...activityData,
+                    id: "created-id" as ActivityId,
+                });
+                mockRepo.create.mockResolvedValue(createdActivity);
+
+                const stockMovementError = new Error("Database connection error");
+                mockStockMovementRepo.create.mockRejectedValue(stockMovementError);
+
+                // Act & Assert
+                await expect(
+                    addActivity(mockRepo, mockStockMovementRepo, activityData)
+                ).rejects.toThrow("Failed to create stock movement for activity");
+
+                // Activity should have been created (Option B: manual rollback)
+                expect(mockRepo.create).toHaveBeenCalledWith(activityData);
+                expect(mockStockMovementRepo.create).toHaveBeenCalled();
+            });
         });
     });
 
@@ -761,10 +1078,12 @@ describe("Activity Usecases", () => {
                 id: activityId,
                 type: ActivityType.CREATION,
                 productId: validProductId,
+                quantity: 10, // Positive for CREATION
             });
             const updates = {
                 type: ActivityType.SALE,
                 productId: validProductId, // productId provided
+                quantity: -10, // Must be negative for SALE (updated to match new type)
             };
             const updatedActivity = createMockActivity({
                 ...existingActivity,
@@ -787,10 +1106,12 @@ describe("Activity Usecases", () => {
                 id: activityId,
                 type: ActivityType.CREATION,
                 productId: validProductId,
+                quantity: 10, // Positive for CREATION
             });
             const updates = {
                 type: ActivityType.STOCK_CORRECTION,
                 productId: validProductId, // productId provided
+                quantity: -5, // Must be non-zero for STOCK_CORRECTION (can be positive or negative)
             };
             const updatedActivity = createMockActivity({
                 ...existingActivity,

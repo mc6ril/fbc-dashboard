@@ -7,34 +7,7 @@ import { supabaseClient } from "./client";
 import type { ActivityRepository } from "@/core/ports/activityRepository";
 import type { Activity, ActivityId } from "@/core/domain/activity";
 import type { ProductId } from "@/core/domain/product";
-
-/**
- * Supabase row type for activities table.
- * Matches the database schema with snake_case column names.
- */
-type SupabaseActivityRow = {
-    id: string;
-    product_id: string | null;
-    type: string;
-    date: string;
-    quantity: string; // NUMERIC returned as string from Supabase
-    amount: string; // NUMERIC returned as string from Supabase
-    note: string | null;
-};
-
-/**
- * Supabase insert/update payload type.
- * Used for creating and updating activities.
- * All fields are optional to support partial updates.
- */
-type SupabaseActivityPayload = {
-    product_id?: string | null;
-    type?: string;
-    date?: string;
-    quantity?: number;
-    amount?: number;
-    note?: string | null;
-};
+import { SupabaseActivityPayload, SupabaseActivityRow } from "./types";
 
 /**
  * Map Supabase row to domain Activity.
