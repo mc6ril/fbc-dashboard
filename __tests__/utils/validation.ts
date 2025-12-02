@@ -19,6 +19,7 @@ export {
     isNegativeForSale,
     isValidStockMovement,
     isValidQuantityForSource,
+    isValidQuantityForActivityType,
     isValidActivityType,
     isValidStockMovementSource,
     isValidProductModel,

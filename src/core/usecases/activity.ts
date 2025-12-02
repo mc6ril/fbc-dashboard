@@ -5,10 +5,14 @@
 
 import type { ActivityRepository } from "@/core/ports/activityRepository";
 import type { ProductRepository } from "@/core/ports/productRepository";
+import type { StockMovementRepository } from "@/core/ports/stockMovementRepository";
 import type { Activity, ActivityId, ActivityError } from "@/core/domain/activity";
 import { ActivityType } from "@/core/domain/activity";
 import { isValidActivity, isValidISO8601 } from "@/core/domain/validation";
 import type { ProductId, Product } from "@/core/domain/product";
+import type { StockMovement } from "@/core/domain/stockMovement";
+import { StockMovementSource } from "@/core/domain/stockMovement";
+import { createStockMovement } from "./stockMovement";
 
 /** Creates a typed validation error. */
 const createValidationError = (message: string): ActivityError => {
@@ -16,6 +20,85 @@ const createValidationError = (message: string): ActivityError => {
         code: "VALIDATION_ERROR",
         message,
     } satisfies ActivityError;
+};
+
+/**
+ * Maps an Activity to a StockMovement if applicable.
+ *
+ * Stock movements are created for:
+ * - CREATION activities with productId
+ * - SALE activities with productId
+ * - STOCK_CORRECTION activities with productId
+ *
+ * Stock movements are NOT created for:
+ * - OTHER activities (regardless of productId)
+ * - Activities without productId
+ * - Activities with zero quantity
+ *
+ * Mapping:
+ * - ActivityType.CREATION → StockMovementSource.CREATION
+ * - ActivityType.SALE → StockMovementSource.SALE
+ * - ActivityType.STOCK_CORRECTION → StockMovementSource.INVENTORY_ADJUSTMENT
+ * - ActivityType.OTHER → null (no stock movement)
+ *
+ * Quantity is passed through exactly as-is (no transformation).
+ *
+ * @param {Activity} activity - Activity to map to stock movement
+ * @returns {Omit<StockMovement, 'id'> | null} Stock movement data if applicable, null otherwise
+ *
+ * @example
+ * ```typescript
+ * const activity: Activity = {
+ *   id: "123e4567-e89b-4d3a-a456-426614174000" as ActivityId,
+ *   date: "2025-01-27T14:00:00.000Z",
+ *   type: ActivityType.SALE,
+ *   productId: "550e8400-e29b-41d4-a716-446655440000" as ProductId,
+ *   quantity: -5,
+ *   amount: 99.95,
+ * };
+ * const movement = mapActivityToStockMovement(activity);
+ * // Returns: { productId: "...", quantity: -5, source: StockMovementSource.SALE }
+ * ```
+ */
+const mapActivityToStockMovement = (
+    activity: Activity
+): Omit<StockMovement, "id"> | null => {
+    // Only create stock movement for activities with productId
+    if (!activity.productId) {
+        return null;
+    }
+
+    // Only create stock movement for CREATION, SALE, STOCK_CORRECTION
+    if (activity.type === ActivityType.OTHER) {
+        return null;
+    }
+
+    // Map ActivityType to StockMovementSource
+    let source: StockMovementSource;
+    switch (activity.type) {
+        case ActivityType.CREATION:
+            source = StockMovementSource.CREATION;
+            break;
+        case ActivityType.SALE:
+            source = StockMovementSource.SALE;
+            break;
+        case ActivityType.STOCK_CORRECTION:
+            source = StockMovementSource.INVENTORY_ADJUSTMENT;
+            break;
+        default:
+            return null;
+    }
+
+    // Only create if quantity is non-zero
+    if (activity.quantity === 0) {
+        return null;
+    }
+
+    return {
+        productId: activity.productId,
+        quantity: activity.quantity, // Quantity matches exactly (no transformation)
+        source,
+    };
 };
 
 /**
@@ -44,11 +127,23 @@ const isValidNumber = (value: number, fieldName: string): boolean => {
  * - quantity must be a valid number (not NaN, not Infinity)
  * - amount must be a valid number (not NaN, not Infinity)
  *
- * @param {ActivityRepository} repo - Activity repository for data persistence
+ * After creating the activity, this usecase automatically creates a corresponding
+ * stock movement if applicable (CREATION, SALE, or STOCK_CORRECTION activities
+ * with productId and non-zero quantity).
+ *
+ * Transaction handling (Option B):
+ * - Activity is created first
+ * - Stock movement is created second
+ * - If stock movement creation fails, an error is thrown
+ * - Note: Activity will remain in database if stock movement fails (acceptable trade-off for simplicity)
+ *
+ * @param {ActivityRepository} activityRepo - Activity repository for data persistence
+ * @param {StockMovementRepository} stockMovementRepo - Stock movement repository for data persistence
  * @param {Omit<Activity, 'id'>} activity - Activity data to create (without the id field)
  * @returns {Promise<Activity>} Promise resolving to the created activity with generated ID
  * @throws {ActivityError} If validation fails (missing productId for SALE/STOCK_CORRECTION, invalid date, invalid numbers)
- * @throws {Error} If repository creation fails (database error, constraint violation, etc.)
+ * @throws {Error} If activity repository creation fails (database error, constraint violation, etc.)
+ * @throws {Error} If stock movement creation fails (database error, validation error, etc.)
  *
  * @example
  * ```typescript
@@ -60,11 +155,13 @@ const isValidNumber = (value: number, fieldName: string): boolean => {
  *   amount: 99.95,
  *   note: "Sale to customer"
  * };
- * const created = await addActivity(activityRepository, newActivity);
+ * const created = await addActivity(activityRepository, stockMovementRepository, newActivity);
+ * // Activity and corresponding stock movement are both created
  * ```
  */
 export const addActivity = async (
-    repo: ActivityRepository,
+    activityRepo: ActivityRepository,
+    stockMovementRepo: StockMovementRepository,
     activity: Omit<Activity, "id">
 ): Promise<Activity> => {
     // Validate productId is provided for SALE and STOCK_CORRECTION types
@@ -100,8 +197,24 @@ export const addActivity = async (
         throw createValidationError("Activity validation failed");
     }
 
-    // Delegate to repository
-    return repo.create(activity);
+    // Create activity first (Option B: manual rollback if stock movement fails)
+    const createdActivity = await activityRepo.create(activity);
+
+    // Create stock movement if applicable
+    const stockMovementData = mapActivityToStockMovement(createdActivity);
+    if (stockMovementData) {
+        try {
+            await createStockMovement(stockMovementRepo, stockMovementData);
+        } catch (error) {
+            // If stock movement creation fails, throw error
+            // Note: Activity remains in database (acceptable trade-off per Option B)
+            throw new Error(
+                `Failed to create stock movement for activity: ${error instanceof Error ? error.message : "Unknown error"}`
+            );
+        }
+    }
+
+    return createdActivity;
 };
 
 /**

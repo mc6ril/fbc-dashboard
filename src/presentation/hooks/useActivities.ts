@@ -11,6 +11,7 @@ import { listActivitiesPaginated, addActivity } from "@/core/usecases/activity";
 import type { PaginatedActivitiesResult } from "@/core/usecases/activity";
 import type { Activity, ActivityError } from "@/core/domain/activity";
 import { activityRepositorySupabase } from "@/infrastructure/supabase/activityRepositorySupabase";
+import { stockMovementRepositorySupabase } from "@/infrastructure/supabase/stockMovementRepositorySupabase";
 import { useActivityFiltersStore } from "@/presentation/stores/useActivityFiltersStore";
 import { useGlobalLoadingStore } from "@/presentation/stores/useGlobalLoadingStore";
 import { queryKeys } from "./queryKeys";
@@ -81,8 +82,16 @@ export const useActivities = () => {
  * Hook to create a new activity.
  *
  * Uses `addActivity` usecase to create a new activity via the repository.
- * On success, invalidates all activities list queries and dashboard recent activities
- * query to ensure the UI reflects the new activity.
+ * Automatically creates corresponding stock movements for applicable activities
+ * (CREATION, SALE, STOCK_CORRECTION with productId and non-zero quantity).
+ *
+ * On success, invalidates:
+ * - All activities list queries (with any filters/pagination)
+ * - Dashboard recent activities query
+ * - Stock movements queries (stock movements are created when activities are created)
+ * - Dashboard low stock products query (stock levels may have changed)
+ *
+ * This ensures dashboards reflect stock changes immediately without manual refresh.
  * Shows global loader during mutation to provide user feedback.
  *
  * @returns React Query mutation object with `mutate`, `mutateAsync`, `isPending`, `error`, `isSuccess`, and `data`
@@ -100,6 +109,8 @@ export const useActivities = () => {
  *     amount: 99.95,
  *     note: "Sale to customer"
  *   });
+ *   // Activity and corresponding stock movement are created automatically
+ *   // Dashboards are updated immediately via cache invalidation
  * };
  * ```
  */
@@ -109,7 +120,8 @@ export const useAddActivity = () => {
     const stopGlobalLoading = useGlobalLoadingStore((state) => state.stopLoading);
 
     return useMutation<Activity, ActivityError | Error, Omit<Activity, "id">>({
-        mutationFn: (activity: Omit<Activity, "id">) => addActivity(activityRepositorySupabase, activity),
+        mutationFn: (activity: Omit<Activity, "id">) =>
+            addActivity(activityRepositorySupabase, stockMovementRepositorySupabase, activity),
         onMutate: () => {
             startGlobalLoading();
         },
@@ -118,6 +130,10 @@ export const useAddActivity = () => {
             queryClient.invalidateQueries({ queryKey: ["activities"] });
             // Invalidate dashboard recent activities query
             queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.recentActivities() });
+            // Invalidate stock movements queries (stock movements are created when activities are created)
+            queryClient.invalidateQueries({ queryKey: ["stock-movements"] });
+            // Invalidate dashboard low stock products query (stock levels may have changed)
+            queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.lowStockProducts() });
         },
         onSettled: () => {
             stopGlobalLoading();
