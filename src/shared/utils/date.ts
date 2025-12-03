@@ -492,3 +492,162 @@ export const filterByDateRange = <T extends { date: string }>(
     });
 };
 
+/**
+ * Extracts all months (YYYY-MM format) from a date range.
+ *
+ * Returns an array of month strings for all months that fall within the specified
+ * date range (inclusive). Each month is represented as YYYY-MM format (e.g., "2025-01").
+ *
+ * The function handles date ranges that span multiple months, quarters, or years.
+ * For example, a range from "2025-01-15" to "2025-03-20" would return:
+ * ["2025-01", "2025-02", "2025-03"]
+ *
+ * @param {string} startDate - Start date of the range (ISO 8601 format, inclusive)
+ * @param {string} endDate - End date of the range (ISO 8601 format, inclusive)
+ * @returns {string[]} Array of month strings in YYYY-MM format, sorted chronologically
+ *
+ * @example
+ * ```typescript
+ * const months = getMonthsInRange(
+ *   "2025-01-15T00:00:00.000Z",
+ *   "2025-03-20T23:59:59.999Z"
+ * );
+ * // Returns: ["2025-01", "2025-02", "2025-03"]
+ *
+ * const singleMonth = getMonthsInRange(
+ *   "2025-01-01T00:00:00.000Z",
+ *   "2025-01-31T23:59:59.999Z"
+ * );
+ * // Returns: ["2025-01"]
+ * ```
+ */
+export const getMonthsInRange = (startDate: string, endDate: string): string[] => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Extract year and month using UTC to avoid timezone issues
+    // This ensures consistent month extraction regardless of local timezone
+    // (e.g., "2025-12-31T23:59:59.999Z" should always be December, not January)
+    const startYear = start.getUTCFullYear();
+    const startMonth = start.getUTCMonth(); // 0-indexed (0 = January, 11 = December)
+    const endYear = end.getUTCFullYear();
+    const endMonth = end.getUTCMonth(); // 0-indexed
+
+    const months: string[] = [];
+    let currentYear = startYear;
+    let currentMonth = startMonth;
+
+    // Iterate through each month in the range
+    // Stop when we've passed the end month
+    while (
+        currentYear < endYear ||
+        (currentYear === endYear && currentMonth <= endMonth)
+    ) {
+        const monthString = `${currentYear}-${(currentMonth + 1).toString().padStart(2, "0")}`;
+        months.push(monthString);
+
+        // Check if we've reached the end before moving to next month
+        if (currentYear === endYear && currentMonth === endMonth) {
+            break;
+        }
+
+        // Move to next month
+        currentMonth += 1;
+        if (currentMonth > 11) {
+            // Roll over to next year
+            currentMonth = 0;
+            currentYear += 1;
+        }
+    }
+
+    return months;
+};
+
+/**
+ * Extracts the first month (YYYY-MM format) from a date range.
+ *
+ * Returns the month string for the first month in the date range.
+ * Used for cost inputs that require a single month value.
+ *
+ * Uses UTC methods to ensure consistent month extraction regardless of local timezone,
+ * matching the behavior of `getMonthsInRange` for consistency.
+ *
+ * @param {string} startDate - Start date of the range (ISO 8601 format)
+ * @returns {string} Month string in YYYY-MM format (e.g., "2025-01")
+ *
+ * @example
+ * ```typescript
+ * const month = getFirstMonthFromRange("2025-01-15T00:00:00.000Z");
+ * // Returns: "2025-01"
+ * ```
+ */
+export const getFirstMonthFromRange = (startDate: string): string => {
+    const date = new Date(startDate);
+    // Use UTC methods to avoid timezone issues, consistent with getMonthsInRange
+    // This ensures consistent month extraction regardless of local timezone
+    // (e.g., "2025-01-01T00:00:00.000Z" should always be January, not December)
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth() + 1; // getUTCMonth() returns 0-11, we need 1-12
+    return `${year}-${month.toString().padStart(2, "0")}`;
+};
+
+/**
+ * Validates month format (YYYY-MM).
+ *
+ * Validates that a string matches the YYYY-MM format (e.g., "2025-01", "2025-12").
+ * Also verifies that the month is actually valid (year >= 1, month between 01-12).
+ *
+ * This function is used across multiple layers (usecases, hooks) to ensure
+ * consistent validation of month strings throughout the application.
+ *
+ * @param {string} month - Month string to validate
+ * @returns {boolean} True if the string is a valid YYYY-MM format, false otherwise
+ *
+ * @example
+ * ```typescript
+ * isValidMonthFormat("2025-01"); // true
+ * isValidMonthFormat("2025-12"); // true
+ * isValidMonthFormat("invalid-month"); // false
+ * isValidMonthFormat("2025-13"); // false (invalid month)
+ * isValidMonthFormat("25-01"); // false (invalid format)
+ * ```
+ */
+export const isValidMonthFormat = (month: string): boolean => {
+    if (!month || typeof month !== "string") {
+        return false;
+    }
+
+    const trimmed = month.trim();
+    if (trimmed === "") {
+        return false;
+    }
+
+    // Validate YYYY-MM format with regex
+    const monthFormatRegex = /^\d{4}-\d{2}$/;
+    if (!monthFormatRegex.test(trimmed)) {
+        return false;
+    }
+
+    // Extract year and month
+    const [yearStr, monthStr] = trimmed.split("-");
+    const year = parseInt(yearStr, 10);
+    const monthNum = parseInt(monthStr, 10);
+
+    // Validate year and month ranges
+    if (isNaN(year) || isNaN(monthNum)) {
+        return false;
+    }
+
+    // Year must be >= 1 (reasonable minimum)
+    if (year < 1) {
+        return false;
+    }
+
+    // Month must be between 01 and 12
+    if (monthNum < 1 || monthNum > 12) {
+        return false;
+    }
+
+    return true;
+};
+

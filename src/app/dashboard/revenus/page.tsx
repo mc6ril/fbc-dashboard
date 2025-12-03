@@ -62,6 +62,9 @@ const RevenuePage = () => {
 
             <RevenueTable
                 revenueData={revenueData ?? null}
+                period={period}
+                startDate={startDate}
+                endDate={endDate}
                 isLoading={isLoading}
                 error={error}
             />

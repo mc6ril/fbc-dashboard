@@ -1,0 +1,84 @@
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+@use "@/styles/variables/typography" as *;
+
+.costInput {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+
+    &__label {
+        display: block;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-medium;
+        color: $color-text-primary;
+        margin-bottom: $spacing-xs;
+    }
+
+    &__input {
+        width: 100%;
+        padding: $spacing-sm $spacing-md;
+        font-size: $font-size-base;
+        font-family: inherit;
+        color: $color-text-primary;
+        background-color: $color-input-bg;
+        border: 1px solid $color-input-border;
+        border-radius: $radius-sm;
+        transition: border-color $transition-fast ease, box-shadow $transition-fast ease;
+
+        &:focus {
+            outline: none;
+            border-color: $color-input-border-focus;
+            box-shadow: 0 0 0 2px $color-focus-ring;
+        }
+
+        &:hover:not(:disabled) {
+            border-color: $color-input-border-hover;
+        }
+
+        &::placeholder {
+            color: $color-input-placeholder;
+        }
+    }
+
+    &__inputError {
+        border-color: $color-input-error-border;
+        background-color: $color-input-error-bg;
+
+        &:focus {
+            border-color: $color-input-error-border;
+            box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+        }
+    }
+
+    &__inputDisabled {
+        background-color: $color-input-disabled-bg;
+        color: $color-input-disabled-text;
+        cursor: not-allowed;
+    }
+
+    &__helper {
+        font-size: $font-size-xs;
+        color: $color-text-secondary;
+        margin-top: -$spacing-xs;
+    }
+
+    &__error {
+        font-size: $font-size-xs;
+        color: $color-input-error-text;
+        margin-top: -$spacing-xs;
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+        gap: $spacing-sm;
+        min-height: $spacing-lg;
+        margin-top: $spacing-xs;
+    }
+
+    &__status {
+        font-size: $font-size-sm;
+    }
+}
+

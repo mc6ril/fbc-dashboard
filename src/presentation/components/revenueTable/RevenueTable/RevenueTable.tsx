@@ -2,7 +2,7 @@
  * RevenueTable Component
  *
  * Table component for displaying revenue data with proper formatting.
- * Shows 3 sections: Revenue (Total CA), Costs (Material costs), and Gross Margin (amount + rate).
+ * Shows revenue sections, expandable breakdown rows, cost inputs, and net result.
  * Handles loading, error, and empty states.
  * Provides proper accessibility (WCAG 2.1 AA) with semantic HTML and ARIA attributes.
  *
@@ -12,32 +12,37 @@
 "use client";
 
 import React from "react";
-import type { RevenueData } from "@/core/domain/revenue";
-import Table, { type TableColumn } from "@/presentation/components/ui/Table";
+import type { RevenueData, RevenuePeriod } from "@/core/domain/revenue";
 import Card from "@/presentation/components/ui/Card";
 import Text from "@/presentation/components/ui/Text";
 import { formatCurrency } from "@/shared/utils/currency";
 import { formatPercentage } from "@/shared/utils/currency";
 import { useTranslation } from "@/presentation/hooks/useTranslation";
+import { getMonthsInRange } from "@/shared/utils/date";
+import ExpandableRevenueRow from "@/presentation/components/revenueTable/ExpandableRevenueRow/ExpandableRevenueRow";
+import MonthlyCostInputs from "./MonthlyCostInputs";
 import styles from "./RevenueTable.module.scss";
 
 type Props = {
     /** Revenue data to display */
     revenueData: RevenueData | null;
+    /** Period type (MONTH, QUARTER, YEAR, or CUSTOM) */
+    period: RevenuePeriod;
+    /** Start date (ISO 8601 format) */
+    startDate: string;
+    /** End date (ISO 8601 format) */
+    endDate: string;
     /** Whether data is currently loading */
     isLoading: boolean;
     /** Error object if data loading failed */
     error: Error | null;
 };
 
-type RevenueTableRow = {
-    section: string;
-    value: string;
-    rate?: string;
-};
-
 const RevenueTableComponent = ({
     revenueData,
+    period,
+    startDate,
+    endDate,
     isLoading,
     error,
 }: Props) => {
@@ -45,57 +50,11 @@ const RevenueTableComponent = ({
     const tRevenue = useTranslation("pages.revenue.table");
     const tErrors = useTranslation("errors");
 
-    // Transform revenue data into table rows
-    const tableData: RevenueTableRow[] = React.useMemo(() => {
-        if (!revenueData) {
-            return [];
-        }
-
-        return [
-            {
-                section: tRevenue("sections.revenue"),
-                value: formatCurrency(revenueData.totalRevenue),
-            },
-            {
-                section: tRevenue("sections.costs"),
-                value: formatCurrency(revenueData.materialCosts),
-            },
-            {
-                section: tRevenue("sections.grossMargin"),
-                value: formatCurrency(revenueData.grossMargin),
-                rate: formatPercentage(revenueData.grossMarginRate),
-            },
-        ];
-    }, [revenueData, tRevenue]);
-
-    // Define table columns
-    const columns: TableColumn<RevenueTableRow>[] = React.useMemo(
-        () => [
-            {
-                key: "section",
-                header: "",
-                isRowHeader: true,
-            },
-            {
-                key: "value",
-                header: "",
-            },
-            {
-                key: "rate",
-                header: "",
-                render: (value: unknown) => {
-                    if (value === undefined || value === null) {
-                        return null;
-                    }
-                    return (
-                        <span className={styles.revenueTable__rate}>
-                            ({value as string})
-                        </span>
-                    );
-                },
-            },
-        ],
-        []
+    // Extract all months in the date range for cost inputs
+    // This ensures users can edit costs for all months that contribute to revenue calculations
+    const monthsInRange = React.useMemo(
+        () => getMonthsInRange(startDate, endDate),
+        [startDate, endDate]
     );
 
     return (
@@ -119,13 +78,133 @@ const RevenueTableComponent = ({
             )}
 
             {!isLoading && !error && revenueData !== null && (
-                <Table
-                    columns={columns}
-                    data={tableData}
-                    caption={tRevenue("caption")}
-                    ariaLabel={tRevenue("ariaLabel")}
-                    className={styles.revenueTable__table}
-                />
+                <table className={styles.revenueTable__table} aria-label={tRevenue("ariaLabel")}>
+                    <caption className={styles.revenueTable__caption}>{tRevenue("caption")}</caption>
+                    <thead className={styles.revenueTable__thead}>
+                        <tr>
+                            <th scope="col" className={styles.revenueTable__header}>
+                                {tRevenue("columns.section")}
+                            </th>
+                            <th scope="col" className={styles.revenueTable__header}>
+                                {tRevenue("columns.value")}
+                            </th>
+                            <th scope="col" className={styles.revenueTable__header}>
+                                {tRevenue("columns.rate")}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody className={styles.revenueTable__tbody}>
+                        {/* Revenue row */}
+                        <tr className={styles.revenueTable__row}>
+                            <th scope="row" className={styles.revenueTable__rowHeader}>
+                                {tRevenue("sections.revenue")}
+                            </th>
+                            <td className={styles.revenueTable__cell}>
+                                {formatCurrency(revenueData.totalRevenue)}
+                            </td>
+                            <td className={styles.revenueTable__cell}></td>
+                        </tr>
+
+                        {/* Expandable row: Revenue by product type */}
+                        <ExpandableRevenueRow
+                            period={period}
+                            startDate={startDate}
+                            endDate={endDate}
+                            breakdownType="productType"
+                            label={tRevenue("sections.revenueByProductType")}
+                        />
+
+                        {/* Expandable row: Revenue by product */}
+                        <ExpandableRevenueRow
+                            period={period}
+                            startDate={startDate}
+                            endDate={endDate}
+                            breakdownType="product"
+                            label={tRevenue("sections.revenueByProduct")}
+                        />
+
+                        {/* Material costs row */}
+                        <tr className={styles.revenueTable__row}>
+                            <th scope="row" className={styles.revenueTable__rowHeader}>
+                                {tRevenue("sections.costs")}
+                            </th>
+                            <td className={styles.revenueTable__cell}>
+                                {formatCurrency(revenueData.materialCosts)}
+                            </td>
+                            <td className={styles.revenueTable__cell}></td>
+                        </tr>
+
+                        {/* Gross margin row */}
+                        <tr className={styles.revenueTable__row}>
+                            <th scope="row" className={styles.revenueTable__rowHeader}>
+                                {tRevenue("sections.grossMargin")}
+                            </th>
+                            <td className={styles.revenueTable__cell}>
+                                {formatCurrency(revenueData.grossMargin)}
+                            </td>
+                            <td className={styles.revenueTable__cell}>
+                                <span className={styles.revenueTable__rate}>
+                                    ({formatPercentage(revenueData.grossMarginRate)})
+                                </span>
+                            </td>
+                        </tr>
+
+                        {/* Shipping cost row */}
+                        <tr className={styles.revenueTable__row}>
+                            <th scope="row" className={styles.revenueTable__rowHeader}>
+                                {tRevenue("sections.shippingCost")}
+                            </th>
+                            <td className={styles.revenueTable__cell} colSpan={2}>
+                                <MonthlyCostInputs
+                                    months={monthsInRange}
+                                    costType="shipping"
+                                    baseLabel={tRevenue("sections.shippingCost")}
+                                    baseId="shipping-cost-input"
+                                />
+                            </td>
+                        </tr>
+
+                        {/* Indirect costs section */}
+                        <tr className={styles.revenueTable__row}>
+                            <th scope="row" className={styles.revenueTable__rowHeader} rowSpan={2}>
+                                {tRevenue("sections.indirectCosts")}
+                            </th>
+                            <td className={styles.revenueTable__cell} colSpan={2}>
+                                <MonthlyCostInputs
+                                    months={monthsInRange}
+                                    costType="marketing"
+                                    baseLabel={tRevenue("sections.marketingCost")}
+                                    baseId="marketing-cost-input"
+                                />
+                            </td>
+                        </tr>
+                        <tr className={styles.revenueTable__row}>
+                            <td className={styles.revenueTable__cell} colSpan={2}>
+                                <MonthlyCostInputs
+                                    months={monthsInRange}
+                                    costType="overhead"
+                                    baseLabel={tRevenue("sections.overheadCost")}
+                                    baseId="overhead-cost-input"
+                                />
+                            </td>
+                        </tr>
+
+                        {/* Net result row */}
+                        <tr className={styles.revenueTable__row}>
+                            <th scope="row" className={styles.revenueTable__rowHeader}>
+                                {tRevenue("sections.netResult")}
+                            </th>
+                            <td className={styles.revenueTable__cell}>
+                                {formatCurrency(revenueData.netResult)}
+                            </td>
+                            <td className={styles.revenueTable__cell}>
+                                <span className={styles.revenueTable__rate}>
+                                    ({formatPercentage(revenueData.netMarginRate)})
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             )}
         </Card>
     );

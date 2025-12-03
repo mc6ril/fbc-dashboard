@@ -5,7 +5,12 @@
  * current month boundaries, ISO 8601 string formatting, and date formatting.
  */
 
-import { getCurrentMonthStart, getCurrentMonthEnd, formatDate } from "@/shared/utils/date";
+import {
+    getCurrentMonthStart,
+    getCurrentMonthEnd,
+    formatDate,
+    getMonthsInRange,
+} from "@/shared/utils/date";
 
 describe("Date Utilities", () => {
     // Mock Date to have consistent test results
@@ -386,6 +391,114 @@ describe("Date Utilities", () => {
                 const result = formatDate(input);
                 expect(result).toMatch(new RegExp(`^${expectedDay}\\s`));
             });
+        });
+    });
+
+    describe("getMonthsInRange", () => {
+        it("should return all months in a date range", () => {
+            // Arrange
+            const startDate = "2025-01-15T00:00:00.000Z";
+            const endDate = "2025-03-20T23:59:59.999Z";
+
+            // Act
+            const result = getMonthsInRange(startDate, endDate);
+
+            // Assert
+            expect(result).toEqual(["2025-01", "2025-02", "2025-03"]);
+        });
+
+        it("should return single month when range is within one month", () => {
+            // Arrange
+            const startDate = "2025-01-01T00:00:00.000Z";
+            const endDate = "2025-01-31T23:59:59.999Z";
+
+            // Act
+            const result = getMonthsInRange(startDate, endDate);
+
+            // Assert
+            expect(result).toEqual(["2025-01"]);
+        });
+
+        it("should handle date arithmetic bug: start on 31st of month", () => {
+            // Arrange
+            // Starting on Jan 31, old implementation would skip February
+            // when using setMonth() because Feb 31 doesn't exist
+            const startDate = "2025-01-31T00:00:00.000Z";
+            const endDate = "2025-03-15T23:59:59.999Z";
+
+            // Act
+            const result = getMonthsInRange(startDate, endDate);
+
+            // Assert
+            // Should include all months: January, February, March
+            expect(result).toEqual(["2025-01", "2025-02", "2025-03"]);
+        });
+
+        it("should handle date arithmetic bug: start on 30th of month", () => {
+            // Arrange
+            // Starting on Jan 30, should correctly include February
+            const startDate = "2025-01-30T00:00:00.000Z";
+            const endDate = "2025-02-28T23:59:59.999Z";
+
+            // Act
+            const result = getMonthsInRange(startDate, endDate);
+
+            // Assert
+            expect(result).toEqual(["2025-01", "2025-02"]);
+        });
+
+        it("should handle year rollover", () => {
+            // Arrange
+            const startDate = "2024-11-15T00:00:00.000Z";
+            const endDate = "2025-02-20T23:59:59.999Z";
+
+            // Act
+            const result = getMonthsInRange(startDate, endDate);
+
+            // Assert
+            expect(result).toEqual([
+                "2024-11",
+                "2024-12",
+                "2025-01",
+                "2025-02",
+            ]);
+        });
+
+        it("should handle quarter range", () => {
+            // Arrange
+            const startDate = "2025-01-01T00:00:00.000Z";
+            const endDate = "2025-03-31T23:59:59.999Z";
+
+            // Act
+            const result = getMonthsInRange(startDate, endDate);
+
+            // Assert
+            expect(result).toEqual(["2025-01", "2025-02", "2025-03"]);
+        });
+
+        it("should handle full year range", () => {
+            // Arrange
+            const startDate = "2025-01-01T00:00:00.000Z";
+            const endDate = "2025-12-31T23:59:59.999Z";
+
+            // Act
+            const result = getMonthsInRange(startDate, endDate);
+
+            // Assert
+            expect(result).toEqual([
+                "2025-01",
+                "2025-02",
+                "2025-03",
+                "2025-04",
+                "2025-05",
+                "2025-06",
+                "2025-07",
+                "2025-08",
+                "2025-09",
+                "2025-10",
+                "2025-11",
+                "2025-12",
+            ]);
         });
     });
 });

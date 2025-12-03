@@ -1,0 +1,133 @@
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+@use "@/styles/variables/typography" as *;
+
+.expandableRow {
+    &__cell {
+        padding: 0;
+        border-top: 1px solid $color-border;
+    }
+
+    &__button {
+        display: flex;
+        align-items: center;
+        gap: $spacing-sm;
+        width: 100%;
+        padding: $spacing-md;
+        background: none;
+        border: none;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color $transition-fast ease;
+        font-size: $font-size-base;
+        font-weight: $font-weight-medium;
+        color: $color-text-primary;
+
+        &:hover {
+            background-color: $color-background-lighter;
+        }
+
+        &:focus {
+            outline: 2px solid $color-focus-ring;
+            outline-offset: -2px;
+        }
+
+        &:active {
+            background-color: $color-background-light;
+        }
+    }
+
+    &__chevron {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: $icon-size-sm;
+        height: $icon-size-sm;
+        font-size: $icon-size-xs;
+        color: $color-text-secondary;
+        transition: transform $transition-fast ease;
+        flex-shrink: 0;
+    }
+
+    &__expanded &__chevron {
+        transform: rotate(0deg);
+    }
+
+    &__label {
+        flex: 1;
+    }
+
+    &__contentRow {
+        border-top: none;
+    }
+
+    &__contentCell {
+        padding: 0;
+        border-top: none;
+    }
+
+    &__content {
+        padding: $spacing-md $spacing-md $spacing-md $spacing-xl;
+        background-color: $color-background-light;
+        animation: expand $transition-normal ease-out;
+        overflow: hidden;
+    }
+
+    &__state {
+        padding: $spacing-sm 0;
+    }
+
+    &__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-xs;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: $spacing-md;
+        padding: $spacing-sm 0;
+        border-bottom: 1px solid $color-border-light;
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    &__itemLabel {
+        flex: 1;
+        font-size: $font-size-sm;
+        color: $color-text-primary;
+    }
+
+    &__itemValue {
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        color: $color-text-primary;
+        min-width: $revenue-item-min-width-value;
+        text-align: right;
+    }
+
+    &__itemCount {
+        font-size: $font-size-xs;
+        color: $color-text-secondary;
+        min-width: $revenue-item-min-width-count;
+        text-align: right;
+    }
+}
+
+@keyframes expand {
+    from {
+        max-height: 0;
+        opacity: 0;
+    }
+    to {
+        max-height: $expand-animation-max-height;
+        opacity: 1;
+    }
+}
+

@@ -35,6 +35,11 @@ $main-max-width: 600px;
 $form-max-width: 500px;
 $header-min-height: 64px;
 $spinner-size: 48px;
+$icon-size-sm: 16px;
+$icon-size-xs: 10px;
+$revenue-item-min-width-value: 100px;
+$revenue-item-min-width-count: 80px;
+$expand-animation-max-height: 1000px;
 
 // Breakpoints
 $breakpoint-mobile: 600px;
@@ -57,6 +62,8 @@ $shadow-lg: 0 20px 60px;
 
 // Transition values
 $transition-default: all 0.2s;
+$transition-fast: 0.2s;
+$transition-normal: 0.3s;
 
 // Z-index values
 $z-index-overlay: 9999;

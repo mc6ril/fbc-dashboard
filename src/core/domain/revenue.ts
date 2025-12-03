@@ -11,6 +11,9 @@
  * and business logic consistency.
  */
 
+import type { ProductType } from "./product";
+import type { ProductId } from "./product";
+
 /**
  * RevenuePeriod represents the time period selection for revenue analysis.
  *
@@ -55,6 +58,84 @@ export enum RevenuePeriod {
 }
 
 /**
+ * RevenueByProductType represents revenue breakdown by product type.
+ *
+ * This type groups sales by ProductType and provides aggregated revenue metrics
+ * for each product type in a given period. Used for expandable revenue rows
+ * to show detailed breakdowns by product category.
+ *
+ * Business meaning:
+ * - type: Product type classification (SAC_BANANE, POCHETTE_ORDINATEUR, etc.)
+ * - revenue: Total revenue from all sales of this product type in the period
+ * - count: Number of sales transactions for this product type in the period
+ *
+ * Revenue calculation:
+ * - revenue = sum of all SALE activity amounts for products of this type in the period
+ * - count = number of distinct SALE activities for products of this type
+ *
+ * @property {ProductType} type - Product type classification
+ * @property {number} revenue - Total revenue from sales of this product type in the period
+ * @property {number} count - Number of sales transactions for this product type in the period
+ *
+ * @example
+ * ```typescript
+ * const revenueByType: RevenueByProductType = {
+ *   type: ProductType.POCHETTE_VOLANTS,
+ *   revenue: 5000.00,
+ *   count: 25
+ * };
+ * ```
+ */
+export type RevenueByProductType = {
+    type: ProductType;
+    revenue: number;
+    count: number;
+};
+
+/**
+ * RevenueByProduct represents revenue breakdown by individual product.
+ *
+ * This type groups sales by individual products (product model + coloris) and provides
+ * aggregated revenue metrics for each product in a given period. Used for expandable
+ * revenue rows to show detailed breakdowns by individual products.
+ *
+ * Business meaning:
+ * - productId: Unique identifier for the product
+ * - productName: Name of the product model (e.g., "Charlie", "Assumée")
+ * - coloris: Color variation of the product (e.g., "Rose Marsala", "Prune")
+ * - revenue: Total revenue from all sales of this product in the period
+ * - count: Number of sales transactions for this product in the period
+ *
+ * Revenue calculation:
+ * - revenue = sum of all SALE activity amounts for this product in the period
+ * - count = number of distinct SALE activities for this product
+ *
+ * @property {ProductId} productId - Unique identifier for the product
+ * @property {string} productName - Name of the product model (e.g., "Charlie", "Assumée")
+ * @property {string} coloris - Color variation of the product (e.g., "Rose Marsala", "Prune")
+ * @property {number} revenue - Total revenue from sales of this product in the period
+ * @property {number} count - Number of sales transactions for this product in the period
+ *
+ * @example
+ * ```typescript
+ * const revenueByProduct: RevenueByProduct = {
+ *   productId: "123e4567-e89b-12d3-a456-426614174000" as ProductId,
+ *   productName: "Charlie",
+ *   coloris: "Rose Marsala",
+ *   revenue: 2500.00,
+ *   count: 10
+ * };
+ * ```
+ */
+export type RevenueByProduct = {
+    productId: ProductId;
+    productName: string;
+    coloris: string;
+    revenue: number;
+    count: number;
+};
+
+/**
  * RevenueData represents financial metrics for a selected time period.
  *
  * This type aggregates revenue, costs, and margin information for a specific
@@ -68,6 +149,10 @@ export enum RevenuePeriod {
  * - materialCosts: Total material costs for all sales in the period (sum of unitCost * quantitySold)
  * - grossMargin: Gross margin for the period (totalRevenue - materialCosts)
  * - grossMarginRate: Gross margin as a percentage (0-100), calculated as (grossMargin / totalRevenue) * 100
+ * - costs.shipping: Shipping cost for the period (sum of monthly shipping costs)
+ * - indirectCosts: Indirect costs object with predefined lines (marketing, overhead)
+ * - netResult: Net result for the period (grossMargin - totalIndirectCosts)
+ * - netMarginRate: Net margin as a percentage (0-100), calculated as (netResult / totalRevenue) * 100
  *
  * Revenue calculation:
  * - totalRevenue = sum of all SALE activity amounts in the period
@@ -87,6 +172,29 @@ export enum RevenuePeriod {
  * - If totalRevenue = 0: grossMarginRate = 0 (prevents division by zero)
  * - Expressed as a percentage (0-100)
  *
+ * Shipping costs calculation:
+ * - costs.shipping = sum of monthly shipping costs for all months in the period
+ * - Shipping costs are entered manually per month (not per sale)
+ * - For MONTH period: single month's shipping cost
+ * - For QUARTER/YEAR period: sum of shipping costs across all months in the period
+ *
+ * Indirect costs calculation:
+ * - indirectCosts.marketing = sum of monthly marketing costs for all months in the period
+ * - indirectCosts.overhead = sum of monthly overhead costs for all months in the period
+ * - Total indirect costs = indirectCosts.marketing + indirectCosts.overhead
+ * - Indirect costs are entered manually per month (not per sale)
+ *
+ * Net result calculation:
+ * - netResult = grossMargin - totalShippingCost - totalIndirectCosts
+ * - Represents the profit after all costs (material, shipping, indirect)
+ * - totalShippingCost = sum of monthly shipping costs for all months in the period
+ * - totalIndirectCosts = indirectCosts.marketing + indirectCosts.overhead
+ *
+ * Net margin rate calculation:
+ * - If totalRevenue > 0: netMarginRate = (netResult / totalRevenue) * 100
+ * - If totalRevenue = 0: netMarginRate = 0 (prevents division by zero)
+ * - Expressed as a percentage (0-100)
+ *
  * Date fields are stored as ISO 8601 strings (e.g., "2025-01-27T14:00:00.000Z")
  * to ensure compatibility with Supabase responses, React Query serialization,
  * Zustand state persistence, and Next.js server-side hydration.
@@ -98,6 +206,10 @@ export enum RevenuePeriod {
  * @property {number} materialCosts - Total material costs for all sales in the period (sum of unitCost * quantitySold)
  * @property {number} grossMargin - Gross margin for the period (totalRevenue - materialCosts)
  * @property {number} grossMarginRate - Gross margin as a percentage (0-100), calculated as (grossMargin / totalRevenue) * 100
+ * @property {{ shipping: number }} costs - Cost breakdown object containing shipping cost for the period
+ * @property {{ marketing: number; overhead: number }} indirectCosts - Indirect costs object with predefined lines (marketing, overhead)
+ * @property {number} netResult - Net result for the period (grossMargin - totalIndirectCosts)
+ * @property {number} netMarginRate - Net margin as a percentage (0-100), calculated as (netResult / totalRevenue) * 100
  *
  * @example
  * ```typescript
@@ -108,7 +220,16 @@ export enum RevenuePeriod {
  *   totalRevenue: 12500.75,
  *   materialCosts: 6500.50,
  *   grossMargin: 6000.25,
- *   grossMarginRate: 48.0
+ *   grossMarginRate: 48.0,
+ *   costs: {
+ *     shipping: 100.50
+ *   },
+ *   indirectCosts: {
+ *     marketing: 50.25,
+ *     overhead: 75.00
+ *   },
+ *   netResult: 5874.50,
+ *   netMarginRate: 47.0
  * };
  * ```
  */
@@ -120,6 +241,15 @@ export type RevenueData = {
     materialCosts: number;
     grossMargin: number;
     grossMarginRate: number;
+    costs: {
+        shipping: number;
+    };
+    indirectCosts: {
+        marketing: number;
+        overhead: number;
+    };
+    netResult: number;
+    netMarginRate: number;
 };
 
 /**
