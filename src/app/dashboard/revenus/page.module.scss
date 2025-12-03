@@ -1,0 +1,24 @@
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+@use "@/styles/variables/typography" as *;
+
+.revenue {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xl;
+
+    &__header {
+        margin-bottom: $spacing-md;
+    }
+
+    &__title {
+        margin-bottom: $spacing-sm;
+    }
+}
+
+@media (max-width: $breakpoint-mobile) {
+    .revenue {
+        gap: $spacing-lg;
+    }
+}
+

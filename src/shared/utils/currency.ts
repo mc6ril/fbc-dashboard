@@ -33,3 +33,32 @@ export const formatCurrency = (amount: number): string => {
     }).format(amount);
 };
 
+/**
+ * Formats a number as a percentage with 1 decimal place.
+ *
+ * Uses French locale formatting (fr-FR) with % symbol.
+ * Always displays 1 decimal place for consistency.
+ *
+ * @param {number} value - Percentage value to format (e.g., 48.5 for 48.5%)
+ * @returns {string} Formatted percentage string (e.g., "48,5 %")
+ *
+ * @example
+ * ```typescript
+ * formatPercentage(48.5);
+ * // Returns: "48,5 %"
+ *
+ * formatPercentage(0);
+ * // Returns: "0,0 %"
+ *
+ * formatPercentage(100);
+ * // Returns: "100,0 %"
+ * ```
+ */
+export const formatPercentage = (value: number): string => {
+    return new Intl.NumberFormat("fr-FR", {
+        style: "percent",
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+    }).format(value / 100);
+};
+

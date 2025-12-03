@@ -1,0 +1,15 @@
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+
+.periodSelector {
+  margin-bottom: $spacing-lg;
+
+  &__customDates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-md;
+    align-items: flex-start;
+    margin-top: $spacing-md;
+  }
+}
+

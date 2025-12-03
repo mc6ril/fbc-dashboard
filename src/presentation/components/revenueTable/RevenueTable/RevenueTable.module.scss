@@ -1,0 +1,22 @@
+@use "@/styles/variables/colors" as *;
+@use "@/styles/variables/spacing" as *;
+@use "@/styles/variables/typography" as *;
+
+.revenueTable {
+    width: 100%;
+
+    &__state {
+        padding: $spacing-md;
+        text-align: center;
+    }
+
+    &__table {
+        width: 100%;
+    }
+
+    &__rate {
+        color: $color-text-secondary;
+        font-size: $font-size-sm;
+    }
+}
+

@@ -125,6 +125,216 @@ export const getCurrentMonthEnd = (): string => {
 };
 
 /**
+ * Gets the start of the current quarter as an ISO 8601 string.
+ *
+ * Returns the first day of the current quarter at 00:00:00.000 in the browser's
+ * local timezone, formatted as an ISO 8601 string.
+ *
+ * Quarters:
+ * - Q1: January-March (months 0-2)
+ * - Q2: April-June (months 3-5)
+ * - Q3: July-September (months 6-8)
+ * - Q4: October-December (months 9-11)
+ *
+ * The function uses the browser's system timezone to determine the current quarter,
+ * ensuring that "current quarter" is relative to the user's local time.
+ *
+ * @returns {string} ISO 8601 string representing the first day of the current quarter at 00:00:00.000
+ *
+ * @example
+ * ```typescript
+ * // If current date is 2025-02-15 14:30:00 (February, Q1)
+ * const quarterStart = getCurrentQuarterStart();
+ * // Returns: "2025-01-01T00:00:00.000Z" (or equivalent in local timezone)
+ *
+ * // If current date is 2025-05-15 14:30:00 (May, Q2)
+ * const quarterStart = getCurrentQuarterStart();
+ * // Returns: "2025-04-01T00:00:00.000Z" (or equivalent in local timezone)
+ * ```
+ */
+export const getCurrentQuarterStart = (): string => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-indexed (0 = January, 11 = December)
+
+    // Calculate the first month of the current quarter
+    // Q1: months 0-2, Q2: months 3-5, Q3: months 6-8, Q4: months 9-11
+    const quarterStartMonth = Math.floor(month / 3) * 3; // 0, 3, 6, or 9
+
+    // Create date for first day of current quarter at 00:00:00.000
+    const quarterStart = new Date(year, quarterStartMonth, 1, 0, 0, 0, 0);
+
+    // Convert to ISO 8601 string
+    return quarterStart.toISOString();
+};
+
+/**
+ * Gets the end of the current quarter as an ISO 8601 string.
+ *
+ * Returns the last day of the current quarter at 23:59:59.999 in the browser's
+ * local timezone, formatted as an ISO 8601 string.
+ *
+ * Quarters:
+ * - Q1: January-March (ends March 31)
+ * - Q2: April-June (ends June 30)
+ * - Q3: July-September (ends September 30)
+ * - Q4: October-December (ends December 31)
+ *
+ * The function uses the browser's system timezone to determine the current quarter,
+ * ensuring that "current quarter" is relative to the user's local time.
+ *
+ * @returns {string} ISO 8601 string representing the last day of the current quarter at 23:59:59.999
+ *
+ * @example
+ * ```typescript
+ * // If current date is 2025-02-15 14:30:00 (February, Q1)
+ * const quarterEnd = getCurrentQuarterEnd();
+ * // Returns: "2025-03-31T23:59:59.999Z" (or equivalent in local timezone)
+ *
+ * // If current date is 2025-05-15 14:30:00 (May, Q2)
+ * const quarterEnd = getCurrentQuarterEnd();
+ * // Returns: "2025-06-30T23:59:59.999Z" (or equivalent in local timezone)
+ * ```
+ */
+export const getCurrentQuarterEnd = (): string => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-indexed (0 = January, 11 = December)
+
+    // Calculate the first month of the next quarter
+    // Q1: months 0-2, Q2: months 3-5, Q3: months 6-8, Q4: months 9-11
+    const quarterStartMonth = Math.floor(month / 3) * 3; // 0, 3, 6, or 9
+    const nextQuarterStartMonth = quarterStartMonth + 3; // 3, 6, 9, or 12
+
+    // Create date for first day of next quarter at 00:00:00.000
+    // Then subtract 1ms to get the last moment of current quarter
+    const nextQuarter = new Date(year, nextQuarterStartMonth, 1, 0, 0, 0, 0);
+    const quarterEnd = new Date(nextQuarter.getTime() - 1);
+
+    // Set to 23:59:59.999 to ensure we capture the last moment of the quarter
+    quarterEnd.setHours(23, 59, 59, 999);
+
+    // Convert to ISO 8601 string
+    return quarterEnd.toISOString();
+};
+
+/**
+ * Gets the start of the current year as an ISO 8601 string.
+ *
+ * Returns the first day of the current year (January 1st) at 00:00:00.000 in the browser's
+ * local timezone, formatted as an ISO 8601 string.
+ *
+ * The function uses the browser's system timezone to determine the current year,
+ * ensuring that "current year" is relative to the user's local time.
+ *
+ * @returns {string} ISO 8601 string representing January 1st at 00:00:00.000
+ *
+ * @example
+ * ```typescript
+ * // If current date is 2025-06-15 14:30:00
+ * const yearStart = getCurrentYearStart();
+ * // Returns: "2025-01-01T00:00:00.000Z" (or equivalent in local timezone)
+ * ```
+ */
+export const getCurrentYearStart = (): string => {
+    const now = new Date();
+    const year = now.getFullYear();
+
+    // Create date for January 1st at 00:00:00.000
+    const yearStart = new Date(year, 0, 1, 0, 0, 0, 0);
+
+    // Convert to ISO 8601 string
+    return yearStart.toISOString();
+};
+
+/**
+ * Gets the end of the current year as an ISO 8601 string.
+ *
+ * Returns the last day of the current year (December 31st) at 23:59:59.999 in the browser's
+ * local timezone, formatted as an ISO 8601 string.
+ *
+ * The function uses the browser's system timezone to determine the current year,
+ * ensuring that "current year" is relative to the user's local time.
+ *
+ * @returns {string} ISO 8601 string representing December 31st at 23:59:59.999
+ *
+ * @example
+ * ```typescript
+ * // If current date is 2025-06-15 14:30:00
+ * const yearEnd = getCurrentYearEnd();
+ * // Returns: "2025-12-31T23:59:59.999Z" (or equivalent in local timezone)
+ * ```
+ */
+export const getCurrentYearEnd = (): string => {
+    const now = new Date();
+    const year = now.getFullYear();
+
+    // Create date for January 1st of next year at 00:00:00.000
+    // Then subtract 1ms to get the last moment of current year
+    const nextYear = new Date(year + 1, 0, 1, 0, 0, 0, 0);
+    const yearEnd = new Date(nextYear.getTime() - 1);
+
+    // Set to 23:59:59.999 to ensure we capture the last moment of the year
+    yearEnd.setHours(23, 59, 59, 999);
+
+    // Convert to ISO 8601 string
+    return yearEnd.toISOString();
+};
+
+/**
+ * Converts an ISO 8601 date string to HTML date input format (YYYY-MM-DD).
+ *
+ * Extracts the date portion from an ISO 8601 string for use in HTML date inputs.
+ * The function handles both full ISO 8601 format (with time) and date-only format.
+ *
+ * @param {string} isoString - ISO 8601 date string (e.g., "2025-01-27T14:30:00.000Z" or "2025-01-27")
+ * @returns {string} Date string in YYYY-MM-DD format (e.g., "2025-01-27")
+ *
+ * @example
+ * ```typescript
+ * isoToDateInput("2025-01-27T14:30:00.000Z");
+ * // Returns: "2025-01-27"
+ *
+ * isoToDateInput("2025-01-27");
+ * // Returns: "2025-01-27"
+ * ```
+ */
+export const isoToDateInput = (isoString: string): string => {
+    // If already in YYYY-MM-DD format, return as-is
+    const dateOnlyPattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (dateOnlyPattern.test(isoString)) {
+        return isoString;
+    }
+
+    // Extract date portion from ISO 8601 string (YYYY-MM-DDTHH:mm:ss...)
+    return isoString.substring(0, 10);
+};
+
+/**
+ * Converts HTML date input format (YYYY-MM-DD) to ISO 8601 string.
+ *
+ * Converts a date-only string from HTML date inputs to a full ISO 8601 timestamp.
+ * The time is set to the start of the day (00:00:00.000) in the browser's local timezone.
+ *
+ * @param {string} dateInput - Date string in YYYY-MM-DD format (e.g., "2025-01-27")
+ * @returns {string} ISO 8601 string representing the start of the day (e.g., "2025-01-27T00:00:00.000Z")
+ *
+ * @example
+ * ```typescript
+ * dateInputToIso("2025-01-27");
+ * // Returns: "2025-01-27T00:00:00.000Z" (or equivalent in local timezone)
+ * ```
+ */
+export const dateInputToIso = (dateInput: string): string => {
+    // Parse date-only string in local timezone
+    const [year, month, day] = dateInput.split("-").map(Number);
+    const date = new Date(year, month - 1, day, 0, 0, 0, 0);
+
+    // Convert to ISO 8601 string
+    return date.toISOString();
+};
+
+/**
  * Formats a date string to a readable format.
  *
  * Handles both ISO 8601 format (with time) and date-only format (YYYY-MM-DD).

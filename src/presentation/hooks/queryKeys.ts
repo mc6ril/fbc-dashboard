@@ -202,5 +202,33 @@ export const queryKeys = {
                 },
             ] as const,
     },
+
+    /**
+     * Revenue-related query keys.
+     *
+     * Used for caching revenue calculations and financial metrics.
+     */
+    revenue: {
+        /**
+         * Query key for revenue data by period.
+         *
+         * Includes period type and date range for proper cache invalidation.
+         *
+         * @param {string} period - Period type (MONTH, QUARTER, YEAR, CUSTOM)
+         * @param {string} startDate - Start date (ISO 8601 format)
+         * @param {string} endDate - End date (ISO 8601 format)
+         * @returns Query key tuple for revenue data
+         */
+        byPeriod: (period: string, startDate: string, endDate: string) =>
+            [
+                "revenue",
+                "byPeriod",
+                {
+                    period,
+                    startDate,
+                    endDate,
+                },
+            ] as const,
+    },
 } as const;
 

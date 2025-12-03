@@ -47,6 +47,7 @@
     "navbar": {
       "dashboard": "Dashboard",
       "analyses": "Analyses",
+      "revenues": "Revenus",
       "activities": "Activités",
       "catalog": "Catalogue",
       "signOut": "Se déconnecter",
@@ -363,6 +364,32 @@
         "activitiesOverTime": "Activités au fil du temps",
         "marginPerMonth": "Revenu & Marge par mois",
         "topProducts": "Top Produits par Profit"
+      }
+    },
+    "revenue": {
+      "title": "Revenus",
+      "pageTitle": "Revenus - Atelier FBC",
+      "periodSelector": {
+        "label": "Période",
+        "options": {
+          "MONTH": "Mois",
+          "QUARTER": "Trimestre",
+          "YEAR": "Année",
+          "CUSTOM": "Personnalisée"
+        },
+        "customStartDate": "Date de début",
+        "customEndDate": "Date de fin",
+        "dateRangeError": "La date de début doit être antérieure ou égale à la date de fin"
+      },
+      "table": {
+        "caption": "Tableau des revenus",
+        "ariaLabel": "Tableau des revenus pour la période sélectionnée",
+        "sections": {
+          "revenue": "Revenu (Total CA)",
+          "costs": "Coûts (Matériaux)",
+          "grossMargin": "Marge brute"
+        },
+        "grossMarginRate": "Taux de marge brute"
       }
     },
     "auth": {

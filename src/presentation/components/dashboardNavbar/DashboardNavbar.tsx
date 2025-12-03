@@ -24,6 +24,7 @@ const DashboardNavbar = () => {
     () => [
       { href: "/dashboard", labelKey: "dashboard" },
       { href: "/dashboard/analyses", labelKey: "analyses" },
+      { href: "/dashboard/revenus", labelKey: "revenues" },
       { href: "/dashboard/activities", labelKey: "activities" },
       { href: "/dashboard/catalog", labelKey: "catalog" },
     ],
