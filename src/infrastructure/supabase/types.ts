@@ -120,4 +120,30 @@ export type SupabaseActivityPayload = {
     note?: string | null;
 };
 
+/**
+ * Supabase row type for monthly_costs table.
+ * Matches the database schema with snake_case column names.
+ */
+export type SupabaseMonthlyCostRow = {
+    id: string;
+    month: string; // YYYY-MM format
+    shipping_cost: string; // NUMERIC returned as string from Supabase
+    marketing_cost: string; // NUMERIC returned as string from Supabase
+    overhead_cost: string; // NUMERIC returned as string from Supabase
+    created_at: string; // Not in domain, but present in DB
+    updated_at: string; // Not in domain, but present in DB
+};
+
+/**
+ * Supabase insert/update payload type.
+ * Used for creating and updating monthly costs.
+ * All fields are optional to support partial updates.
+ */
+export type SupabaseMonthlyCostPayload = {
+    month?: string;
+    shipping_cost?: number;
+    marketing_cost?: number;
+    overhead_cost?: number;
+};
+
 

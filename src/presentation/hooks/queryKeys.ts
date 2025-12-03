@@ -229,6 +229,61 @@ export const queryKeys = {
                     endDate,
                 },
             ] as const,
+
+        /**
+         * Query key for revenue breakdown by product type.
+         *
+         * Includes date range for proper cache invalidation.
+         *
+         * @param {string} startDate - Start date (ISO 8601 format)
+         * @param {string} endDate - End date (ISO 8601 format)
+         * @returns Query key tuple for revenue by product type
+         */
+        byProductType: (startDate: string, endDate: string) =>
+            [
+                "revenue",
+                "byProductType",
+                {
+                    startDate,
+                    endDate,
+                },
+            ] as const,
+
+        /**
+         * Query key for revenue breakdown by individual product.
+         *
+         * Includes date range for proper cache invalidation.
+         *
+         * @param {string} startDate - Start date (ISO 8601 format)
+         * @param {string} endDate - End date (ISO 8601 format)
+         * @returns Query key tuple for revenue by product
+         */
+        byProduct: (startDate: string, endDate: string) =>
+            [
+                "revenue",
+                "byProduct",
+                {
+                    startDate,
+                    endDate,
+                },
+            ] as const,
+    },
+
+    /**
+     * Cost-related query keys.
+     *
+     * Used for caching monthly cost data.
+     */
+    costs: {
+        /**
+         * Query key for monthly cost by month.
+         *
+         * Includes month (YYYY-MM format) for proper cache invalidation.
+         *
+         * @param {string} month - Month in YYYY-MM format (e.g., "2025-01")
+         * @returns Query key tuple for monthly cost
+         */
+        monthly: (month: string) => ["costs", "monthly", month] as const,
     },
 } as const;
 

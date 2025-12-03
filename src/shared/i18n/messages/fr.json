@@ -384,12 +384,40 @@
       "table": {
         "caption": "Tableau des revenus",
         "ariaLabel": "Tableau des revenus pour la période sélectionnée",
+        "columns": {
+          "section": "Section",
+          "value": "Montant",
+          "rate": "Taux"
+        },
         "sections": {
           "revenue": "Revenu (Total CA)",
+          "revenueByProductType": "CA par type de produit",
+          "revenueByProduct": "CA par produit",
           "costs": "Coûts (Matériaux)",
-          "grossMargin": "Marge brute"
+          "grossMargin": "Marge brute",
+          "shippingCost": "Coût d'expédition",
+          "indirectCosts": "Coûts indirects",
+          "marketingCost": "Marketing",
+          "overheadCost": "Frais généraux",
+          "netResult": "Résultat net"
         },
-        "grossMarginRate": "Taux de marge brute"
+        "grossMarginRate": "Taux de marge brute",
+        "expandRow": "Développer la ligne pour voir le détail",
+        "collapseRow": "Réduire la ligne",
+        "errorLoadingBreakdown": "Erreur lors du chargement du détail",
+        "noBreakdownData": "Aucune donnée disponible",
+        "sales": "ventes"
+      },
+      "costInput": {
+        "helper": "Entrez le montant en euros (ex: 100.50)",
+        "saveButtonAria": "Enregistrer le coût",
+        "saveSuccess": "Coût enregistré avec succès",
+        "error": {
+          "required": "Ce champ est requis",
+          "invalidNumber": "Veuillez entrer un nombre valide",
+          "negative": "Le montant doit être supérieur ou égal à 0",
+          "saveFailed": "Erreur lors de l'enregistrement du coût"
+        }
       }
     },
     "auth": {

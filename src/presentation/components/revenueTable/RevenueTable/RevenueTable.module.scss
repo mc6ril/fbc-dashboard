@@ -12,6 +12,62 @@
 
     &__table {
         width: 100%;
+        border-collapse: collapse;
+    }
+
+    &__caption {
+        font-size: $font-size-lg;
+        font-weight: $font-weight-semibold;
+        text-align: left;
+        padding: $spacing-md 0;
+        caption-side: top;
+    }
+
+    &__thead {
+        border-bottom: 2px solid $color-border;
+    }
+
+    &__header {
+        padding: $spacing-sm $spacing-md;
+        text-align: left;
+        font-size: $font-size-sm;
+        font-weight: $font-weight-semibold;
+        color: $color-text-secondary;
+    }
+
+    &__tbody {
+        // Table body styles
+    }
+
+    &__row {
+        border-bottom: 1px solid $color-border-light;
+
+        &:last-child {
+            border-bottom: none;
+        }
+    }
+
+    &__rowHeader {
+        padding: $spacing-md;
+        text-align: left;
+        font-weight: $font-weight-medium;
+        color: $color-text-primary;
+    }
+
+    &__cell {
+        padding: $spacing-md;
+        text-align: right;
+        color: $color-text-primary;
+    }
+
+    &__multiMonthCosts {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-md;
+    }
+
+    &__costInput {
+        // Additional styles for cost inputs within the table
     }
 
     &__rate {

@@ -23,18 +23,21 @@
 
 import type { ActivityRepository } from "@/core/ports/activityRepository";
 import type { ProductRepository } from "@/core/ports/productRepository";
+import type { CostRepository } from "@/core/ports/costRepository";
 import { ActivityType } from "@/core/domain/activity";
 import { RevenuePeriod } from "@/core/domain/revenue";
 import { computeRevenue } from "@/core/usecases/revenue";
 import { createMockActivity } from "../../../__mocks__/core/domain/activity";
 import { createMockActivityRepository } from "../../../__mocks__/core/ports/activityRepository";
 import { createMockProductRepository } from "../../../__mocks__/core/ports/productRepository";
+import { createMockCostRepository } from "../../../__mocks__/core/ports/costRepository";
 import { createMockProduct } from "../../../__mocks__/core/domain/product";
 import type { ProductId } from "@/core/domain/product";
 
 describe("Revenue Usecases", () => {
     let mockActivityRepo: jest.Mocked<ActivityRepository>;
     let mockProductRepo: jest.Mocked<ProductRepository>;
+    let mockCostRepo: jest.Mocked<CostRepository>;
 
     const productId1 = "550e8400-e29b-41d4-a716-446655440000" as ProductId;
     const productId2 = "660e8400-e29b-41d4-a716-446655440001" as ProductId;
@@ -43,6 +46,9 @@ describe("Revenue Usecases", () => {
         jest.clearAllMocks();
         mockActivityRepo = createMockActivityRepository();
         mockProductRepo = createMockProductRepository();
+        mockCostRepo = createMockCostRepository();
+        // Default mock: return null for all months (no costs)
+        mockCostRepo.getMonthlyCost.mockResolvedValue(null);
     });
 
     describe("computeRevenue", () => {
@@ -86,6 +92,7 @@ describe("Revenue Usecases", () => {
             const result = await computeRevenue(
                 mockActivityRepo,
                 mockProductRepo,
+                mockCostRepo,
                 RevenuePeriod.MONTH,
                 "2025-01-20T00:00:00.000Z",
                 "2025-01-31T23:59:59.999Z"
@@ -134,6 +141,7 @@ describe("Revenue Usecases", () => {
             const result = await computeRevenue(
                 mockActivityRepo,
                 mockProductRepo,
+                mockCostRepo,
                 RevenuePeriod.MONTH,
                 "2025-01-01T00:00:00.000Z",
                 "2025-01-31T23:59:59.999Z"
@@ -166,6 +174,7 @@ describe("Revenue Usecases", () => {
             const result = await computeRevenue(
                 mockActivityRepo,
                 mockProductRepo,
+                mockCostRepo,
                 RevenuePeriod.MONTH,
                 "2025-01-01T00:00:00.000Z",
                 "2025-01-31T23:59:59.999Z"
@@ -201,6 +210,7 @@ describe("Revenue Usecases", () => {
             const result = await computeRevenue(
                 mockActivityRepo,
                 mockProductRepo,
+                mockCostRepo,
                 RevenuePeriod.MONTH,
                 "2025-01-01T00:00:00.000Z",
                 "2025-01-31T23:59:59.999Z"
@@ -226,6 +236,7 @@ describe("Revenue Usecases", () => {
             const result = await computeRevenue(
                 mockActivityRepo,
                 mockProductRepo,
+                mockCostRepo,
                 RevenuePeriod.MONTH,
                 "2025-01-01T00:00:00.000Z",
                 "2025-01-31T23:59:59.999Z"
@@ -256,6 +267,7 @@ describe("Revenue Usecases", () => {
             const result = await computeRevenue(
                 mockActivityRepo,
                 mockProductRepo,
+                mockCostRepo,
                 RevenuePeriod.MONTH,
                 "2025-01-01T00:00:00.000Z",
                 "2025-01-31T23:59:59.999Z"
@@ -311,6 +323,7 @@ describe("Revenue Usecases", () => {
             const result = await computeRevenue(
                 mockActivityRepo,
                 mockProductRepo,
+                mockCostRepo,
                 RevenuePeriod.MONTH,
                 "2025-01-20T00:00:00.000Z",
                 "2025-01-31T23:59:59.999Z"
@@ -352,6 +365,7 @@ describe("Revenue Usecases", () => {
             const result = await computeRevenue(
                 mockActivityRepo,
                 mockProductRepo,
+                mockCostRepo,
                 RevenuePeriod.MONTH,
                 "2025-01-01T00:00:00.000Z",
                 "2025-01-31T23:59:59.999Z"
@@ -374,6 +388,7 @@ describe("Revenue Usecases", () => {
                 computeRevenue(
                     mockActivityRepo,
                     mockProductRepo,
+                    mockCostRepo,
                     RevenuePeriod.MONTH,
                     "invalid-date",
                     "2025-01-31T23:59:59.999Z"
@@ -393,6 +408,7 @@ describe("Revenue Usecases", () => {
                 computeRevenue(
                     mockActivityRepo,
                     mockProductRepo,
+                    mockCostRepo,
                     RevenuePeriod.MONTH,
                     "2025-01-01T00:00:00.000Z",
                     "invalid-date"
@@ -413,6 +429,7 @@ describe("Revenue Usecases", () => {
                 computeRevenue(
                     mockActivityRepo,
                     mockProductRepo,
+                    mockCostRepo,
                     RevenuePeriod.MONTH,
                     "2025-01-01T00:00:00.000Z",
                     "2025-01-31T23:59:59.999Z"
@@ -442,6 +459,7 @@ describe("Revenue Usecases", () => {
             const result = await computeRevenue(
                 mockActivityRepo,
                 mockProductRepo,
+                mockCostRepo,
                 RevenuePeriod.MONTH,
                 "2025-01-01T00:00:00.000Z",
                 "2025-01-31T23:59:59.999Z"
@@ -472,6 +490,7 @@ describe("Revenue Usecases", () => {
             const result = await computeRevenue(
                 mockActivityRepo,
                 mockProductRepo,
+                mockCostRepo,
                 RevenuePeriod.MONTH,
                 "2025-01-01T00:00:00.000Z",
                 "2025-01-31T23:59:59.999Z"
