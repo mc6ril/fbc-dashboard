@@ -270,10 +270,11 @@ export const listActivities = async (
  * the current state (e.g., preventing removal of productId from SALE activities).
  *
  * After updating the activity, this usecase automatically recalculates and updates
- * the product's stock if the quantity or productId changed. The stock update logic:
- * - Recalculates stock from all activities using `computeStockFromActivities`
- *   (this avoids race conditions by using the source of truth instead of incremental updates)
- * - Updates the product stock to match the recalculated value
+ * the product's stock if the quantity, productId, or type changed. The stock update logic:
+ * - Uses the ProductRepository's atomic method `recalculateStockFromActivities` to
+ *   recalculate stock from all activities directly in the database (source of truth)
+ * - Avoids read-modify-write patterns by letting the database perform the full
+ *   recalculation and update in a single atomic operation
  * - If productId changed, both old and new products are recalculated and updated
  * - If stock recalculation fails, the activity update is rolled back to maintain data consistency
  *
@@ -419,37 +420,11 @@ export const updateActivity = async (
                 productsToUpdate.add(updatedActivity.productId);
             }
 
-            // Recalculate stock from all activities for each affected product
-            // This approach avoids race conditions by recalculating from the source of truth
-            // instead of using incremental updates
+            // Recalculate stock from all activities for each affected product using
+            // the atomic repository method. This avoids read-modify-write patterns
+            // and lets the database perform the full recalculation and update.
             for (const productId of productsToUpdate) {
-                const stockMap = await computeStockFromActivities(activityRepo, productId);
-                const newStock = stockMap[productId] || 0;
-                
-                // Update product stock to the recalculated value
-                // Use atomic update to set the exact value (not increment)
-                // Since we're recalculating from all activities, we need to set the absolute value
-                // Get current stock first to calculate the delta
-                const currentProduct = await productRepo.getById(productId);
-                if (!currentProduct) {
-                    throw new Error(`Product with id ${productId} not found`);
-                }
-                
-                // Calculate delta needed to reach the correct stock
-                const stockDelta = newStock - currentProduct.stock;
-                
-                // Log warning if stock would go negative (indicates potential business logic error)
-                // This helps detect issues like selling more than available stock
-                if (newStock < 0) {
-                    console.warn(
-                        `Stock would go negative for product ${productId}: current stock ${currentProduct.stock}, recalculated stock ${newStock}. Stock will be clamped to 0.`
-                    );
-                }
-                
-                // Apply delta using atomic update (handles clamping to 0)
-                if (stockDelta !== 0) {
-                    await productRepo.updateStockAtomically(productId, stockDelta);
-                }
+                await productRepo.recalculateStockFromActivities(productId);
             }
         } catch (error) {
             // If stock update fails, rollback activity update to maintain data consistency

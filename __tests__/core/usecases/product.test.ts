@@ -871,7 +871,7 @@ describe("Product Usecases", () => {
         const productId = "550e8400-e29b-41d4-a716-446655440000" as ProductId;
 
         describe("successful update", () => {
-            it("should update a product with valid updates", async () => {
+            it("should update a product with valid non-stock updates", async () => {
                 // Arrange
                 const existingProduct = createMockProduct({
                     id: productId,
@@ -884,7 +884,6 @@ describe("Product Usecases", () => {
                 });
                 const updates = {
                     salePrice: 24.99,
-                    stock: 150,
                 };
                 const updatedProduct = createMockProduct({
                     ...existingProduct,
@@ -935,7 +934,7 @@ describe("Product Usecases", () => {
                 expect(result.salePrice).toBe(updates.salePrice);
             });
 
-            it("should allow partial updates (only some fields)", async () => {
+            it("should allow partial updates when stock is not present in updates", async () => {
                 // Arrange
                 const existingProduct = createMockProduct({
                     id: productId,
@@ -947,7 +946,7 @@ describe("Product Usecases", () => {
                     stock: 100,
                 });
                 const updates = {
-                    stock: 200, // Only updating stock
+                    name: "Sac banane L'Assumée - Updated",
                 };
                 const updatedProduct = createMockProduct({
                     ...existingProduct,
@@ -961,9 +960,9 @@ describe("Product Usecases", () => {
 
                 // Assert
                 expect(mockRepo.update).toHaveBeenCalledWith(productId, updates);
-                expect(result.stock).toBe(200);
-                expect(result.name).toBe(existingProduct.name); // Unchanged
+                expect(result.name).toBe("Sac banane L'Assumée - Updated");
                 expect(result.salePrice).toBe(existingProduct.salePrice); // Unchanged
+                expect(result.stock).toBe(existingProduct.stock); // Unchanged
             });
 
             it("should update product with weight field", async () => {
@@ -1029,6 +1028,24 @@ describe("Product Usecases", () => {
         });
 
         describe("validation errors", () => {
+            it("should reject any updates containing stock field with clear error", async () => {
+                // Arrange
+                const existingProduct = createMockProduct({
+                    id: productId,
+                    stock: 100,
+                });
+                const updates = {
+                    stock: 150,
+                };
+                mockRepo.getById.mockResolvedValue(existingProduct);
+
+                // Act & Assert
+                await expect(updateProduct(mockRepo, productId, updates)).rejects.toThrow(
+                    "Stock cannot be updated directly. Stock is managed automatically through activities. Use activity creation/update to modify stock levels."
+                );
+                // Repository update must never be called when stock is present
+                expect(mockRepo.update).not.toHaveBeenCalled();
+            });
             it("should throw error if merged product data is invalid", async () => {
                 // Arrange
                 const existingProduct = createMockProduct({
@@ -1112,48 +1129,9 @@ describe("Product Usecases", () => {
                 expect(mockRepo.update).not.toHaveBeenCalled();
             });
 
-            it("should throw error if stock update is negative", async () => {
-                // Arrange
-                const existingProduct = createMockProduct({
-                    id: productId,
-                    stock: 100,
-                });
-                const updates = {
-                    stock: -10, // Invalid: negative stock
-                };
-                mockRepo.getById.mockResolvedValue(existingProduct);
-
-                // Act & Assert
-                await expect(updateProduct(mockRepo, productId, updates)).rejects.toThrow(
-                    "Product validation failed"
-                );
-                expect(mockRepo.getById).toHaveBeenCalledTimes(1);
-                expect(mockRepo.update).not.toHaveBeenCalled();
-            });
-
-            it("should allow zero stock update", async () => {
-                // Arrange
-                const existingProduct = createMockProduct({
-                    id: productId,
-                    stock: 100,
-                });
-                const updates = {
-                    stock: 0, // Valid: zero stock is allowed
-                };
-                const updatedProduct = createMockProduct({
-                    ...existingProduct,
-                    ...updates,
-                });
-                mockRepo.getById.mockResolvedValue(existingProduct);
-                mockRepo.update.mockResolvedValue(updatedProduct);
-
-                // Act
-                const result = await updateProduct(mockRepo, productId, updates);
-
-                // Assert
-                expect(mockRepo.update).toHaveBeenCalledTimes(1);
-                expect(result.stock).toBe(0);
-            });
+            // Stock-specific validation is now enforced by rejecting any presence of `stock`
+            // in updates, so negative/zero stock update cases are covered by the generic
+            // stock rejection test above.
 
             it("should throw error if weight update is provided and negative or zero", async () => {
                 // Arrange

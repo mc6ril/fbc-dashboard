@@ -226,5 +226,36 @@ export interface ProductRepository {
      * ```
      */
     updateStockAtomically(id: ProductId, quantityDelta: number): Promise<number>;
+
+    /**
+     * Recalculate and atomically update product stock from activities.
+     *
+     * This method recalculates the stock for a given product using activities as the
+     * single source of truth. Implementations MUST:
+     * - Sum quantities from all relevant activities for the product
+     *   (CREATION, SALE, STOCK_CORRECTION) while ignoring OTHER types and zero quantities.
+     * - Atomically update the product's stock in the data store based on the recalculated
+     *   value (no read-modify-write patterns).
+     * - Clamp the resulting stock to ensure it never goes below 0.
+     * - Return the new stock value after the update.
+     *
+     * This method is designed to be used when activity data changes (e.g., updateActivity)
+     * and a full resynchronization of stock from activities is required to avoid race
+     * conditions and incremental drift. It complements {@link updateStockAtomically},
+     * which is optimized for incremental updates on activity creation.
+     *
+     * @param {ProductId} id - The unique identifier of the product whose stock should be recalculated
+     * @returns Promise resolving to the new stock value after recalculation and update
+     * @throws {Error} If the product with the given ID does not exist
+     * @throws {Error} If the recalculation or update fails (e.g., database connection error, query error)
+     *
+     * @example
+     * ```typescript
+     * // Recalculate stock from all activities for a product after an activity update
+     * const newStock = await repo.recalculateStockFromActivities(productId);
+     * // Returns: 15 (sum of all CREATION, SALE, STOCK_CORRECTION quantities, clamped to 0 minimum)
+     * ```
+     */
+    recalculateStockFromActivities(id: ProductId): Promise<number>;
 }
 

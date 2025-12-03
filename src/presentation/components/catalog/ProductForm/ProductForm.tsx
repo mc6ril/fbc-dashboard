@@ -36,7 +36,7 @@ type Props = {
     /** Initial values for edit mode */
     initialValues?: ProductFormData;
     /** Callback when form is submitted with valid data */
-    onSubmit: (data: ProductFormData) => void;
+    onSubmit: (data: ProductFormData | Partial<Product>) => void;
     /** Whether form is in loading/submitting state */
     isLoading?: boolean;
 };
@@ -347,18 +347,41 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
                 return;
             }
 
-            const formData: ProductFormData = {
+            const baseData = {
                 modelId,
                 colorisId,
                 unitCost: Number.parseFloat(unitCost),
                 salePrice: Number.parseFloat(salePrice),
-                stock: Number.parseFloat(stock),
                 weight: weight && weight.trim() !== "" ? Number.parseInt(weight, 10) : undefined,
             };
 
-            onSubmit(formData);
+            if (mode === "create") {
+                const formData: ProductFormData = {
+                    ...baseData,
+                    stock: Number.parseFloat(stock),
+                };
+                onSubmit(formData);
+            } else {
+                // In edit mode, stock is managed automatically through activities and
+                // must not be updated directly from the catalog form.
+                const updates: Partial<Product> = {
+                    ...baseData,
+                };
+                onSubmit(updates);
+            }
         },
-        [modelId, colorisId, unitCost, salePrice, stock, weight, validateForm, onSubmit, tProduct]
+        [
+            mode,
+            modelId,
+            colorisId,
+            unitCost,
+            salePrice,
+            stock,
+            weight,
+            validateForm,
+            onSubmit,
+            tProduct,
+        ]
     );
 
     const isDisabled = isLoading || isLoadingModels || isLoadingColoris;
@@ -449,18 +472,20 @@ const ProductFormComponent = ({ mode, initialValues, onSubmit, isLoading = false
                 error={errors.salePrice}
             />
 
-            {/* Stock */}
-            <Input
-                id="product-stock"
-                label={tProductFields("stock.label")}
-                type="number"
-                value={stock}
-                onChange={handleStockChange}
-                placeholder={tProductFields("stock.placeholder")}
-                required
-                disabled={isDisabled}
-                error={errors.stock}
-            />
+            {/* Stock - editable only on creation; in edit mode stock is managed via activities */}
+            {mode === "create" && (
+                <Input
+                    id="product-stock"
+                    label={tProductFields("stock.label")}
+                    type="number"
+                    value={stock}
+                    onChange={handleStockChange}
+                    placeholder={tProductFields("stock.placeholder")}
+                    required
+                    disabled={isDisabled}
+                    error={errors.stock}
+                />
+            )}
 
             {/* Weight (optional) */}
             <Input
