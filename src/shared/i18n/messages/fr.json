@@ -46,7 +46,7 @@
     },
     "navbar": {
       "dashboard": "Dashboard",
-      "stats": "Statistiques",
+      "analyses": "Analyses",
       "activities": "Activités",
       "catalog": "Catalogue",
       "signOut": "Se déconnecter",
@@ -352,6 +352,17 @@
       "cancelAria": "Annuler et retourner à la liste des activités",
       "success": {
         "create": "Activité créée avec succès. Redirection en cours..."
+      }
+    },
+    "analyses": {
+      "title": "Analyses",
+      "pageTitle": "Analyses - Atelier FBC",
+      "description": "Analyse des tendances et anomalies pour les ventes, les activités, et la rentabilité.",
+      "charts": {
+        "salesPerMonth": "Ventes par mois",
+        "activitiesOverTime": "Activités au fil du temps",
+        "marginPerMonth": "Revenu & Marge par mois",
+        "topProducts": "Top Produits par Profit"
       }
     },
     "auth": {
