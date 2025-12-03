@@ -2,7 +2,7 @@
 @use "@/styles/variables/spacing" as *;
 @use "@/styles/variables/typography" as *;
 
-.stats {
+.analyses {
   display: flex;
   flex-direction: column;
   gap: $spacing-xl;
@@ -53,7 +53,7 @@
 }
 
 @media (max-width: $breakpoint-mobile) {
-  .stats {
+  .analyses {
     gap: $spacing-lg;
 
     &__chartLoading {

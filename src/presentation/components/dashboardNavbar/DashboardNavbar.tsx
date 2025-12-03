@@ -23,7 +23,7 @@ const DashboardNavbar = () => {
   const navItems: NavItem[] = useMemo(
     () => [
       { href: "/dashboard", labelKey: "dashboard" },
-      { href: "/dashboard/stats", labelKey: "stats" },
+      { href: "/dashboard/analyses", labelKey: "analyses" },
       { href: "/dashboard/activities", labelKey: "activities" },
       { href: "/dashboard/catalog", labelKey: "catalog" },
     ],

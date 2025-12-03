@@ -34,7 +34,7 @@ describe("DashboardNavbar", () => {
 
     expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Dashboard" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Statistiques" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Analyses" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Activités" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Catalogue" })).toBeInTheDocument();
   });
@@ -48,13 +48,13 @@ describe("DashboardNavbar", () => {
     expect(dashboardLink).toHaveAttribute("aria-current", "page");
   });
 
-  it("sets aria-current='page' for active stats link", () => {
-    mockUsePathname.mockReturnValue("/dashboard/stats");
+  it("sets aria-current='page' for active analyses link", () => {
+    mockUsePathname.mockReturnValue("/dashboard/analyses");
 
     render(<DashboardNavbar />);
 
-    const statsLink = screen.getByRole("link", { name: "Statistiques" });
-    expect(statsLink).toHaveAttribute("aria-current", "page");
+    const analysesLink = screen.getByRole("link", { name: "Analyses" });
+    expect(analysesLink).toHaveAttribute("aria-current", "page");
   });
 
   it("sets aria-current='page' for active activities link", () => {
@@ -76,7 +76,7 @@ describe("DashboardNavbar", () => {
   });
 
   it("does not set aria-current for inactive links", () => {
-    mockUsePathname.mockReturnValue("/dashboard/stats");
+    mockUsePathname.mockReturnValue("/dashboard/analyses");
 
     render(<DashboardNavbar />);
 
@@ -90,7 +90,7 @@ describe("DashboardNavbar", () => {
   });
 
   it("correctly identifies dashboard as active only on exact match", () => {
-    mockUsePathname.mockReturnValue("/dashboard/stats");
+    mockUsePathname.mockReturnValue("/dashboard/analyses");
 
     render(<DashboardNavbar />);
 
@@ -99,12 +99,12 @@ describe("DashboardNavbar", () => {
   });
 
   it("correctly identifies child routes as active using startsWith", () => {
-    mockUsePathname.mockReturnValue("/dashboard/stats/details");
+    mockUsePathname.mockReturnValue("/dashboard/analyses/details");
 
     render(<DashboardNavbar />);
 
-    const statsLink = screen.getByRole("link", { name: "Statistiques" });
-    expect(statsLink).toHaveAttribute("aria-current", "page");
+    const analysesLink = screen.getByRole("link", { name: "Analyses" });
+    expect(analysesLink).toHaveAttribute("aria-current", "page");
   });
 
   it("has proper navigation landmark with aria-label", () => {
@@ -132,24 +132,24 @@ describe("DashboardNavbar", () => {
     render(<DashboardNavbar />);
 
     expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute("href", "/dashboard");
-    expect(screen.getByRole("link", { name: "Statistiques" })).toHaveAttribute("href", "/dashboard/stats");
+    expect(screen.getByRole("link", { name: "Analyses" })).toHaveAttribute("href", "/dashboard/analyses");
     expect(screen.getByRole("link", { name: "Activités" })).toHaveAttribute("href", "/dashboard/activities");
     expect(screen.getByRole("link", { name: "Catalogue" })).toHaveAttribute("href", "/dashboard/catalog");
   });
 
   it("applies active styling to active link (via aria-current)", () => {
-    mockUsePathname.mockReturnValue("/dashboard/stats");
+    mockUsePathname.mockReturnValue("/dashboard/analyses");
 
     render(<DashboardNavbar />);
 
-    const statsLink = screen.getByRole("link", { name: "Statistiques" });
+    const analysesLink = screen.getByRole("link", { name: "Analyses" });
     // Active link should have aria-current="page" which indicates active state
-    expect(statsLink).toHaveAttribute("aria-current", "page");
+    expect(analysesLink).toHaveAttribute("aria-current", "page");
     // The className will be hashed by CSS modules, so we verify via aria-current instead
   });
 
   it("does not apply active styling to inactive links", () => {
-    mockUsePathname.mockReturnValue("/dashboard/stats");
+    mockUsePathname.mockReturnValue("/dashboard/analyses");
 
     render(<DashboardNavbar />);
 
