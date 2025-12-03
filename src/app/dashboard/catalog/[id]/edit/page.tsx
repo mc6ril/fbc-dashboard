@@ -61,7 +61,7 @@ const EditProductPage = () => {
 
     // Handle form submission
     const handleSubmit = React.useCallback(
-        (productData: Omit<Product, "id">) => {
+        (productData: Partial<Product>) => {
             if (!productId) {
                 setErrorMessage(tCatalog("errors.invalidId"));
                 return;

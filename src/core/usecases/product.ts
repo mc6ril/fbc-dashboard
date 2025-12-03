@@ -181,35 +181,6 @@ export const createProduct = async (
 };
 
 /**
- * Validates and updates an existing product.
- *
- * This usecase validates business rules before delegating to the repository:
- * - Retrieves existing product to verify it exists
- * - Merges updates with existing product data
- * - Validates merged product data using domain validation (`isValidProduct`)
- * - Delegates to repository for persistence
- *
- * The function first retrieves the existing product to merge updates with
- * the current state before validation.
- *
- * @param {ProductRepository} repo - Product repository for data persistence
- * @param {ProductId} id - Unique identifier of the product to update
- * @param {Partial<Product>} updates - Partial product object with fields to update
- * @returns {Promise<Product>} Promise resolving to the updated product
- * @throws {Error} If the product with the given ID does not exist
- * @throws {Error} If validation fails (invalid merged data, negative prices, negative stock, invalid weight)
- * @throws {Error} If repository update fails (database error, constraint violation, etc.)
- *
- * @example
- * ```typescript
- * const updates = {
- *   salePrice: 24.99,
- *   stock: 150
- * };
- * const updated = await updateProduct(productRepository, productId, updates);
- * ```
- */
-/**
  * Retrieves a single product by its ID.
  *
  * This usecase retrieves a product from the repository and ensures it exists.
@@ -257,6 +228,8 @@ export const getProductById = async (repo: ProductRepository, id: ProductId): Pr
  * - If only colorisId is updated, verify it belongs to the product's current model
  * - If both modelId and colorisId are updated, verify coloris belongs to the new model
  * - Product must pass domain validation rules
+ * - Stock CANNOT be updated directly via this usecase. Stock is managed automatically
+ *   through activities (creation, sale, stock correction) and atomic stock functions.
  *
  * @param {ProductRepository} repo - Product repository for data persistence
  * @param {ProductId} id - Unique identifier of the product to update
@@ -272,8 +245,7 @@ export const getProductById = async (repo: ProductRepository, id: ProductId): Pr
  * ```typescript
  * // Update price and stock
  * const updates = {
- *   salePrice: 24.99,
- *   stock: 150
+ *   salePrice: 24.99
  * };
  * const updated = await updateProduct(productRepository, productId, updates);
  *
@@ -296,6 +268,15 @@ export const updateProduct = async (
     id: ProductId,
     updates: Partial<Product>
 ): Promise<Product> => {
+    // Prevent direct stock updates via this usecase.
+    // Stock must be managed exclusively through activities and atomic stock functions
+    // to ensure data consistency and avoid race conditions.
+    if (updates.stock !== undefined) {
+        throw new Error(
+            "Stock cannot be updated directly. Stock is managed automatically through activities. Use activity creation/update to modify stock levels."
+        );
+    }
+
     // Retrieve existing product to validate updates against current state
     const existingProduct = await repo.getById(id);
     if (!existingProduct) {

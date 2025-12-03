@@ -669,5 +669,49 @@ export const productRepositorySupabase: ProductRepository = {
         // Parse the returned NUMERIC string to number
         return parseValidNumber(String(data), "stock");
     },
+
+    /**
+     * Recalculate and atomically update product stock from activities.
+     *
+     * Uses a PostgreSQL RPC function to:
+     * - Sum quantities from all relevant activities for the product
+     *   (CREATION, SALE, STOCK_CORRECTION) while ignoring OTHER types and zero quantities.
+     * - Atomically update the product's stock based on the recalculated value.
+     * - Clamp the resulting stock to ensure it never goes below 0.
+     *
+     * This is intended for scenarios where activity data has changed (e.g., activity
+     * updates) and a full resynchronization from activities is required to avoid
+     * race conditions and incremental drift.
+     *
+     * @param {ProductId} id - The unique identifier of the product whose stock should be recalculated
+     * @returns Promise resolving to the new stock value after recalculation and update
+     * @throws {Error} If the product does not exist or recalculation/update fails
+     */
+    recalculateStockFromActivities: async (id: ProductId): Promise<number> => {
+        const { data, error } = await supabaseClient.rpc("recalculate_and_update_stock", {
+            p_product_id: id,
+        });
+
+        if (error) {
+            // Transform Supabase error to domain error
+            if (
+                typeof error === "object" &&
+                error !== null &&
+                "message" in error &&
+                typeof error.message === "string" &&
+                error.message.includes("not found")
+            ) {
+                throw new Error(`Product with id ${id} not found`);
+            }
+            throw transformSupabaseError(error);
+        }
+
+        if (data === null || data === undefined) {
+            throw new Error(`Product with id ${id} not found`);
+        }
+
+        // Parse the returned NUMERIC string to number
+        return parseValidNumber(String(data), "stock");
+    },
 };
 

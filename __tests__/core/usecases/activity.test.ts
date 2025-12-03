@@ -857,26 +857,9 @@ describe("Activity Usecases", () => {
             });
             mockRepo.getById.mockResolvedValue(existingActivity);
             mockRepo.update.mockResolvedValue(updatedActivity);
-            // Mock list() for computeStockFromActivities
-            // Include other activities that contribute to the stock (simulating existing stock of 100)
-            // The updated activity has quantity 15, so total stock should be 100 + (15 - 10) = 105
-            const otherActivity = createMockActivity({
-                id: "other-activity-id" as ActivityId,
-                type: ActivityType.CREATION,
-                productId: existingActivity.productId,
-                quantity: 100, // Existing stock from other activities
-            });
-            mockRepo.list.mockResolvedValue([otherActivity, updatedActivity]);
-            // Mock product for stock recalculation
+            // Mock atomic stock recalculation (no-op implementation, just ensure it is called)
             if (existingActivity.productId) {
-                const mockProduct = createMockProduct({
-                    id: existingActivity.productId,
-                    stock: 100, // Current stock in database
-                });
-                mockProductRepo.getById.mockResolvedValue(mockProduct);
-                // After recalculation: computed stock is 115 (100 from other + 15 from updated)
-                // Delta needed: 115 - 100 = 15
-                mockProductRepo.updateStockAtomically.mockResolvedValue(115);
+                mockProductRepo.recalculateStockFromActivities.mockResolvedValue(115);
             }
 
             // Act
@@ -887,13 +870,9 @@ describe("Activity Usecases", () => {
             expect(mockRepo.getById).toHaveBeenCalledWith(activityId);
             expect(mockRepo.update).toHaveBeenCalledTimes(1);
             expect(mockRepo.update).toHaveBeenCalledWith(activityId, updates);
-            // Should recalculate stock from all activities
-            expect(mockRepo.list).toHaveBeenCalled();
             if (existingActivity.productId) {
-                expect(mockProductRepo.getById).toHaveBeenCalledWith(existingActivity.productId);
-                expect(mockProductRepo.updateStockAtomically).toHaveBeenCalledWith(
-                    existingActivity.productId,
-                    15 // Delta: 115 - 100 = 15
+                expect(mockProductRepo.recalculateStockFromActivities).toHaveBeenCalledWith(
+                    existingActivity.productId
                 );
             }
             expect(result).toEqual(updatedActivity);
@@ -1182,27 +1161,15 @@ describe("Activity Usecases", () => {
             });
             mockRepo.getById.mockResolvedValue(existingActivity);
             mockRepo.update.mockResolvedValue(updatedActivity);
-            // Mock list() for computeStockFromActivities
-            // The updated activity has quantity -10, so computed stock will be -10
-            mockRepo.list.mockResolvedValue([updatedActivity]);
-            // Mock product for stock recalculation
-            const mockProduct = createMockProduct({
-                id: validProductId,
-                stock: 100, // Current stock in database
-            });
-            mockProductRepo.getById.mockResolvedValue(mockProduct);
-            // After recalculation: computed stock is -10 (from updated activity)
-            // Delta needed: -10 - 100 = -110 (but clamped to 0, so actual delta is -100)
-            mockProductRepo.updateStockAtomically.mockResolvedValue(0);
+            // Mock atomic stock recalculation
+            mockProductRepo.recalculateStockFromActivities.mockResolvedValue(0);
 
             // Act
             const result = await updateActivity(mockRepo, mockProductRepo, activityId, updates);
 
             // Assert
             expect(mockRepo.update).toHaveBeenCalledWith(activityId, updates);
-            expect(mockRepo.list).toHaveBeenCalled();
-            expect(mockProductRepo.getById).toHaveBeenCalledWith(validProductId);
-            expect(mockProductRepo.updateStockAtomically).toHaveBeenCalledWith(validProductId, -110); // Delta: -10 - 100 = -110
+            expect(mockProductRepo.recalculateStockFromActivities).toHaveBeenCalledWith(validProductId);
             expect(result).toEqual(updatedActivity);
         });
 
@@ -1225,27 +1192,15 @@ describe("Activity Usecases", () => {
             });
             mockRepo.getById.mockResolvedValue(existingActivity);
             mockRepo.update.mockResolvedValue(updatedActivity);
-            // Mock list() for computeStockFromActivities
-            // The updated activity has quantity -5, so computed stock will be -5
-            mockRepo.list.mockResolvedValue([updatedActivity]);
-            // Mock product for stock recalculation
-            const mockProduct = createMockProduct({
-                id: validProductId,
-                stock: 100, // Current stock in database
-            });
-            mockProductRepo.getById.mockResolvedValue(mockProduct);
-            // After recalculation: computed stock is -5 (from updated activity)
-            // Delta needed: -5 - 100 = -105 (but clamped to 0, so actual delta is -100)
-            mockProductRepo.updateStockAtomically.mockResolvedValue(0);
+            // Mock atomic stock recalculation
+            mockProductRepo.recalculateStockFromActivities.mockResolvedValue(0);
 
             // Act
             const result = await updateActivity(mockRepo, mockProductRepo, activityId, updates);
 
             // Assert
             expect(mockRepo.update).toHaveBeenCalledWith(activityId, updates);
-            expect(mockRepo.list).toHaveBeenCalled();
-            expect(mockProductRepo.getById).toHaveBeenCalledWith(validProductId);
-            expect(mockProductRepo.updateStockAtomically).toHaveBeenCalledWith(validProductId, -105); // Delta: -5 - 100 = -105
+            expect(mockProductRepo.recalculateStockFromActivities).toHaveBeenCalledWith(validProductId);
             expect(result).toEqual(updatedActivity);
         });
 
@@ -1266,28 +1221,16 @@ describe("Activity Usecases", () => {
             });
             mockRepo.getById.mockResolvedValue(existingActivity);
             mockRepo.update.mockResolvedValue(updatedActivity);
-            // Mock list() for computeStockFromActivities (no activities for this product after removal)
-            // When productId is removed, computeStockFromActivities with this productId returns empty map
-            mockRepo.list.mockResolvedValue([]);
-            // Mock product for stock recalculation
-            const mockProduct = createMockProduct({
-                id: validProductId,
-                stock: 100, // Current stock in database
-            });
-            mockProductRepo.getById.mockResolvedValue(mockProduct);
-            // After recalculation: computed stock is 0 (no activities for this product)
-            // Delta needed: 0 - 100 = -100
-            mockProductRepo.updateStockAtomically.mockResolvedValue(0);
+            // Mock atomic stock recalculation for the old product
+            mockProductRepo.recalculateStockFromActivities.mockResolvedValue(0);
 
             // Act
             const result = await updateActivity(mockRepo, mockProductRepo, activityId, updates);
 
             // Assert
             expect(mockRepo.update).toHaveBeenCalledWith(activityId, updates);
-            // Should recalculate stock from all activities (none for this product after removal)
-            expect(mockRepo.list).toHaveBeenCalled();
-            expect(mockProductRepo.getById).toHaveBeenCalledWith(validProductId);
-            expect(mockProductRepo.updateStockAtomically).toHaveBeenCalledWith(validProductId, -100); // Delta: 0 - 100 = -100
+            // Should trigger atomic stock recalculation for the old product
+            expect(mockProductRepo.recalculateStockFromActivities).toHaveBeenCalledWith(validProductId);
             expect(result).toEqual(updatedActivity);
         });
     });

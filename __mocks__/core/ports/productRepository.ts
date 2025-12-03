@@ -38,8 +38,9 @@ export const createMockProductRepository = (): jest.Mocked<ProductRepository> =>
         listModelsByType: jest.fn(),
         listColorisByModel: jest.fn(),
         getModelById: jest.fn(),
-    getColorisById: jest.fn(),
-    updateStockAtomically: jest.fn(),
-};
+        getColorisById: jest.fn(),
+        updateStockAtomically: jest.fn(),
+        recalculateStockFromActivities: jest.fn(),
+    };
 };
 
